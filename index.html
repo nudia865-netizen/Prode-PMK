@@ -342,6 +342,20 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
+  <!-- DESPLEGABLE: RESUMEN -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSeccion('sec-resumen','chev-resumen')">
+      <div class="fh-left" style="font-size:15px;font-weight:700">📋 Resumen</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pub-res-fecha-sel" onchange="renderPubResumen()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev" id="chev-resumen">▶</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-resumen">
+      <div id="pub-resumen-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
+
   <!-- DESPLEGABLE: POR PERSONA -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSeccion('sec-personas','chev-personas')">
@@ -1138,6 +1152,7 @@ function toggleSeccion(bodyId, chevId){
 function renderPubAll(){
   renderPozoPubMain();
   renderPubPartidos();
+  renderPubResumen();
   renderPubPersonas();
   renderTablaPublica();
 }
@@ -1258,7 +1273,83 @@ function renderPubPartidos(){
   }).join('');
 }
 
-function renderPubPersonas(){
+function renderPubResumen(){
+  const cont = document.getElementById('pub-resumen-content');
+  const sel  = document.getElementById('pub-res-fecha-sel');
+  if(!cont || !sel) return;
+  const fechas = getFechas(); const curVal = sel.value;
+  sel.innerHTML = '<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  if(!partidos.length||!participantes.length){ cont.innerHTML='<p class="empty">Sin datos aún.</p>'; return; }
+  const ps = sel.value==='todas' ? partidos : partidos.filter(p=>p.fecha===sel.value);
+  // Solo mostramos partidos cerrados en el resumen público
+  const psCerrados = ps.filter(p=>p.estado==='cerrada');
+  if(!psCerrados.length){ cont.innerHTML='<p class="empty">No hay fechas cerradas todavía.</p>'; return; }
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(psCerrados,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked = addRanks(sorted, noPrizeSet);
+  // Iniciales únicas: si hay colisión, agregar segunda letra
+  const initMap = {};
+  ranked.forEach(s=>{
+    const words = s.nombre.trim().split(/\s+/);
+    let ini = (words[0]?.[0]||'').toUpperCase();
+    if(words[1]) ini += words[1][0].toUpperCase();
+    else ini += (words[0]?.[1]||'').toUpperCase();
+    initMap[s.nombre] = ini;
+  });
+  // Si hay colisiones, usar hasta 3 letras
+  const counts = {};
+  Object.values(initMap).forEach(v=>{ counts[v]=(counts[v]||0)+1; });
+  Object.keys(initMap).forEach(nombre=>{
+    if(counts[initMap[nombre]]>1){
+      const w = nombre.trim().split(/\s+/);
+      initMap[nombre] = (w[0]?.slice(0,2)||'').toUpperCase() + (w[1]?.[0]||'').toUpperCase();
+    }
+  });
+  const th=`padding:8px 10px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:nowrap;`;
+  const tdB=`padding:8px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;`;
+  const hCells = ranked.map(s=>{
+    const medal = s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'';
+    const sinCuota = noPrizeSet.has(s.nombre);
+    return `<th style="${th}" title="${s.nombre}">${medal}${initMap[s.nombre]}${sinCuota?'<span style="color:var(--text3)">*</span>':''}<br><span style="font-size:15px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`;
+  }).join('');
+  const rows = psCerrados.map(p=>{
+    const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
+    const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
+    const pCells=ranked.map(s=>{
+      const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
+      const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
+      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
+      const ptsBadge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
+      return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${ptsBadge}</td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:160px">
+        ${p.grupo?`<span class="badge b-group" style="margin-right:4px">G-${p.grupo}</span>`:''}${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}
+        ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
+      </td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>
+      ${pCells}
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:500px">
+      <thead><tr style="background:var(--bg2)">
+        <th style="padding:8px 12px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th>
+        <th style="${th}">Real</th>${hCells}
+      </tr></thead>
+      <tbody style="background:var(--bg)">${rows}</tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:.75rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(74,222,128,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
+    <span style="color:var(--text3)">Pasá el cursor por las iniciales para ver el nombre completo.</span>
+  </div>`;
+}
+
+
   const cont = document.getElementById('personas-content');
   const sel  = document.getElementById('per-fecha-sel');
   const fechas = getFechas(); const curVal = sel.value;
