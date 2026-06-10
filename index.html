@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prode PMK — Mundial</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#181c27;--bg3:#1f2435;--border:rgba(255,255,255,0.08);--text:#e8eaf0;--text2:#8b90a0;--text3:#555a6b;--accent:#4ade80;--accent2:#22c55e;--red:#f87171;--blue:#60a5fa;--radius:10px;--radius-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent);white-space:nowrap}
+.logo span{color:var(--text2)}
+.hnav{display:flex;gap:2px;overflow-x:auto}
+.hnav a{font-size:13px;padding:6px 12px;border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.hnav a:hover,.hnav a.active{background:var(--bg3);color:var(--text)}
+.hright{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0}
+.btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:7px 14px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#0a0f0a}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--text2);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(248,113,113,.25)}.btn-danger:hover{background:rgba(248,113,113,.1)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-rule{background:rgba(96,165,250,.1);color:#93c5fd;border:1px solid rgba(96,165,250,.2)}.btn-rule:hover{background:rgba(96,165,250,.2)}
+.sync-st{font-size:11px;padding:4px 10px;border-radius:var(--radius-sm)}
+.sync-ok{background:rgba(74,222,128,.1);color:#86efac}
+.sync-err{background:rgba(248,113,113,.1);color:#fca5a5}
+.sync-ing{background:rgba(251,191,36,.1);color:#fde68a}
+.sync-none{background:var(--bg3);color:var(--text2)}
+.page{display:none;padding:2rem;max-width:1100px;margin:0 auto}
+.page.active{display:block}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1.75rem;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s}
+.tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-sec{display:none}.tab-sec.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:.75rem}
+.card-title{font-size:14px;font-weight:600;margin-bottom:1rem}
+.frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.frow label{font-size:12px;color:var(--text2);min-width:72px}
+input[type=text],input[type=number],input[type=password],input[type=datetime-local],select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:6px 10px;outline:none;font-family:'Inter',sans-serif;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--accent)}
+input[type=number]{width:56px;text-align:center}
+select option{background:var(--bg2)}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.b-exact{background:rgba(96,165,250,.15);color:#93c5fd}
+.b-win{background:rgba(74,222,128,.12);color:#86efac}
+.b-zero{background:rgba(248,113,113,.12);color:#fca5a5}
+.b-gray{background:var(--bg3);color:var(--text2)}
+.b-open{background:rgba(74,222,128,.12);color:#86efac}
+.b-closed{background:rgba(248,113,113,.12);color:#fca5a5}
+.b-group{background:rgba(251,191,36,.12);color:#fde68a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 10px}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
+.info-box{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:12px;color:#93c5fd;margin-bottom:1rem;line-height:1.6}
+.warn-box{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:12px;color:#fde68a;margin-bottom:1rem;line-height:1.6}
+.fhdr{font-size:12px;font-weight:600;color:var(--text2);margin:1.5rem 0 .6rem;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:6px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr.rank-1 td{background:rgba(251,191,36,.05)}
+tr.rank-2 td{background:rgba(148,163,184,.04)}
+tr.rank-3 td{background:rgba(205,127,50,.04)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.875rem 1rem}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.metric-val{font-size:24px;font-weight:600}.metric-val.accent{color:var(--accent)}
+.pron-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:8px}
+.pron-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:var(--radius-sm);padding:6px 10px}
+.pron-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sinp{display:flex;align-items:center;gap:4px}
+.sinp span{color:var(--text3)}
+.pchip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:13px}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.phdr{display:flex;align-items:center;gap:12px;cursor:pointer}
+.pavatar{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--accent);flex-shrink:0}
+.pbody{display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:.75rem}
+.pbody.open{display:block}
+.mrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.mrow:last-child{border-bottom:none}
+.chevron{transition:transform .2s;color:var(--text3);font-size:14px;flex-shrink:0}
+.chevron.open{transform:rotate(90deg)}
+.pozo-box{background:linear-gradient(135deg,rgba(74,222,128,.08),rgba(96,165,250,.05));border:1px solid rgba(74,222,128,.2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.pozo-amount{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;color:var(--accent);margin:6px 0}
+.dist-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dist-item:last-child{border-bottom:none}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-size:13px;opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:rgba(74,222,128,.3);color:var(--accent)}
+.toast.error{border-color:rgba(248,113,113,.3);color:#fca5a5}
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.moverlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:540px;margin:1rem;max-height:90vh;overflow-y:auto}
+.modal h2{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;margin-bottom:.75rem}
+.modal p,.modal li{font-size:13px;color:var(--text2);line-height:1.7}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem}
+.rules-content h3{font-size:14px;font-weight:600;color:var(--accent);margin:1.25rem 0 .5rem}
+.rules-content ul{padding-left:1.25rem;margin-bottom:.5rem}
+.rules-content li{margin-bottom:.35rem}
+.rules-content strong{color:var(--text)}
+.rules-content .disclaimer{font-size:11px;color:var(--text3);margin-top:1.5rem;line-height:1.6;font-style:italic}
+/* PARTIDOS PUBLIC */
+.match-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.match-teams{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.match-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--accent);min-width:60px;text-align:center}
+.match-score.pending{color:var(--text3);font-size:20px}
+.match-prons{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.pron-chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border-radius:4px;padding:3px 8px;font-size:12px}
+.pron-chip .score{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600}
+.lock-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(96,165,250,.1);color:#93c5fd;border:1px solid rgba(96,165,250,.2);border-radius:4px;font-size:11px;padding:2px 8px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+/* Colapsables públicos */
+.fecha-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:.75rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.5rem;gap:8px}
+.fecha-header:hover{border-color:rgba(255,255,255,.15)}
+.fecha-header .fh-left{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
+.fecha-header .fh-chev{color:var(--text3);font-size:13px;transition:transform .2s;flex-shrink:0}
+.fecha-header .fh-chev.open{transform:rotate(90deg)}
+.fecha-body{display:none;margin-bottom:1rem}.fecha-body.open{display:block}
+/* Pozo público distribución */
+.pozo-dist-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pozo-dist-row:last-child{border-bottom:none}
+@media(max-width:640px){
+  header{padding:0 .75rem}
+  .page{padding:.75rem}
+  .pron-grid{grid-template-columns:1fr}
+  .match-card{padding:.75rem}
+  .match-score{font-size:22px!important}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .hnav a{font-size:12px;padding:5px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="moverlay" id="modal-admin">
+  <div class="modal">
+    <h2>🔑 Acceso Admin</h2>
+    <p style="margin-bottom:1.25rem">Ingresá la contraseña de administrador.</p>
+    <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Contraseña</label>
+    <input type="password" id="admin-pw" placeholder="••••••••" style="width:100%" onkeydown="if(event.key==='Enter')checkAdminPw()">
+    <div id="admin-pw-err" style="font-size:12px;color:#fca5a5;margin-top:6px;display:none"></div>
+    <!-- Master key: se guarda en sessionStorage, nunca en el código -->
+    <div id="mk-section" style="margin-top:1rem;display:none">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Master Key JSONBin <span style="color:var(--text3)">(se guarda solo en esta sesión)</span></label>
+      <input type="password" id="admin-mk" placeholder="$2a$10$..." style="width:100%;font-size:12px">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Esta clave nunca se graba en el código. Se borra al cerrar la pestaña.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-admin')">Cancelar</button>
+      <button class="btn btn-primary" onclick="checkAdminPw()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- RULES MODAL -->
+<div class="moverlay" id="modal-rules">
+  <div class="modal">
+    <h2>📋 Reglas del Prode</h2>
+    <div class="rules-content">
+      <p style="margin-bottom:.75rem;color:var(--text)">Bienvenidos al <strong>Concurso de Pronósticos Deportivos</strong>, una actividad para poner a prueba cuánto sabés de fútbol y meterle más emoción a cada partido.</p>
+      <h3>Modalidad</h3>
+      <ul>
+        <li>En cada fecha se seleccionarán partidos relevantes del mundial (10-15 de 24).</li>
+        <li>Los participantes deberán cargar sus pronósticos <strong>antes del inicio de la fecha</strong>.</li>
+        <li>Una vez comenzada la fecha, <strong>no se permiten cambios</strong> en los pronósticos ya ingresados.</li>
+      </ul>
+      <h3>Sistema de puntuación</h3>
+      <ul>
+        <li>Resultado exacto con goles: <strong>3 puntos</strong></li>
+        <li>Acierto de ganador o empate (sin resultado exacto): <strong>1 punto</strong></li>
+        <li>Resultado incorrecto: <strong>0 puntos</strong></li>
+      </ul>
+      <h3>Plazos</h3>
+      <ul>
+        <li>Los pronósticos deberán cargarse <strong>antes del inicio de cada fecha</strong>.</li>
+        <li>En caso de ingresar con la fecha ya comenzada, solo se asignará <strong>0 puntos</strong> a los partidos ya iniciados o finalizados.</li>
+      </ul>
+      <h3>Participación</h3>
+      <ul>
+        <li>Puede participar <strong>cualquier persona de PMK</strong>.</li>
+        <li>Cada participante podrá tener <strong>hasta un máximo de 2 prodes</strong>.</li>
+        <li>En caso de participación con ayuda de un familiar, el prode será registrado <strong>a nombre del participante de PMK</strong>.</li>
+      </ul>
+      <h3>Condiciones Generales</h3>
+      <ul>
+        <li>La cuota de participación será de <strong>$5.000</strong> (aplicable únicamente a quienes opten por participar del pozo).</li>
+        <li>En caso de igualdad de puntos, <strong>los participantes compartirán el mismo puesto</strong>.</li>
+        <li>No se aplicarán criterios de desempate adicionales.</li>
+      </ul>
+      <h3>Ganadores y distribución</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:.5rem">Los porcentajes aplican sobre el pozo principal (excluyendo el Súper Pozo):</p>
+      <ul>
+        <li><strong>Menos de 10 participantes:</strong> 1° → 100%</li>
+        <li><strong>Entre 10 y 20 participantes:</strong> 1° → 75% | 2° → 25%</li>
+        <li><strong>Más de 20 participantes:</strong> 1° → 70% | 2° → 20% | 3° → 10%</li>
+      </ul>
+      <h3>Súper Pozo (Acumulado)</h3>
+      <ul>
+        <li>Se destinan <strong>$1.000</strong> de cada cuota para el Súper Pozo.</li>
+        <li>Es independiente del premio principal.</li>
+        <li>Se lleva una tabla general acumulada de todas las fechas.</li>
+        <li>Al finalizar el torneo, el participante con <strong>mayor cantidad de puntos totales</strong> gana el premio.</li>
+        <li>En caso de empate, los participantes <strong>comparten el premio</strong>.</li>
+      </ul>
+      <div class="disclaimer">* Actividad recreativa entre participantes. PMK no organiza ni se responsabiliza por los pronósticos ni por eventuales intercambios entre los mismos. Participación voluntaria. Apostar puede ser perjudicial para la salud.<br>** El Súper Pozo se distribuye por separado según su propia modalidad.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-rules')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">PRODE <span>PMK</span></div>
+  <nav class="hnav" id="main-nav">
+    <a id="nav-admin" onclick="showPage('admin',this)" style="display:none">⚙️ Admin</a>
+    <a id="nav-pub" class="active" onclick="showPage('partidos-pub',this)">🏆 Prode</a>
+  </nav>
+  <div class="hright">
+    <button class="btn btn-rule btn-sm" onclick="openModal('modal-rules')">📋 Reglas</button>
+    <div class="sync-st sync-none" id="sync-status" style="display:none">Sin nube</div>
+    <button class="btn btn-ghost btn-sm" id="btn-csv" onclick="exportCSV()" style="display:none">↓ CSV</button>
+    <button class="btn btn-primary btn-sm" id="btn-save" onclick="syncCloud(true)" style="display:none">☁ Guardar</button>
+    <button class="btn btn-ghost btn-sm" id="btn-logout" onclick="adminLogout()" style="display:none">🔓 Salir</button>
+    <button class="btn btn-ghost btn-sm" id="btn-login" onclick="openModal('modal-admin')">🔑 Admin</button>
+  </div>
+</header>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page" style="display:none">
+  <div class="tabs" id="admin-tabs">
+    <button class="tab active" onclick="showTab('partidos')">Partidos</button>
+    <button class="tab" onclick="showTab('participantes')">Participantes</button>
+    <button class="tab" onclick="showTab('pronosticos')">Pronósticos</button>
+    <button class="tab" onclick="showTab('resultados')">Resultados</button>
+    <button class="tab" onclick="showTab('resumen')">📋 Resumen</button>
+    <button class="tab" onclick="showTab('tabla')">Tabla</button>
+    <button class="tab" onclick="showTab('pozo')">Pozo</button>
+  </div>
+
+  <!-- PARTIDOS -->
+  <div id="tab-partidos" class="tab-sec active">
+    <div class="card">
+      <div class="card-title">Agregar partido</div>
+      <div class="frow">
+        <label>Fecha / Ronda</label>
+        <input type="text" id="p-fecha" placeholder="Ej: Fecha 1" style="width:110px">
+        <label>Grupo</label>
+        <input type="text" id="p-grupo" placeholder="A" style="width:52px;text-align:center;text-transform:uppercase" maxlength="2">
+      </div>
+      <div class="frow">
+        <label>Local</label><input type="text" id="p-local" placeholder="Equipo local" style="width:140px">
+        <label>Visitante</label><input type="text" id="p-visit" placeholder="Equipo visitante" style="width:140px">
+      </div>
+      <div class="frow">
+        <label>Fecha y hora</label>
+        <input type="datetime-local" id="p-dt" style="width:200px">
+      </div>
+      <div class="frow">
+        <label>Estado</label>
+        <select id="p-estado">
+          <option value="abierta">Abierta — acepta pronósticos</option>
+          <option value="cerrada">Cerrada — sin cambios</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="addPartido()">+ Agregar partido</button>
+    </div>
+    <div id="lista-partidos"><p class="empty">No hay partidos cargados aún.</p></div>
+  </div>
+
+  <!-- PARTICIPANTES -->
+  <div id="tab-participantes" class="tab-sec">
+    <div class="card">
+      <div class="card-title">Agregar participante</div>
+      <div class="info-box">Cada participante puede tener hasta 2 prodes. Usá nombres distintos (ej: "Juan" y "Juan B").</div>
+      <div class="frow">
+        <label>Nombre</label><input type="text" id="part-nombre" placeholder="Nombre o apodo" style="width:200px">
+        <label>Cuota</label>
+        <select id="part-cuota"><option value="si">Sí — $5.000</option><option value="no">No (solo juega)</option></select>
+      </div>
+      <button class="btn btn-primary" onclick="addParticipante()">+ Agregar</button>
+    </div>
+    <div id="lista-participantes"><p class="empty">No hay participantes.</p></div>
+  </div>
+
+  <!-- PRONOSTICOS -->
+  <div id="tab-pronosticos" class="tab-sec">
+    <div class="info-box">Las fechas <strong>cerradas</strong> no permiten modificar pronósticos.</div>
+    <div id="pron-sel" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"></div>
+    <div id="pronosticos-content"><p class="empty">Primero cargá partidos y participantes.</p></div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="tab-resultados" class="tab-sec">
+    <div id="resultados-content"><p class="empty">No hay partidos cargados.</p></div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div id="tab-resumen" class="tab-sec">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--text2)">Fecha:</label>
+      <select id="res-fecha-sel" onchange="renderResumen()" style="font-size:13px"><option value="todas">Todas las fechas</option></select>
+    </div>
+    <div id="resumen-content"><p class="empty">Sin datos aún.</p></div>
+  </div>
+
+  <!-- TABLA ADMIN -->
+  <div id="tab-tabla" class="tab-sec">
+    <div class="tabs" id="sub-tabs" style="margin-bottom:1.25rem">
+      <button class="tab active" onclick="setTablaView('fecha',this)">Por fecha</button>
+      <button class="tab" onclick="setTablaView('general',this)">General — Súper Pozo</button>
+    </div>
+    <div id="tabla-content"><p class="empty">Sin datos aún.</p></div>
+  </div>
+
+  <!-- POZO -->
+  <div id="tab-pozo" class="tab-sec">
+    <div id="pozo-content"></div>
+  </div>
+</div>
+
+<!-- PÁGINA PÚBLICA UNIFICADA -->
+<div id="page-partidos-pub" class="page active">
+
+  <!-- Pozo siempre visible -->
+  <div id="pozo-pub-partidos" style="margin-bottom:1rem;display:none"></div>
+
+  <!-- PARTIDOS -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">⚽ Partidos</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pp-fecha-sel" onchange="renderPartidosPublicos()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev open" id="schev-partidos">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body open" id="sec-pub-partidos">
+      <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+    </div>
+  </div>
+
+  <!-- RESUMEN CON INICIALES -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-resumen','schev-resumen')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">📋 Resumen</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pub-res-sel" onchange="renderResumenPub()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev" id="schev-resumen">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-pub-resumen">
+      <div id="resumen-pub-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
+
+  <!-- POR PERSONA -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-personas','schev-personas')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">👤 Por persona</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="per-fecha-sel" onchange="renderPersonas()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev" id="schev-personas">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-pub-personas">
+      <div id="personas-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-tabla','schev-tabla')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">🏆 Tabla</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
+        <span class="fh-chev" id="schev-tabla">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-pub-tabla">
+      <div id="tabla-pub-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- páginas legacy — IDs necesarios para las funciones JS existentes -->
+<div id="page-personas" class="page" style="display:none">
+  <div id="pozo-pub" style="display:none"></div>
+</div>
+<div id="page-tabla-pub" class="page" style="display:none"></div>
+
+<!-- FOOTER -->
+<footer style="margin-top:3rem;border-top:1px solid var(--border);padding:2rem 1.5rem;max-width:1100px;margin-left:auto;margin-right:auto">
+  <!-- Último campeón -->
+  <div style="background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(74,222,128,.06));border:1px solid rgba(251,191,36,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="font-size:32px">🏆</div>
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:3px">Último campeón</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:#fbbf24">Nicolas Herrera</div>
+    </div>
+  </div>
+  <!-- Disclaimer -->
+  <p style="font-size:11px;color:var(--text3);line-height:1.7;font-style:italic">
+    * Actividad recreativa entre participantes de PMK. PMK no organiza ni se responsabiliza por los pronósticos ni por eventuales intercambios entre los mismos. La participación es completamente voluntaria. Apostar puede ser perjudicial para la salud — jugá responsablemente.<br>
+    ** El Súper Pozo se distribuye de forma independiente según su propia modalidad al finalizar el torneo.<br>
+    *** Los resultados, puntajes y posiciones mostrados en esta plataforma son de carácter informativo y pueden no reflejar el estado final oficial hasta el cierre de cada fecha.
+  </p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const JSONBIN    = 'https://api.jsonbin.io/v3';
+const BIN_ID     = '6a28cfa3f5f4af5e29d5a0e8';
+const ACCESS_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2'; // solo lectura, ok en cliente
+
+// Hash SHA-256 de la contraseña admin — generado con: sha256('PrdPMK2026')
+// Para cambiarla: actualizar este hash con el nuevo sha256
+const ADMIN_PW_HASH = '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5'; // placeholder, ver nota abajo
+
+// ── Security helpers ───────────────────────────────────────────────────────
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Bloqueo por intentos fallidos
+const LOCK_KEY   = 'pmk_lock';
+const MAX_TRIES  = 3;
+const LOCK_MS    = 5 * 60 * 1000; // 5 minutos
+
+function getLockInfo(){ try{ return JSON.parse(localStorage.getItem(LOCK_KEY)||'{}'); }catch(e){ return {}; } }
+function isLocked(){
+  const {until} = getLockInfo();
+  return until && Date.now() < until;
+}
+function lockRemaining(){
+  const {until} = getLockInfo();
+  if(!until) return 0;
+  return Math.max(0, Math.ceil((until - Date.now()) / 1000));
+}
+function recordFailedAttempt(){
+  const info = getLockInfo();
+  const tries = (info.tries || 0) + 1;
+  if(tries >= MAX_TRIES){
+    localStorage.setItem(LOCK_KEY, JSON.stringify({tries, until: Date.now() + LOCK_MS}));
+  } else {
+    localStorage.setItem(LOCK_KEY, JSON.stringify({tries}));
+  }
+  return tries;
+}
+function clearLock(){ localStorage.removeItem(LOCK_KEY); }
+
+// Master Key: solo en sessionStorage (se borra al cerrar pestaña)
+function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
+function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
+
+// ── State ──────────────────────────────────────────────────────────────────
+let partidos=[], participantes=[], pronosticos={}, resultados={};
+let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null;
+
+function getState(){ return {partidos, participantes, pronosticos, resultados}; }
+function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; }
+function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
+function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg,type='success'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+type; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ── Sync status ────────────────────────────────────────────────────────────
+function setSyncStatus(s){
+  const el=document.getElementById('sync-status');
+  const m={ok:['sync-ok','✓ Guardado'],ing:['sync-ing','⟳ Sync…'],err:['sync-err','✕ Error'],none:['sync-none','Sin nube']};
+  const [c,t]=m[s]||m.none; el.className='sync-st '+c; el.textContent=t;
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='modal-admin'){
+    // Mostrar sección de master key solo si no está guardada
+    document.getElementById('mk-section').style.display = getMasterKey() ? 'none' : '';
+  }
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── Admin auth ─────────────────────────────────────────────────────────────
+async function checkAdminPw(){
+  const errEl = document.getElementById('admin-pw-err');
+
+  if(isLocked()){
+    errEl.style.display=''; errEl.textContent=`🔒 Demasiados intentos. Esperá ${lockRemaining()}s.`;
+    return;
+  }
+
+  const pw   = document.getElementById('admin-pw').value;
+  const hash = await sha256(pw);
+
+  // Comparamos el hash. Si ADMIN_PW_HASH es el placeholder, usamos la contraseña default hasheada.
+  // Para producción: reemplazá ADMIN_PW_HASH con sha256 de tu contraseña real.
+  const isOk = (hash === ADMIN_PW_HASH) || (ADMIN_PW_HASH === '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5' && pw === 'PrdPMK2026');
+
+  if(isOk){
+    clearLock();
+    adminMode=true; errEl.style.display='none';
+    // Guardar master key si fue ingresada
+    const mk = document.getElementById('admin-mk').value.trim();
+    if(mk) setMasterKey(mk);
+    document.getElementById('admin-pw').value='';
+    document.getElementById('admin-mk').value='';
+    closeModal('modal-admin');
+    applyRole();
+    toast('🔑 Modo admin activado');
+    const navAdmin=document.getElementById('nav-admin');
+    showPage('admin', navAdmin);
+  } else {
+    const tries = recordFailedAttempt();
+    const remaining = MAX_TRIES - tries;
+    if(isLocked()){
+      errEl.style.display=''; errEl.textContent=`🔒 Cuenta bloqueada por ${LOCK_MS/60000} min. Demasiados intentos.`;
+    } else {
+      errEl.style.display=''; errEl.textContent=`❌ Contraseña incorrecta. ${remaining > 0 ? `(${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''})` : ''}`;
+    }
+  }
+}
+
+function adminLogout(){
+  if(!confirm('¿Salir del modo admin?')) return;
+  adminMode=false; applyRole();
+  showPage('partidos-pub', document.getElementById('nav-pub'));
+  toast('Sesión admin cerrada');
+}
+
+function applyRole(){
+  const a=adminMode;
+  document.getElementById('nav-admin').style.display   = a?'':'none';
+  document.getElementById('btn-csv').style.display     = a?'':'none';
+  document.getElementById('btn-save').style.display    = a?'':'none';
+  document.getElementById('sync-status').style.display = a?'':'none';
+  document.getElementById('btn-logout').style.display  = a?'':'none';
+  document.getElementById('btn-login').style.display   = a?'none':'';
+  document.getElementById('page-admin').style.display  = a?'':'none';
+}
+
+// ── Cloud ──────────────────────────────────────────────────────────────────
+async function loadFromCloud(){
+  try{
+    const mk = getMasterKey();
+    const headers = mk ? {'X-Master-Key': mk} : {'X-Access-Key': ACCESS_KEY};
+    const res  = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
+    const data = await res.json();
+    if(data.record){ setState(data.record); saveLocal(); return true; }
+    return false;
+  }catch(e){ return false; }
+}
+
+async function syncCloud(manual=false){
+  const mk = getMasterKey();
+  if(!mk){
+    saveLocal();
+    if(manual) toast('Sin Master Key — guardado solo local. Ingresá la clave al hacer login.','error');
+    return;
+  }
+  setSyncStatus('ing'); saveLocal();
+  try{
+    const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json','X-Master-Key': mk},
+      body: JSON.stringify(getState())
+    });
+    if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
+    else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
+  }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
+}
+
+function persist(){ saveLocal(); clearTimeout(syncTimer); syncTimer=setTimeout(()=>syncCloud(),3000); }
+
+// ── Export CSV ─────────────────────────────────────────────────────────────
+function exportCSV(){
+  const rows=[['Fecha','Grupo','Partido','Fecha/Hora','Participante','Pronóstico','Resultado Real','Puntos']];
+  partidos.forEach(p=>{
+    const r=resultados[p.id]; const rStr=r&&!isNaN(r.gl)?`${r.gl}-${r.gv}`:'';
+    participantes.forEach(part=>{
+      const pr=pronosticos[p.id]&&pronosticos[p.id][part.nombre];
+      const prStr=pr&&!isNaN(pr.gl)?`${pr.gl}-${pr.gv}`:'';
+      const pts=r&&pr?calcPuntos(pr,r)??'':'-';
+      rows.push([p.fecha,p.grupo||'',`${p.local} vs ${p.visitante}`,p.dt||'',part.nombre,prStr,rStr,pts]);
+    });
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})); a.download='prode-pmk.csv'; a.click();
+  toast('✓ CSV exportado');
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.hnav a').forEach(x=>x.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  if(pg){ pg.classList.add('active'); pg.style.display='block'; }
+  if(el) el.classList.add('active');
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); }
+}
+
+function showTab(t){
+  document.querySelectorAll('#admin-tabs .tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo'];
+  document.querySelectorAll('#admin-tabs .tab')[tabs.indexOf(t)].classList.add('active');
+  if(t==='pronosticos') renderPronosticos();
+  if(t==='resultados')  renderResultados();
+  if(t==='resumen')     renderResumen();
+  if(t==='tabla')       renderTabla();
+  if(t==='pozo')        renderPozo();
+}
+
+function setTablaView(v,btn){
+  tablaView=v;
+  document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderTabla();
+}
+
+function getFechas(){ return [...new Set(partidos.map(p=>p.fecha))]; }
+function esc(s){ return String(s).replace(/'/g,"\\'"); }
+function fmtDt(dt){
+  if(!dt) return '';
+  try{
+    const d=new Date(dt);
+    return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return dt; }
+}
+
+function refreshAll(){
+  renderPartidos(); renderParticipantes(); renderPozo();
+  const at=document.querySelector('.tab-sec.active')?.id?.replace('tab-','');
+  if(at==='pronosticos') renderPronosticos();
+  if(at==='resultados')  renderResultados();
+  if(at==='resumen')     renderResumen();
+  if(at==='tabla')       renderTabla();
+  if(document.getElementById('page-partidos-pub').classList.contains('active')){
+    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico();
+  }
+}
+
+// ── Partidos admin ─────────────────────────────────────────────────────────
+function addPartido(){
+  const f=document.getElementById('p-fecha').value.trim();
+  const l=document.getElementById('p-local').value.trim();
+  const v=document.getElementById('p-visit').value.trim();
+  const g=document.getElementById('p-grupo').value.trim().toUpperCase();
+  const dt=document.getElementById('p-dt').value;
+  const e=document.getElementById('p-estado').value;
+  if(!f||!l||!v){ toast('Completá fecha, local y visitante','error'); return; }
+  partidos.push({id:Date.now(),fecha:f,local:l,visitante:v,grupo:g,dt,estado:e});
+  persist(); renderPartidos();
+  document.getElementById('p-local').value=''; document.getElementById('p-visit').value='';
+  document.getElementById('p-grupo').value=''; document.getElementById('p-dt').value='';
+  toast('✓ Partido agregado');
+}
+
+function toggleFecha(fecha){
+  const e=partidos.find(p=>p.fecha===fecha)?.estado;
+  const ne=e==='abierta'?'cerrada':'abierta';
+  partidos.forEach(p=>{ if(p.fecha===fecha) p.estado=ne; });
+  persist(); renderPartidos(); toast(ne==='cerrada'?'🔒 Fecha cerrada':'🔓 Fecha abierta');
+}
+
+function delPartido(id){
+  if(!confirm('¿Borrar este partido?')) return;
+  partidos=partidos.filter(p=>p.id!==id); persist(); renderPartidos(); toast('Partido eliminado');
+}
+
+function renderPartidos(){
+  const cont=document.getElementById('lista-partidos');
+  if(!partidos.length){ cont.innerHTML='<p class="empty">No hay partidos.</p>'; return; }
+  cont.innerHTML=getFechas().map(f=>{
+    const ps=partidos.filter(p=>p.fecha===f);
+    const cerrada=ps[0]?.estado==='cerrada';
+    return `<div class="fhdr">${f}<span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toggleFecha('${esc(f)}')">${cerrada?'🔓 Abrir':'🔒 Cerrar'}</button></div>`+
+    ps.map(p=>`<div class="card" style="padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">${p.local} <span style="color:var(--text3);font-size:12px">vs</span> ${p.visitante}</div>
+        ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="delPartido(${p.id})">✕</button>
+    </div>`).join('');
+  }).join('');
+}
+
+// ── Participantes ──────────────────────────────────────────────────────────
+function addParticipante(){
+  const n=document.getElementById('part-nombre').value.trim();
+  const c=document.getElementById('part-cuota').value;
+  if(!n){ toast('Escribí un nombre','error'); return; }
+  if(participantes.find(p=>p.nombre===n)){ toast('Ya existe ese nombre','error'); return; }
+  participantes.push({nombre:n,cuota:c}); persist(); renderParticipantes();
+  document.getElementById('part-nombre').value=''; toast('✓ Participante agregado');
+}
+
+function delParticipante(n){
+  if(!confirm(`¿Borrar a ${n}?`)) return;
+  participantes=participantes.filter(p=>p.nombre!==n); persist(); renderParticipantes(); toast('Eliminado');
+}
+
+function editParticipante(n){
+  const nuevo=prompt(`Nuevo nombre para "${n}":`,n);
+  if(!nuevo||nuevo===n) return;
+  if(participantes.find(p=>p.nombre===nuevo)){ toast('Ese nombre ya existe','error'); return; }
+  partidos.forEach(p=>{ if(pronosticos[p.id]&&pronosticos[p.id][n]){ pronosticos[p.id][nuevo]=pronosticos[p.id][n]; delete pronosticos[p.id][n]; } });
+  const pt=participantes.find(p=>p.nombre===n); if(pt) pt.nombre=nuevo;
+  persist(); renderParticipantes(); toast('✓ Nombre actualizado');
+}
+
+function toggleCuota(n){
+  const p=participantes.find(x=>x.nombre===n);
+  if(p){ p.cuota=p.cuota==='si'?'no':'si'; persist(); renderParticipantes(); }
+}
+
+function renderParticipantes(){
+  const cont=document.getElementById('lista-participantes');
+  if(!participantes.length){ cont.innerHTML='<p class="empty">No hay participantes.</p>'; return; }
+  const conC=participantes.filter(p=>p.cuota==='si').length;
+  const ppal=conC*5000-conC*1000, sp=conC*1000;
+  cont.innerHTML=`<div class="metrics">
+    <div class="metric"><div class="metric-label">Total</div><div class="metric-val">${participantes.length}</div></div>
+    <div class="metric"><div class="metric-label">Pagan cuota</div><div class="metric-val">${conC}</div></div>
+    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    ${participantes.map(p=>`<div class="pchip">
+      <span style="font-size:15px;font-weight:600;color:var(--accent)">${p.nombre[0].toUpperCase()}</span>
+      <span>${p.nombre}</span>
+      <span class="badge ${p.cuota==='si'?'b-win':'b-gray'}" style="cursor:pointer" onclick="toggleCuota('${esc(p.nombre)}')">$${p.cuota==='si'?'5k':'—'}</span>
+      <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
+      <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Pronósticos ────────────────────────────────────────────────────────────
+function setPron(pid,nombre,glId,gvId){
+  const gl=parseInt(document.getElementById(glId)?.value);
+  const gv=parseInt(document.getElementById(gvId)?.value);
+  if(!pronosticos[pid]) pronosticos[pid]={};
+  if(!isNaN(gl)&&!isNaN(gv)){ pronosticos[pid][nombre]={gl,gv}; persist(); }
+}
+
+function renderPronosticos(){
+  const sel=document.getElementById('pron-sel');
+  const cont=document.getElementById('pronosticos-content');
+  if(!partidos.length||!participantes.length){ sel.innerHTML=''; cont.innerHTML='<p class="empty">Primero cargá partidos y participantes.</p>'; return; }
+  if(pronPersonaSel&&!participantes.find(p=>p.nombre===pronPersonaSel)) pronPersonaSel=null;
+  if(!pronPersonaSel) pronPersonaSel=participantes[0].nombre;
+  sel.innerHTML=participantes.map(p=>{
+    const active=p.nombre===pronPersonaSel;
+    const cargados=partidos.filter(pt=>{ const pr=pronosticos[pt.id]&&pronosticos[pt.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length;
+    return `<button onclick="pronPersonaSel='${esc(p.nombre)}';renderPronosticos()"
+      style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'rgba(74,222,128,.08)':'var(--bg2)'};cursor:pointer;min-width:80px">
+      <span style="font-size:20px;font-weight:700;color:${active?'var(--accent)':'var(--text2)'}">${p.nombre[0].toUpperCase()}</span>
+      <span style="font-size:12px;font-weight:500;color:${active?'var(--text)':'var(--text2)'};max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre}</span>
+      <span style="font-size:11px;color:${cargados===partidos.length?'var(--accent)':'var(--text3)'}">${cargados}/${partidos.length}</span>
+    </button>`;
+  }).join('');
+  const nombre=pronPersonaSel;
+  cont.innerHTML=getFechas().map(f=>{
+    const ps=partidos.filter(p=>p.fecha===f);
+    const cerrada=ps[0]?.estado==='cerrada';
+    return `<div class="fhdr">${f}<span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span></div>`+
+    ps.map(p=>{
+      const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+      const has=pr&&!isNaN(pr.gl);
+      const glId=`gl_${p.id}`, gvId=`gv_${p.id}`;
+      return `<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
+            <span style="font-size:15px;font-weight:600">${p.local} <span style="color:var(--text3);font-weight:400;font-size:13px">vs</span> ${p.visitante}</span>
+          </div>
+          ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="sinp">
+            <input type="number" id="${glId}" min="0" max="20" value="${has?pr.gl:''}" placeholder="—"
+              ${cerrada?'disabled':''} style="width:56px;font-size:18px;font-family:'Barlow Condensed',sans-serif;font-weight:600"
+              onchange="setPron(${p.id},'${esc(nombre)}','${glId}','${gvId}')">
+            <span style="font-size:18px;color:var(--text3)">-</span>
+            <input type="number" id="${gvId}" min="0" max="20" value="${has?pr.gv:''}" placeholder="—"
+              ${cerrada?'disabled':''} style="width:56px;font-size:18px;font-family:'Barlow Condensed',sans-serif;font-weight:600"
+              onchange="setPron(${p.id},'${esc(nombre)}','${glId}','${gvId}')">
+          </div>
+          ${has?`<span class="badge b-exact">✓ ${pr.gl}-${pr.gv}</span>`:`<span class="badge b-gray">Sin cargar</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  }).join('');
+}
+
+// ── Resultados ─────────────────────────────────────────────────────────────
+function setRes(id){
+  const gl=parseInt(document.getElementById(`rgl_${id}`)?.value);
+  const gv=parseInt(document.getElementById(`rgv_${id}`)?.value);
+  if(!isNaN(gl)&&!isNaN(gv)){ resultados[id]={gl,gv}; persist(); }
+}
+
+function renderResultados(){
+  const cont=document.getElementById('resultados-content');
+  if(!partidos.length){ cont.innerHTML='<p class="empty">No hay partidos.</p>'; return; }
+  cont.innerHTML=getFechas().map(f=>`<div class="fhdr">${f}</div>`+
+    partidos.filter(p=>p.fecha===f).map(p=>{
+      const r=resultados[p.id]; const has=r&&!isNaN(r.gl);
+      return `<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
+            <span style="font-size:14px;font-weight:500">${p.local} <span style="color:var(--text3);font-size:12px">vs</span> ${p.visitante}</span>
+          </div>
+          ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
+        </div>
+        <div class="sinp">
+          <input type="number" id="rgl_${p.id}" min="0" max="20" value="${has?r.gl:''}" placeholder="—" style="width:52px" onchange="setRes(${p.id})">
+          <span style="color:var(--text3)">-</span>
+          <input type="number" id="rgv_${p.id}" min="0" max="20" value="${has?r.gv:''}" placeholder="—" style="width:52px" onchange="setRes(${p.id})">
+        </div>
+        ${has?`<span class="badge b-win">✓ ${r.gl}-${r.gv}</span>`:`<span class="badge b-gray">Sin resultado</span>`}
+      </div>`;
+    }).join('')
+  ).join('');
+}
+
+// ── Puntos ─────────────────────────────────────────────────────────────────
+function calcPuntos(pr,r){
+  if(!r||r.gl===undefined||isNaN(r.gl)) return null;
+  if(!pr||pr.gl===undefined||isNaN(pr.gl)) return 0;
+  if(pr.gl===r.gl&&pr.gv===r.gv) return 3;
+  const rG=r.gl>r.gv?'L':r.gl<r.gv?'V':'E';
+  const pG=pr.gl>pr.gv?'L':pr.gl<pr.gv?'V':'E';
+  return rG===pG?1:0;
+}
+
+function getScores(ps,nombre){
+  let pts=0,exactos=0,aciertan=0,jugados=0;
+  ps.forEach(p=>{
+    const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+    const pts2=calcPuntos(pr,r); if(pts2===null) return;
+    jugados++; pts+=pts2; if(pts2===3) exactos++; if(pts2===1) aciertan++;
+  });
+  return {pts,exactos,aciertan,jugados};
+}
+
+function addRanks(scores, noPrizeSet){
+  const np = noPrizeSet || new Set();
+  const eleg = scores.filter(s=>!np.has(s.nombre));
+  const noP  = scores.filter(s=> np.has(s.nombre));
+  let ranked=[],rank=1;
+  eleg.forEach((s,i)=>{ if(i>0&&s.pts<eleg[i-1].pts) rank=i+1; ranked.push({...s,rank}); });
+  noP.forEach(s=>ranked.push({...s,rank:null}));
+  return ranked;
+}
+
+function tableHTML(ranked, noPrizeSet){
+  const np = noPrizeSet || new Set();
+  return `<table><thead><tr><th>#</th><th>Nombre</th><th>Pronóst.</th><th>Exactos</th><th>Aciertos</th><th>Pts</th></tr></thead><tbody>
+  ${ranked.map(s=>{
+    const sinC = np.has(s.nombre);
+    const m = !sinC && (s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'');
+    return `<tr class="${!sinC&&s.rank<=3?'rank-'+s.rank:''}">
+      <td style="color:var(--text3)">${sinC?'—':s.rank}</td>
+      <td style="font-weight:500">${m||''} ${s.nombre}${sinC?'<span style="color:var(--text3);margin-left:3px" title="Juega sin cuota">*</span>':''}</td>
+      <td style="color:var(--text2)">${s.jugados}</td>
+      <td><span class="badge b-exact">${s.exactos}</span></td>
+      <td><span class="badge b-win">${s.aciertan}</span></td>
+      <td style="font-weight:600;font-size:16px;color:var(--accent)">${s.pts}</td>
+    </tr>`;
+  }).join('')}</tbody></table>
+  ${np.size>0?'<div style="font-size:11px;color:var(--text3);margin-top:.5rem">* Juegan sin cuota — no computan para premios.</div>':''}`;
+}
+
+// ── Resumen ────────────────────────────────────────────────────────────────
+function renderResumen(){
+  const cont=document.getElementById('resumen-content');
+  const sel=document.getElementById('res-fecha-sel');
+  const fechas=getFechas(); const curVal=sel.value;
+  sel.innerHTML='<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  if(!partidos.length||!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
+  const ps=sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value);
+  if(!ps.length){ cont.innerHTML='<p class="empty">Sin partidos para esta fecha.</p>'; return; }
+  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos));
+  const th=`padding:8px 10px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:nowrap;`;
+  const tdB=`padding:8px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;`;
+  const hCells=ranked.map(s=>`<th style="${th}">${s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':''}${s.nombre}<br><span style="font-size:15px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`).join('');
+  const rows=ps.map(p=>{
+    const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
+    const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
+    const pCells=ranked.map(s=>{
+      const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
+      const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
+      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
+      const ptsBadge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
+      return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${ptsBadge}</td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:180px">
+        ${p.grupo?`<span class="badge b-group" style="margin-right:4px">G-${p.grupo}</span>`:''}${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}
+        ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
+      </td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>
+      ${pCells}
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:600px">
+      <thead><tr style="background:var(--bg2)">
+        <th style="padding:8px 12px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th>
+        <th style="${th}">Real</th>${hCells}
+      </tr></thead>
+      <tbody style="background:var(--bg)">${rows}</tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(74,222,128,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
+  </div>`;
+}
+
+// ── Tabla Admin ────────────────────────────────────────────────────────────
+function renderTabla(){
+  const cont=document.getElementById('tabla-content');
+  if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
+  if(tablaView==='fecha') renderTablaFecha(cont); else renderTablaGeneral(cont);
+}
+
+function renderTablaFecha(cont){
+  const fechas=getFechas();
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Sin partidos.</p>'; return; }
+  const prevSel=cont.querySelector('#fecha-tab-sel')?.value||fechas[fechas.length-1];
+  let selHtml=`<div style="margin-bottom:1rem"><select id="fecha-tab-sel" onchange="renderTabla()">`;
+  fechas.forEach(f=>{ selHtml+=`<option value="${f}" ${f===prevSel?'selected':''}>${f}</option>`; });
+  selHtml+=`</select></div>`;
+  const ps=partidos.filter(p=>p.fecha===prevSel);
+  const _np6=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np6);
+  const jugados=ps.filter(p=>{ const r=resultados[p.id]; return r&&!isNaN(r.gl); }).length;
+  cont.innerHTML=selHtml+`<div class="metrics">
+    <div class="metric"><div class="metric-label">Jugados</div><div class="metric-val">${jugados}/${ps.length}</div></div>
+    <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${participantes.length}</div></div>
+  </div>`+tableHTML(ranked,_np6);
+}
+
+function renderTablaGeneral(cont){
+  const _np8=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(partidos,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np8);
+  const sp=participantes.filter(p=>p.cuota==='si').length*1000;
+  cont.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
+    <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
+    <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
+  </div>`+tableHTML(ranked,_np8);
+}
+
+// ── Pozo ───────────────────────────────────────────────────────────────────
+function renderPozo(){
+  const cont=document.getElementById('pozo-content');
+  const conC=participantes.filter(p=>p.cuota==='si').length;
+  const total=conC*5000,sp=conC*1000,ppal=total-sp;
+  const n=participantes.length;
+  let dist=n===0?[{pos:'—',pct:'—',monto:'—'}]:n<10?[{pos:'1°',pct:'100%',monto:`$${ppal.toLocaleString('es-AR')}`}]:n<=20?[{pos:'1°',pct:'75%',monto:`$${Math.round(ppal*.75).toLocaleString('es-AR')}`},{pos:'2°',pct:'25%',monto:`$${Math.round(ppal*.25).toLocaleString('es-AR')}`}]:[{pos:'1°',pct:'70%',monto:`$${Math.round(ppal*.7).toLocaleString('es-AR')}`},{pos:'2°',pct:'20%',monto:`$${Math.round(ppal*.2).toLocaleString('es-AR')}`},{pos:'3°',pct:'10%',monto:`$${Math.round(ppal*.1).toLocaleString('es-AR')}`}];
+  cont.innerHTML=`<div class="metrics">
+    <div class="metric"><div class="metric-label">Cuotas</div><div class="metric-val">${conC}</div></div>
+    <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${total.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+  </div>
+  <div class="card"><div class="card-title">Distribución — ${n} participantes</div>
+    ${dist.map(d=>`<div class="dist-item"><span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">${d.monto}</span></div>`).join('')}
+  </div>
+  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo</div>
+    <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
+    <div style="font-size:12px;color:var(--text2)">Premio al líder acumulado al finalizar el torneo. Empate: se divide en partes iguales.</div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:1rem">* Actividad recreativa entre participantes. PMK no organiza ni se responsabiliza. Participación voluntaria. Apostar puede ser perjudicial para la salud.</div>`;
+}
+
+// ── Pozo público ───────────────────────────────────────────────────────────
+function renderPozoPublico(){
+  ['pozo-pub','pozo-pub-partidos'].forEach(id=>{
+    const box=document.getElementById(id);
+    if(!box) return;
+    if(!participantes.length){ box.style.display='none'; return; }
+    box.style.display='';
+    const conC=participantes.filter(p=>p.cuota==='si').length;
+    const total=conC*5000, sp=conC*1000, ppal=total-sp, n=participantes.length;
+    let distRows='';
+    if(n===0){
+      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes aún</span></div>';
+    } else if(n<10){
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
+    } else if(n<=20){
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
+    } else {
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
+    }
+    box.innerHTML=`<div class="metrics" style="margin-bottom:.75rem">
+      <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${n}</div></div>
+      <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+      <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal</div>
+      ${distRows}
+    </div>`;
+  });
+}
+
+// ── Partidos públicos ──────────────────────────────────────────────────────
+// Muestra todos los partidos. En fechas cerradas, muestra pronósticos y resultado.
+// En fechas abiertas, oculta pronósticos para no dar ventaja.
+function renderPartidosPublicos(){
+  const cont = document.getElementById('partidos-pub-content');
+  const sel  = document.getElementById('pp-fecha-sel');
+  const fechas = getFechas();
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f; o.textContent = f;
+    if(f === curVal) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  if(!partidos.length){
+    cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>';
+    return;
+  }
+
+  const ps = sel.value === 'todas' ? partidos : partidos.filter(p => p.fecha === sel.value);
+  if(!ps.length){ cont.innerHTML = '<p class="empty">No hay partidos para esta fecha.</p>'; return; }
+
+  const byFecha = {};
+  ps.forEach(p => { if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
+
+  const fechaKeys = Object.keys(byFecha);
+  cont.innerHTML = fechaKeys.map((fecha, fi) => {
+    const fps = byFecha[fecha];
+    const cerrada = fps[0]?.estado === 'cerrada';
+    const bodyId = `fp-body-${fi}`;
+    const chevId = `fp-chev-${fi}`;
+    const cards = fps.map(p => {
+      const r   = resultados[p.id];
+      const hasR = r && !isNaN(r.gl);
+
+      // Resultado o estado del partido
+      let scoreHtml;
+      if(hasR){
+        scoreHtml = `<div class="match-score">${r.gl}<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>${r.gv}</div>`;
+      } else if(cerrada){
+        scoreHtml = `<div class="match-score pending">vs</div>`;
+      } else {
+        scoreHtml = `<div class="match-score pending" style="font-size:14px">vs</div>`;
+      }
+
+      // Pronósticos — solo visibles cuando la fecha está cerrada
+      let pronsHtml = '';
+      if(cerrada && participantes.length){
+        const chips = participantes.map(part => {
+          const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+          const has = pr && !isNaN(pr.gl);
+          if(!has) return `<span class="pron-chip"><span style="color:var(--text3);font-size:11px">${part.nombre}</span><span class="score" style="color:var(--text3)">—</span></span>`;
+          const pts = calcPuntos(pr, r);
+          const color = pts===3?'#93c5fd':pts===1?'#86efac':pts===0&&hasR?'#fca5a5':'var(--text2)';
+          const medal = pts===3?'🎯':pts===1?'✓':'';
+          return `<span class="pron-chip"><span style="color:var(--text2);font-size:11px">${part.nombre}</span><span class="score" style="color:${color}">${pr.gl}-${pr.gv}</span>${medal?`<span style="font-size:11px">${medal}</span>`:''}</span>`;
+        }).join('');
+        pronsHtml = `<div class="match-prons">${chips}</div>`;
+      } else if(!cerrada){
+        pronsHtml = `<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>`;
+      }
+
+      return `<div class="match-card">
+        <div class="match-teams">
+          ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span>${p.local}</span>
+              ${scoreHtml}
+              <span>${p.visitante}</span>
+            </div>
+            ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
+          </div>
+        </div>
+        ${pronsHtml}
+      </div>`;
+    }).join('');
+
+    const isFirst = fi === 0;
+    return `<div>
+      <div class="fecha-header" onclick="toggleFechaBody('${bodyId}','${chevId}')">
+        <div class="fh-left">
+          <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+          <span>${fecha}</span>
+          <span style="font-size:12px;color:var(--text3);font-weight:400">${fps.length} partido${fps.length!==1?'s':''}</span>
+        </div>
+        <span class="fh-chev${isFirst?' open':''}" id="${chevId}">▶</span>
+      </div>
+      <div class="fecha-body${isFirst?' open':''}" id="${bodyId}">${cards}</div>
+    </div>`;
+  }).join('');
+}
+function toggleFechaBody(bodyId, chevId){
+  document.getElementById(bodyId)?.classList.toggle('open');
+  document.getElementById(chevId)?.classList.toggle('open');
+}
+
+// ── Personas (pública) ─────────────────────────────────────────────────────
+function renderPersonas(){
+  const cont=document.getElementById('personas-content');
+  const sel=document.getElementById('per-fecha-sel');
+  const fechas=getFechas(); const curVal=sel.value;
+  sel.innerHTML='<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  renderPozoPublico();
+  if(!participantes.length){ cont.innerHTML='<p class="empty">Cargá participantes primero.</p>'; return; }
+  const ps=sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value);
+  const psScore=ps.filter(p=>p.estado==='cerrada');
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos.</p>'; return; }
+  const sorted=participantes.map(part=>({part,s:getScores(psScore,part.nombre)})).sort((a,b)=>b.s.pts-a.s.pts||b.s.exactos-a.s.exactos);
+  const medals=['#fbbf24','#94a3b8','#cd7f32'];
+  cont.innerHTML=sorted.map(({part,s},idx)=>{
+    const initials=part.nombre.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    const matchRows=ps.map(p=>{
+      const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][part.nombre];
+      const has=pr&&!isNaN(pr.gl); const hasR=r&&!isNaN(r.gl);
+      const cerrada=p.estado==='cerrada';
+      const pts=cerrada?calcPuntos(pr,r):null;
+      const ptsEl=pts===3?`<span class="badge b-exact">+3</span>`:pts===1?`<span class="badge b-win">+1</span>`:pts===0&&hasR?`<span class="badge b-zero">0</span>`:`<span class="badge b-gray">—</span>`;
+      return `<div class="mrow">
+        <div style="flex:1;font-size:13px">
+          ${p.grupo?`<span class="badge b-group" style="margin-right:4px">G-${p.grupo}</span>`:''}
+          ${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}
+          ${p.dt?`<span style="font-size:11px;color:var(--text3);margin-left:6px">📅 ${fmtDt(p.dt)}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          ${cerrada?`
+            <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Pronóstico</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;color:var(--text2)">${has?pr.gl+'-'+pr.gv:'—'}</div></div>
+            <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Real</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600">${hasR?r.gl+'-'+r.gv:'—'}</div></div>
+            ${ptsEl}
+          `:`<span class="badge b-gray">🔒 Pendiente</span>`}
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="pcard">
+      <div class="phdr" onclick="togglePerson(${idx})">
+        <div class="pavatar" style="${idx<3?`background:rgba(${idx===0?'251,191,36':idx===1?'148,163,184':'205,127,50'},.15);color:${medals[idx]}`:''}">${initials}</div>
+        <div>
+          <div style="font-size:15px;font-weight:600">${idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':''} ${part.nombre}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.exactos} exactos · ${s.aciertan} aciertos</div>
+        </div>
+        <div style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent)">${s.pts} <span style="font-size:13px;font-weight:400;color:var(--text2);font-family:'Inter',sans-serif">pts</span></div>
+        <span class="chevron" id="chev_${idx}">▶</span>
+      </div>
+      <div class="pbody" id="pbody_${idx}">${matchRows}</div>
+    </div>`;
+  }).join('');
+}
+
+function togglePerson(idx){
+  document.getElementById('pbody_'+idx)?.classList.toggle('open');
+  document.getElementById('chev_'+idx)?.classList.toggle('open');
+}
+
+// ── Tabla pública ──────────────────────────────────────────────────────────
+function renderTablaPublica(){
+  const cont=document.getElementById('tabla-pub-content');
+  const sel=document.getElementById('tp-fecha-sel');
+  const cerradas=[...new Set(partidos.filter(p=>p.estado==='cerrada').map(p=>p.fecha))];
+  const curVal=sel.value;
+  sel.innerHTML='<option value="general">General — Súper Pozo</option>';
+  cerradas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
+  if(!cerradas.length){ cont.innerHTML='<p class="empty">Todavía no hay fechas cerradas.</p>'; return; }
+  const esGeneral=sel.value==='general';
+  const ps=esGeneral?partidos.filter(p=>p.estado==='cerrada'):partidos.filter(p=>p.fecha===sel.value&&p.estado==='cerrada');
+  const _npPub=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_npPub);
+  let extra='';
+  if(esGeneral){ const sp=participantes.filter(p=>p.cuota==='si').length*1000; extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
+  cont.innerHTML=extra+tableHTML(ranked,_npPub);
+}
+
+// ── Helpers página pública unificada ──────────────────────────────────────
+function toggleSecPub(bodyId, chevId){
+  document.getElementById(bodyId)?.classList.toggle('open');
+  document.getElementById(chevId)?.classList.toggle('open');
+}
+
+function renderResumenPub(){
+  const cont = document.getElementById('resumen-pub-content');
+  const sel  = document.getElementById('pub-res-sel');
+  if(!cont||!sel) return;
+  const fechas=getFechas(), curVal=sel.value;
+  sel.innerHTML='<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  if(!partidos.length||!participantes.length){ cont.innerHTML='<p class="empty">Sin datos aún.</p>'; return; }
+  const ps = (sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value)).filter(p=>p.estado==='cerrada');
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay fechas cerradas todavía.</p>'; return; }
+
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked = addRanks(sorted, noPrizeSet);
+
+  // Generar iniciales únicas
+  const initMap = {};
+  ranked.forEach(s=>{
+    const w=s.nombre.trim().split(/\s+/);
+    initMap[s.nombre]=(w[0]?.[0]||'').toUpperCase()+(w[1]?.[0]||(w[0]?.[1]||'')).toUpperCase();
+  });
+  // Resolver colisiones
+  const seen={};
+  Object.values(initMap).forEach(v=>seen[v]=(seen[v]||0)+1);
+  Object.keys(initMap).forEach(n=>{
+    if(seen[initMap[n]]>1){
+      const w=n.trim().split(/\s+/);
+      initMap[n]=(w[0]?.slice(0,2)||'').toUpperCase()+(w[1]?.[0]||'').toUpperCase();
+    }
+  });
+
+  const th=`padding:8px 8px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:nowrap;`;
+  const tdB=`padding:7px 8px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;`;
+  const hCells=ranked.map(s=>{
+    const medal=!noPrizeSet.has(s.nombre)&&(s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'');
+    return `<th style="${th}" title="${s.nombre}">${medal||''}${initMap[s.nombre]}${noPrizeSet.has(s.nombre)?'<sup style="color:var(--text3)">*</sup>':''}<br><span style="font-size:14px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`;
+  }).join('');
+  const rows=ps.map(p=>{
+    const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
+    const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
+    const pCells=ranked.map(s=>{
+      const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
+      const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
+      const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
+      const badge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
+      return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">
+        ${p.grupo?`<span class="badge b-group" style="margin-right:4px">G-${p.grupo}</span>`:''}${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}
+        ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
+      </td>
+      <td style="padding:7px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>
+      ${pCells}
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--bg2)">
+        <th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th>
+        <th style="${th}">Real</th>${hCells}
+      </tr></thead>
+      <tbody style="background:var(--bg)">${rows}</tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:.75rem;flex-wrap:wrap;font-size:11px;color:var(--text2)">
+    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:3px"></span>Exacto +3</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,222,128,.15);border-radius:2px;margin-right:3px"></span>Acierto +1</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:3px"></span>Sin puntos</span>
+    <span style="color:var(--text3)">Pasá el cursor por las iniciales para ver el nombre.</span>
+  </div>`;
+}
+
+// ── Generar hash para producción ───────────────────────────────────────────
+// Descomenta esto en la consola para obtener el hash de tu nueva contraseña:
+// sha256('TuNuevaContraseña').then(h => console.log('HASH:', h));
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init(){
+  loadLocal();
+  applyRole();
+  refreshAll();
+  const ok = await loadFromCloud();
+  if(ok){ refreshAll(); setSyncStatus('ok'); }
+  else setSyncStatus('none');
+}
+
+init();
+</script>
+</body>
+</html>
