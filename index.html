@@ -328,17 +328,17 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- Pozo siempre visible -->
   <div id="pozo-pub-partidos" style="margin-bottom:1rem;display:none"></div>
 
-  <!-- PARTIDOS -->
+  <!-- TABLA -->
   <div style="margin-bottom:.5rem">
-    <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
-      <div class="fh-left" style="font-size:14px;font-weight:700">⚽ Partidos</div>
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-tabla','schev-tabla')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">🏆 Tabla</div>
       <div style="display:flex;align-items:center;gap:8px">
-        <select id="pp-fecha-sel" onchange="renderPartidosPublicos()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
-        <span class="fh-chev open" id="schev-partidos">&#9658;</span>
+        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
+        <span class="fh-chev" id="schev-tabla">&#9658;</span>
       </div>
     </div>
-    <div class="fecha-body open" id="sec-pub-partidos">
-      <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+    <div class="fecha-body" id="sec-pub-tabla">
+      <div id="tabla-pub-content"><p class="empty">Sin datos aún.</p></div>
     </div>
   </div>
 
@@ -356,6 +356,20 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
+  <!-- PARTIDOS -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">⚽ Partidos</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pp-fecha-sel" onchange="renderPartidosPublicos()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev open" id="schev-partidos">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body open" id="sec-pub-partidos">
+      <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+    </div>
+  </div>
+
   <!-- POR PERSONA -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-personas','schev-personas')">
@@ -367,20 +381,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
     <div class="fecha-body" id="sec-pub-personas">
       <div id="personas-content"><p class="empty">Sin datos aún.</p></div>
-    </div>
-  </div>
-
-  <!-- TABLA -->
-  <div style="margin-bottom:.5rem">
-    <div class="fecha-header" onclick="toggleSecPub('sec-pub-tabla','schev-tabla')">
-      <div class="fh-left" style="font-size:14px;font-weight:700">🏆 Tabla</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
-        <span class="fh-chev" id="schev-tabla">&#9658;</span>
-      </div>
-    </div>
-    <div class="fecha-body" id="sec-pub-tabla">
-      <div id="tabla-pub-content"><p class="empty">Sin datos aún.</p></div>
     </div>
   </div>
 
