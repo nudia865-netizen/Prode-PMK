@@ -338,7 +338,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
       </div>
     </div>
     <div class="fecha-body open" id="sec-partidos">
-      <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+      <div id="partidos-pub-content"><p class="empty">Cargando...</p></div>
     </div>
   </div>
 
@@ -1468,10 +1468,10 @@ async function init(){
   document.querySelectorAll('.page').forEach(x=>{ x.classList.remove('active'); x.style.display='none'; });
   const pubPage = document.getElementById('page-pub');
   if(pubPage){ pubPage.classList.add('active'); pubPage.style.display='block'; }
-  refreshAll();
+  renderPubAll();
   const ok = await loadFromCloud();
   if(ok){ refreshAll(); setSyncStatus('ok'); }
-  else setSyncStatus('none');
+  else { renderPubAll(); setSyncStatus('none'); }
 }
 
 init();
