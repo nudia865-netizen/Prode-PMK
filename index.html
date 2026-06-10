@@ -111,7 +111,25 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
-@media(max-width:640px){header{padding:0 .75rem}.page{padding:1rem}.pron-grid{grid-template-columns:1fr}}
+/* Colapsables públicos */
+.fecha-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:.75rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.5rem;gap:8px}
+.fecha-header:hover{border-color:rgba(255,255,255,.15)}
+.fecha-header .fh-left{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
+.fecha-header .fh-chev{color:var(--text3);font-size:13px;transition:transform .2s;flex-shrink:0}
+.fecha-header .fh-chev.open{transform:rotate(90deg)}
+.fecha-body{display:none;margin-bottom:1rem}.fecha-body.open{display:block}
+/* Pozo público distribución */
+.pozo-dist-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pozo-dist-row:last-child{border-bottom:none}
+@media(max-width:640px){
+  header{padding:0 .75rem}
+  .page{padding:.75rem}
+  .pron-grid{grid-template-columns:1fr}
+  .match-card{padding:.75rem}
+  .match-score{font-size:22px!important}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .hnav a{font-size:12px;padding:5px 8px}
+}
 </style>
 </head>
 <body>
@@ -308,10 +326,11 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 <!-- PARTIDOS PÚBLICOS -->
 <div id="page-partidos-pub" class="page active">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
     <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700">⚽ Partidos</h2>
     <select id="pp-fecha-sel" onchange="renderPartidosPublicos()" style="font-size:13px"><option value="todas">Todas las fechas</option></select>
   </div>
+  <div id="pozo-pub-partidos" style="margin-bottom:1.25rem;display:none"></div>
   <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
 </div>
 
@@ -930,19 +949,36 @@ function renderPozo(){
 
 // ── Pozo público ───────────────────────────────────────────────────────────
 function renderPozoPublico(){
-  const box=document.getElementById('pozo-pub');
-  if(!box) return;
-  if(!participantes.length){ box.style.display='none'; return; }
-  box.style.display='';
-  const conC=participantes.filter(p=>p.cuota==='si').length;
-  const sp=conC*1000, ppal=conC*5000-sp, n=participantes.length;
-  let distTxt=n<10?'1° → 100%':n<=20?'1° → 75% · 2° → 25%':'1° → 70% · 2° → 20% · 3° → 10%';
-  box.innerHTML=`<div class="metrics">
-    <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${n}</div></div>
-    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Distribución</div><div class="metric-val" style="font-size:13px;margin-top:4px;color:var(--text2)">${distTxt}</div></div>
-  </div>`;
+  ['pozo-pub','pozo-pub-partidos'].forEach(id=>{
+    const box=document.getElementById(id);
+    if(!box) return;
+    if(!participantes.length){ box.style.display='none'; return; }
+    box.style.display='';
+    const conC=participantes.filter(p=>p.cuota==='si').length;
+    const total=conC*5000, sp=conC*1000, ppal=total-sp, n=participantes.length;
+    let distRows='';
+    if(n===0){
+      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes aún</span></div>';
+    } else if(n<10){
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
+    } else if(n<=20){
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
+    } else {
+      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
+      <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
+    }
+    box.innerHTML=`<div class="metrics" style="margin-bottom:.75rem">
+      <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${n}</div></div>
+      <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+      <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal</div>
+      ${distRows}
+    </div>`;
+  });
 }
 
 // ── Partidos públicos ──────────────────────────────────────────────────────
@@ -972,8 +1008,12 @@ function renderPartidosPublicos(){
   const byFecha = {};
   ps.forEach(p => { if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
 
-  cont.innerHTML = Object.entries(byFecha).map(([fecha, fps]) => {
+  const fechaKeys = Object.keys(byFecha);
+  cont.innerHTML = fechaKeys.map((fecha, fi) => {
+    const fps = byFecha[fecha];
     const cerrada = fps[0]?.estado === 'cerrada';
+    const bodyId = `fp-body-${fi}`;
+    const chevId = `fp-chev-${fi}`;
     const cards = fps.map(p => {
       const r   = resultados[p.id];
       const hasR = r && !isNaN(r.gl);
@@ -1021,10 +1061,23 @@ function renderPartidosPublicos(){
       </div>`;
     }).join('');
 
-    return `<div class="fhdr">${fecha}
-      <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
-    </div>${cards}`;
+    const isFirst = fi === 0;
+    return `<div>
+      <div class="fecha-header" onclick="toggleFechaBody('${bodyId}','${chevId}')">
+        <div class="fh-left">
+          <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+          <span>${fecha}</span>
+          <span style="font-size:12px;color:var(--text3);font-weight:400">${fps.length} partido${fps.length!==1?'s':''}</span>
+        </div>
+        <span class="fh-chev${isFirst?' open':''}" id="${chevId}">▶</span>
+      </div>
+      <div class="fecha-body${isFirst?' open':''}" id="${bodyId}">${cards}</div>
+    </div>`;
   }).join('');
+}
+function toggleFechaBody(bodyId, chevId){
+  document.getElementById(bodyId)?.classList.toggle('open');
+  document.getElementById(chevId)?.classList.toggle('open');
 }
 
 // ── Personas (pública) ─────────────────────────────────────────────────────
