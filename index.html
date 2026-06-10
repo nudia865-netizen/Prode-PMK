@@ -217,9 +217,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div class="logo">PRODE <span>PMK</span></div>
   <nav class="hnav" id="main-nav">
     <a id="nav-admin" onclick="showPage('admin',this)" style="display:none">⚙️ Admin</a>
-    <a class="active" onclick="showPage('partidos-pub',this)">⚽ Partidos</a>
-    <a onclick="showPage('personas',this)">👤 Por persona</a>
-    <a onclick="showPage('tabla-pub',this)">🏆 Tabla</a>
+    <a id="nav-pub" class="active" onclick="showPage('pub',this)">🏆 Prode</a>
   </nav>
   <div class="hright">
     <button class="btn btn-rule btn-sm" onclick="openModal('modal-rules')">📋 Reglas</button>
@@ -324,33 +322,68 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   </div>
 </div>
 
-<!-- PARTIDOS PÚBLICOS -->
-<div id="page-partidos-pub" class="page active">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
-    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700">⚽ Partidos</h2>
-    <select id="pp-fecha-sel" onchange="renderPartidosPublicos()" style="font-size:13px"><option value="todas">Todas las fechas</option></select>
+<!-- PÁGINA PÚBLICA UNIFICADA -->
+<div id="page-pub" class="page active">
+
+  <!-- POZO + PARTICIPANTES (siempre visible) -->
+  <div id="pozo-pub-main" style="margin-bottom:1.25rem;display:none"></div>
+
+  <!-- DESPLEGABLE: PARTIDOS -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSeccion('sec-partidos','chev-partidos')">
+      <div class="fh-left" style="font-size:15px;font-weight:700">⚽ Partidos</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pp-fecha-sel" onchange="renderPubPartidos()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev open" id="chev-partidos">▶</span>
+      </div>
+    </div>
+    <div class="fecha-body open" id="sec-partidos">
+      <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+    </div>
   </div>
-  <div id="pozo-pub-partidos" style="margin-bottom:1.25rem;display:none"></div>
-  <div id="partidos-pub-content"><p class="empty">Cargando datos...</p></div>
+
+  <!-- DESPLEGABLE: POR PERSONA -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSeccion('sec-personas','chev-personas')">
+      <div class="fh-left" style="font-size:15px;font-weight:700">👤 Por persona</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="per-fecha-sel" onchange="renderPubPersonas()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev" id="chev-personas">▶</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-personas">
+      <div id="personas-content"><p class="empty">Cargando datos...</p></div>
+    </div>
+  </div>
+
+  <!-- DESPLEGABLE: TABLA -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSeccion('sec-tabla','chev-tabla')">
+      <div class="fh-left" style="font-size:15px;font-weight:700">🏆 Tabla de posiciones</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
+        <span class="fh-chev" id="chev-tabla">▶</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-tabla">
+      <div id="tabla-pub-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
+
 </div>
 
-<!-- PERSONAS PAGE (PUBLIC) -->
-<div id="page-personas" class="page">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px">
-    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700">👤 Pronósticos por persona</h2>
-    <select id="per-fecha-sel" onchange="renderPersonas()" style="font-size:13px"><option value="todas">Todas las fechas</option></select>
-  </div>
-  <div id="pozo-pub" style="margin-bottom:1.5rem;display:none"></div>
-  <div id="personas-content"><p class="empty">Cargando datos...</p></div>
+<!-- PERSONAS PAGE (legacy, hidden) -->
+<div id="page-personas" class="page" style="display:none">
+  <div id="pozo-pub" style="display:none"></div>
 </div>
 
-<!-- TABLA PUBLICA -->
-<div id="page-tabla-pub" class="page">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px">
-    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700">🏆 Tabla de posiciones</h2>
-    <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:13px"><option value="general">General — Súper Pozo</option></select>
-  </div>
-  <div id="tabla-pub-content"><p class="empty">Sin datos aún.</p></div>
+<!-- TABLA PUBLICA (legacy, hidden) -->
+<div id="page-tabla-pub" class="page" style="display:none">
+</div>
+
+<!-- PARTIDOS PUBLICOS (legacy, hidden) -->
+<div id="page-partidos-pub" class="page" style="display:none">
+  <div id="pozo-pub-partidos" style="display:none"></div>
 </div>
 
 <!-- FOOTER -->
@@ -496,13 +529,14 @@ async function checkAdminPw(){
 function adminLogout(){
   if(!confirm('¿Salir del modo admin?')) return;
   adminMode=false; applyRole();
-  showPage('partidos-pub', document.querySelectorAll('.hnav a:not(#nav-admin)')[0]);
+  showPage('pub', document.getElementById('nav-pub'));
   toast('Sesión admin cerrada');
 }
 
 function applyRole(){
   const a=adminMode;
   document.getElementById('nav-admin').style.display   = a?'':'none';
+  document.getElementById('nav-pub').style.display     = a?'none':'';
   document.getElementById('btn-csv').style.display     = a?'':'none';
   document.getElementById('btn-save').style.display    = a?'':'none';
   document.getElementById('sync-status').style.display = a?'':'none';
@@ -568,9 +602,11 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
+  if(p==='pub') renderPubAll();
   if(p==='partidos-pub') renderPartidosPublicos();
   if(p==='personas')     renderPersonas();
   if(p==='tabla-pub')    renderTablaPublica();
+  if(p==='admin') {}
 }
 
 function showTab(t){
@@ -609,9 +645,10 @@ function refreshAll(){
   if(at==='resultados')  renderResultados();
   if(at==='resumen')     renderResumen();
   if(at==='tabla')       renderTabla();
-  if(document.getElementById('page-partidos-pub').classList.contains('active')) renderPartidosPublicos();
-  if(document.getElementById('page-personas').classList.contains('active'))     renderPersonas();
-  if(document.getElementById('page-tabla-pub').classList.contains('active'))    renderTablaPublica();
+  if(document.getElementById('page-pub')?.classList.contains('active')) renderPubAll();
+  if(document.getElementById('page-partidos-pub')?.classList.contains('active')) renderPartidosPublicos();
+  if(document.getElementById('page-personas')?.classList.contains('active'))     renderPersonas();
+  if(document.getElementById('page-tabla-pub')?.classList.contains('active'))    renderTablaPublica();
 }
 
 // ── Partidos admin ─────────────────────────────────────────────────────────
@@ -822,25 +859,31 @@ function getScores(ps,nombre){
   return {pts,exactos,aciertan,jugados};
 }
 
-function addRanks(scores){
-  let ranked=[],rank=1;
-  scores.forEach((s,i)=>{ if(i>0&&s.pts<scores[i-1].pts) rank=i+1; ranked.push({...s,rank}); });
+function addRanks(scores, noPrizeSet){
+  // Los sin-cuota quedan al final con rank especial (no compiten)
+  const elegibles = noPrizeSet ? scores.filter(s=>!noPrizeSet.has(s.nombre)) : scores;
+  const noPrize   = noPrizeSet ? scores.filter(s=> noPrizeSet.has(s.nombre)) : [];
+  let ranked=[], rank=1;
+  elegibles.forEach((s,i)=>{ if(i>0&&s.pts<elegibles[i-1].pts) rank=i+1; ranked.push({...s,rank}); });
+  noPrize.forEach(s=>ranked.push({...s,rank:null}));
   return ranked;
 }
 
-function tableHTML(ranked){
+function tableHTML(ranked, noPrizeSet){
   return `<table><thead><tr><th>#</th><th>Nombre</th><th>Pronóst.</th><th>Exactos</th><th>Aciertos</th><th>Pts</th></tr></thead><tbody>
   ${ranked.map(s=>{
     const m=s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'';
-    return `<tr class="${s.rank<=3?'rank-'+s.rank:''}">
-      <td style="color:var(--text3)">${s.rank}</td>
-      <td style="font-weight:500">${m} ${s.nombre}</td>
+    const sinCuota = noPrizeSet && noPrizeSet.has(s.nombre);
+    return `<tr class="${s.rank<=3&&!sinCuota?'rank-'+s.rank:''}">
+      <td style="color:var(--text3)">${sinCuota?'—':s.rank}</td>
+      <td style="font-weight:500">${!sinCuota?m:''} ${s.nombre}${sinCuota?'<span style="color:var(--text3);margin-left:3px">*</span>':''}</td>
       <td style="color:var(--text2)">${s.jugados}</td>
       <td><span class="badge b-exact">${s.exactos}</span></td>
       <td><span class="badge b-win">${s.aciertan}</span></td>
       <td style="font-weight:600;font-size:16px;color:var(--accent)">${s.pts}</td>
     </tr>`;
-  }).join('')}</tbody></table>`;
+  }).join('')}</tbody></table>
+  ${noPrizeSet&&noPrizeSet.size>0?'<div style="font-size:11px;color:var(--text3);margin-top:.5rem">* Juegan sin cuota — no computan para premios.</div>':''}`;
 }
 
 // ── Resumen ────────────────────────────────────────────────────────────────
@@ -853,7 +896,9 @@ function renderResumen(){
   if(!partidos.length||!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
   const ps=sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value);
   if(!ps.length){ cont.innerHTML='<p class="empty">Sin partidos para esta fecha.</p>'; return; }
-  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos));
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked=addRanks(sorted, noPrizeSet);
   const th=`padding:8px 10px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:nowrap;`;
   const tdB=`padding:8px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;`;
   const hCells=ranked.map(s=>`<th style="${th}">${s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':''}${s.nombre}<br><span style="font-size:15px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`).join('');
@@ -907,21 +952,25 @@ function renderTablaFecha(cont){
   fechas.forEach(f=>{ selHtml+=`<option value="${f}" ${f===prevSel?'selected':''}>${f}</option>`; });
   selHtml+=`</select></div>`;
   const ps=partidos.filter(p=>p.fecha===prevSel);
-  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos));
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked=addRanks(sorted, noPrizeSet);
   const jugados=ps.filter(p=>{ const r=resultados[p.id]; return r&&!isNaN(r.gl); }).length;
   cont.innerHTML=selHtml+`<div class="metrics">
     <div class="metric"><div class="metric-label">Jugados</div><div class="metric-val">${jugados}/${ps.length}</div></div>
     <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${participantes.length}</div></div>
-  </div>`+tableHTML(ranked);
+  </div>`+tableHTML(ranked, noPrizeSet);
 }
 
 function renderTablaGeneral(cont){
-  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(partidos,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos));
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(partidos,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked=addRanks(sorted, noPrizeSet);
   const sp=participantes.filter(p=>p.cuota==='si').length*1000;
   cont.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
     <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
     <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
-  </div>`+tableHTML(ranked);
+  </div>`+tableHTML(ranked, noPrizeSet);
 }
 
 // ── Pozo ───────────────────────────────────────────────────────────────────
@@ -1080,7 +1129,165 @@ function toggleFechaBody(bodyId, chevId){
   document.getElementById(chevId)?.classList.toggle('open');
 }
 
-// ── Personas (pública) ─────────────────────────────────────────────────────
+// ── Página pública unificada ───────────────────────────────────────────────
+function toggleSeccion(bodyId, chevId){
+  document.getElementById(bodyId)?.classList.toggle('open');
+  document.getElementById(chevId)?.classList.toggle('open');
+}
+
+function renderPubAll(){
+  renderPozoPubMain();
+  renderPubPartidos();
+  renderPubPersonas();
+  renderTablaPublica();
+}
+
+function renderPozoPubMain(){
+  const box = document.getElementById('pozo-pub-main');
+  if(!box) return;
+  if(!participantes.length){ box.style.display='none'; return; }
+  box.style.display='';
+  const conC = participantes.filter(p=>p.cuota==='si').length;
+  const total = conC*5000, sp = conC*1000, ppal = total-sp;
+  // Para distribución usamos solo los que pagan
+  const nPagan = conC;
+  let distRows='';
+  if(nPagan===0){
+    distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes con cuota aún</span></div>';
+  } else if(nPagan<10){
+    distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
+  } else if(nPagan<=20){
+    distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
+  } else {
+    distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
+  }
+  const nTotal = participantes.length;
+  const nSinCuota = nTotal - conC;
+  box.innerHTML=`<div class="metrics" style="margin-bottom:.75rem">
+    <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${nTotal}${nSinCuota>0?`<span style="font-size:13px;color:var(--text3);font-weight:400"> (${nSinCuota}*)</span>`:''}</div></div>
+    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal</div>
+    ${distRows}
+    ${nSinCuota>0?`<div style="font-size:11px;color:var(--text3);margin-top:.75rem">* Juegan sin cuota — no computan para premios.</div>`:''}
+  </div>`;
+}
+
+function renderPubPartidos(){
+  const cont = document.getElementById('partidos-pub-content');
+  const sel  = document.getElementById('pp-fecha-sel');
+  const fechas = getFechas();
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f; o.textContent = f;
+    if(f === curVal) o.selected = true;
+    sel.appendChild(o);
+  });
+  if(!partidos.length){ cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>'; return; }
+  const ps = sel.value === 'todas' ? partidos : partidos.filter(p => p.fecha === sel.value);
+  if(!ps.length){ cont.innerHTML = '<p class="empty">No hay partidos para esta fecha.</p>'; return; }
+  const byFecha = {};
+  ps.forEach(p => { if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
+  const fechaKeys = Object.keys(byFecha);
+  cont.innerHTML = fechaKeys.map((fecha, fi) => {
+    const fps = byFecha[fecha];
+    const cerrada = fps[0]?.estado === 'cerrada';
+    const bodyId = `fp-body-${fi}`;
+    const chevId = `fp-chev-${fi}`;
+    const cards = fps.map(p => {
+      const r = resultados[p.id];
+      const hasR = r && !isNaN(r.gl);
+      let scoreHtml;
+      if(hasR){
+        scoreHtml = `<div class="match-score">${r.gl}<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>${r.gv}</div>`;
+      } else if(cerrada){
+        scoreHtml = `<div class="match-score pending">vs</div>`;
+      } else {
+        scoreHtml = `<div class="match-score pending" style="font-size:14px">vs</div>`;
+      }
+      // En fechas abiertas: no mostramos pronósticos. En cerradas: sí.
+      let pronsHtml = '';
+      if(cerrada && participantes.length){
+        const chips = participantes.map(part => {
+          const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+          const has = pr && !isNaN(pr.gl);
+          if(!has) return `<span class="pron-chip"><span style="color:var(--text3);font-size:11px">${part.nombre}</span><span class="score" style="color:var(--text3)">—</span></span>`;
+          const pts = calcPuntos(pr, r);
+          const color = pts===3?'#93c5fd':pts===1?'#86efac':pts===0&&hasR?'#fca5a5':'var(--text2)';
+          const medal = pts===3?'🎯':pts===1?'✓':'';
+          return `<span class="pron-chip"><span style="color:var(--text2);font-size:11px">${part.nombre}</span><span class="score" style="color:${color}">${pr.gl}-${pr.gv}</span>${medal?`<span style="font-size:11px">${medal}</span>`:''}</span>`;
+        }).join('');
+        pronsHtml = `<div class="match-prons">${chips}</div>`;
+      } else if(!cerrada){
+        pronsHtml = `<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>`;
+      }
+      return `<div class="match-card">
+        <div class="match-teams">
+          ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span>${p.local}</span>
+              ${scoreHtml}
+              <span>${p.visitante}</span>
+            </div>
+            ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
+          </div>
+        </div>
+        ${pronsHtml}
+      </div>`;
+    }).join('');
+    const isFirst = fi === 0;
+    return `<div>
+      <div class="fecha-header" onclick="toggleFechaBody('${bodyId}','${chevId}')">
+        <div class="fh-left">
+          <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+          <span>${fecha}</span>
+          <span style="font-size:12px;color:var(--text3);font-weight:400">${fps.length} partido${fps.length!==1?'s':''}</span>
+        </div>
+        <span class="fh-chev${isFirst?' open':''}" id="${chevId}">▶</span>
+      </div>
+      <div class="fecha-body${isFirst?' open':''}" id="${bodyId}">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderPubPersonas(){
+  const cont = document.getElementById('personas-content');
+  const sel  = document.getElementById('per-fecha-sel');
+  const fechas = getFechas(); const curVal = sel.value;
+  sel.innerHTML = '<option value="todas">Todas las fechas</option>';
+  fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
+  if(!participantes.length){ cont.innerHTML='<p class="empty">Cargá participantes primero.</p>'; return; }
+  const ps = sel.value==='todas' ? partidos : partidos.filter(p=>p.fecha===sel.value);
+  const psScore = ps.filter(p=>p.estado==='cerrada');
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos.</p>'; return; }
+  const sorted = participantes.map(part=>({part, s:getScores(psScore,part.nombre)})).sort((a,b)=>b.s.pts-a.s.pts||b.s.exactos-a.s.exactos);
+  const medals = ['#fbbf24','#94a3b8','#cd7f32'];
+  // Para la lista simple solo mostramos nombre + pts, sin subdetalle de cargas
+  cont.innerHTML = sorted.map(({part,s},idx)=>{
+    const initials = part.nombre.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    const sinCuota = part.cuota !== 'si';
+    return `<div class="pcard" style="padding:.875rem 1.25rem">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="pavatar" style="${idx<3?`background:rgba(${idx===0?'251,191,36':idx===1?'148,163,184':'205,127,50'},.15);color:${medals[idx]}`:''}">${initials}</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:600">${idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':''} ${part.nombre}${sinCuota?'<span style="font-size:11px;color:var(--text3);margin-left:5px">*</span>':''}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.exactos} exactos · ${s.aciertan} aciertos</div>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent)">${s.pts} <span style="font-size:13px;font-weight:400;color:var(--text2);font-family:'Inter',sans-serif">pts</span></div>
+      </div>
+    </div>`;
+  }).join('') + (participantes.some(p=>p.cuota!=='si') ? '<div style="font-size:11px;color:var(--text3);margin-top:.5rem;padding:0 .25rem">* Juegan sin cuota — no computan para premios.</div>' : '');
+}
+
+
 function renderPersonas(){
   const cont=document.getElementById('personas-content');
   const sel=document.getElementById('per-fecha-sel');
@@ -1149,10 +1356,13 @@ function renderTablaPublica(){
   if(!cerradas.length){ cont.innerHTML='<p class="empty">Todavía no hay fechas cerradas.</p>'; return; }
   const esGeneral=sel.value==='general';
   const ps=esGeneral?partidos.filter(p=>p.estado==='cerrada'):partidos.filter(p=>p.fecha===sel.value&&p.estado==='cerrada');
-  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos));
+  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const allScores = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)}));
+  const sorted = [...allScores].sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+  const ranked=addRanks(sorted, noPrizeSet);
   let extra='';
-  if(esGeneral){ const sp=participantes.filter(p=>p.cuota==='si').length*1000; extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
-  cont.innerHTML=extra+tableHTML(ranked);
+  if(esGeneral){ const conC=participantes.filter(p=>p.cuota==='si').length; const sp=conC*1000; extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
+  cont.innerHTML=extra+tableHTML(ranked, noPrizeSet);
 }
 
 // ── Generar hash para producción ───────────────────────────────────────────
@@ -1163,6 +1373,10 @@ function renderTablaPublica(){
 async function init(){
   loadLocal();
   applyRole();
+  // Mostrar página pública al inicio
+  document.querySelectorAll('.page').forEach(x=>{ x.classList.remove('active'); x.style.display='none'; });
+  const pubPage = document.getElementById('page-pub');
+  if(pubPage){ pubPage.classList.add('active'); pubPage.style.display='block'; }
   refreshAll();
   const ok = await loadFromCloud();
   if(ok){ refreshAll(); setSyncStatus('ok'); }
