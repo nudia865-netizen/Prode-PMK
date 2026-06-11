@@ -1556,42 +1556,41 @@ async function chatBinSet(msgs){
   } catch(e){ return false; }
 }
 
-async function chatBinCreate(){
-  const mk = getMasterKey();
-  if(!mk) return false;
+async function chatBinCreate(mkOverride){
+  const mk = mkOverride || getMasterKey();
+  if(!mk){ console.error('chatBinCreate: no master key'); return false; }
   try{
     const r = await fetch(`${JSONBIN}/b`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-chat','X-Bin-Private':'false'},
+      headers:{'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-chat'},
       body: JSON.stringify([])
     });
-    if(!r.ok) return false;
     const d = await r.json();
+    console.log('chatBinCreate response:', r.status, JSON.stringify(d));
+    if(!r.ok){ console.error('chatBinCreate failed:', r.status, d); return false; }
     CHAT_BIN_ID = d.metadata?.id || '';
     if(CHAT_BIN_ID){
       localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-      // Guardar en nube para que todos los usuarios lo vean
-      await syncChatBinId();
+      await syncChatBinId(mk);
     }
     return !!CHAT_BIN_ID;
-  } catch(e){ return false; }
+  } catch(e){ console.error('chatBinCreate exception:', e); return false; }
 }
 
 // Sincroniza el CHAT_BIN_ID en el bin principal para que todos lo lean
-async function syncChatBinId(){
-  const mk = getMasterKey();
+async function syncChatBinId(mkOverride){
+  const mk = mkOverride || getMasterKey();
   if(!mk || !CHAT_BIN_ID) return;
-  // Guardamos el chat bin id dentro del bin de prode como campo extra
-  // (se lee en init si está presente)
   try{
     const state = getState();
     state._chatBin = CHAT_BIN_ID;
-    await fetch(`${JSONBIN}/b/${BIN_ID}`,{
+    const r = await fetch(`${JSONBIN}/b/${BIN_ID}`,{
       method:'PUT',
       headers:{'Content-Type':'application/json','X-Master-Key':mk},
       body: JSON.stringify(state)
     });
-  } catch(e){}
+    console.log('syncChatBinId:', r.status);
+  } catch(e){ console.error('syncChatBinId error:', e); }
 }
 
 // ── Cargar mensajes ────────────────────────────────────────────────────────
@@ -1725,7 +1724,7 @@ async function adminActivarChat(){
     setMasterKey(mk.trim());
   }
   statusEl.textContent = 'Creando bin de chat...';
-  const ok = await chatBinCreate();
+  const ok = await chatBinCreate(mk);
   if(ok){
     statusEl.innerHTML = `<span style="color:var(--accent)">\u2713 Chat creado! Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
     toast('Chat activado! Los invitados ya pueden escribir.');
