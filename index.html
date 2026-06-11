@@ -135,55 +135,45 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 #chat-widget{position:fixed;bottom:1.25rem;right:1.25rem;z-index:150;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #chat-toggle{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(74,222,128,.35);transition:transform .15s}
 #chat-toggle:hover{transform:scale(1.08)}
-#chat-bubble{width:360px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden}
+#chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden}
 #chat-bubble.open{display:flex}
 #chat-head{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 #chat-head-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
-#chat-online-dot{width:8px;height:8px;border-radius:50%;background:#6b7280;display:inline-block;transition:background .4s,box-shadow .4s}
-#chat-online-dot.live{background:var(--accent);box-shadow:0 0 6px rgba(74,222,128,.7)}
-#chat-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px;transition:background .15s}
-#chat-close:hover{background:rgba(255,255,255,.07)}
-#chat-name-bar{padding:.55rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:12px;background:rgba(74,222,128,.04)}
+#chat-online-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 6px rgba(74,222,128,.6)}
+#chat-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
+#chat-name-bar{padding:.6rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:12px;background:rgba(74,222,128,.05)}
 #chat-name-bar span{color:var(--text2)}
-#chat-name-display{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
-#chat-msgs{height:300px;overflow-y:auto;padding:.75rem .75rem .5rem;display:flex;flex-direction:column;gap:4px}
-.cmsg{display:flex;flex-direction:column;gap:3px;animation:fadeUp .18s ease;padding:5px 8px;border-radius:6px;transition:background .12s}
-.cmsg:hover{background:rgba(255,255,255,.03)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+#chat-name-display{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted}
+#chat-msgs{height:280px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:6px}
+.cmsg{display:flex;flex-direction:column;gap:2px;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .cmsg-head{display:flex;align-items:baseline;gap:6px}
-.cmsg-author{font-size:11px;font-weight:700;color:var(--accent)}
+.cmsg-author{font-size:11px;font-weight:600;color:var(--accent)}
 .cmsg-author.is-admin{color:#fbbf24}
-.cmsg-author.is-me{color:#60a5fa}
 .cmsg-time{font-size:10px;color:var(--text3)}
-.cmsg-body{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;padding-left:1px}
-.cmsg-del{margin-left:auto;background:none;border:none;color:transparent;cursor:pointer;font-size:12px;padding:0 3px;border-radius:3px;transition:color .12s,background .12s;flex-shrink:0}
-.cmsg:hover .cmsg-del{color:var(--text3)}
-.cmsg-del:hover{color:var(--red)!important;background:rgba(248,113,113,.1)}
-.chat-date-sep{text-align:center;font-size:10px;color:var(--text3);margin:6px 0 2px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
-.chat-date-sep::before,.chat-date-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.cmsg-body{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word}
+.cmsg-censored{color:var(--text3);font-style:italic;font-size:12px}
+.cmsg-del{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:0;transition:opacity .15s}
+.cmsg:hover .cmsg-del{opacity:1}
+.cmsg-del:hover{color:var(--red)}
+.chat-date-sep{text-align:center;font-size:10px;color:var(--text3);margin:4px 0;letter-spacing:.4px}
 #chat-footer{border-top:1px solid var(--border);padding:.5rem .75rem;display:flex;gap:6px;align-items:flex-end}
 #chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:7px 10px;outline:none;font-family:'Inter',sans-serif;resize:none;max-height:80px;min-height:36px;transition:border-color .15s;line-height:1.4}
 #chat-input:focus{border-color:var(--accent)}
-#chat-send{background:var(--accent);border:none;border-radius:var(--radius-sm);color:#0a0f0a;font-size:16px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s}
-#chat-send:hover{background:var(--accent2);transform:scale(1.05)}
-#chat-send:disabled{background:var(--bg3);color:var(--text3);cursor:default;transform:none}
-#chat-warn{font-size:11px;color:#fde68a;padding:4px .75rem;display:none;line-height:1.4;background:rgba(251,191,36,.06);border-top:1px solid rgba(251,191,36,.15)}
+#chat-send{background:var(--accent);border:none;border-radius:var(--radius-sm);color:#0a0f0a;font-size:16px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+#chat-send:hover{background:var(--accent2)}
+#chat-send:disabled{background:var(--bg3);color:var(--text3);cursor:default}
+#chat-warn{font-size:11px;color:#fde68a;padding:0 .75rem .4rem;display:none;line-height:1.4}
 #chat-unread{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center}
 #chat-toggle-wrap{position:relative;display:inline-block}
-#chat-conn-status{font-size:10px;color:var(--text3);padding:3px 8px;border-top:1px solid var(--border);text-align:center;display:none}
 /* Modal nombre chat */
-#chat-name-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;display:none;align-items:center;justify-content:center}
+#chat-name-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:none;align-items:center;justify-content:center}
 #chat-name-modal.open{display:flex}
 #chat-name-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;width:100%;max-width:340px;margin:1rem}
 #chat-name-box h3{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;margin-bottom:.5rem}
 #chat-name-box p{font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6}
-#chat-name-input{width:100%;margin-bottom:.5rem}
-#chat-name-err{font-size:12px;color:#fca5a5;margin-bottom:.5rem;display:none;padding:4px 8px;background:rgba(248,113,113,.07);border-radius:4px}
-/* Confirm delete overlay */
-#chat-confirm-del{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center}
-#chat-confirm-del.open{display:flex}
-#chat-confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;max-width:300px;width:90%;margin:1rem}
-#chat-confirm-box p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5}
+#chat-name-input{width:100%;margin-bottom:.75rem}
+#chat-name-err{font-size:12px;color:#fca5a5;margin-top:-4px;margin-bottom:.5rem;display:none}
 @media(max-width:420px){#chat-bubble{width:calc(100vw - 2rem)}}
 </style>
 </head>
@@ -452,23 +442,11 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div id="chat-name-box">
     <h3>💬 Unirse al chat</h3>
     <p>Elegí un nombre para participar en el chat del Prode PMK.</p>
-    <input type="text" id="chat-name-input" placeholder="Tu nombre..." maxlength="24"
-      onkeydown="if(event.key==='Enter')confirmChatName()">
+    <input type="text" id="chat-name-input" placeholder="Tu nombre..." maxlength="24" style="width:100%;margin-bottom:.5rem" onkeydown="if(event.key==='Enter')confirmChatName()">
     <div id="chat-name-err"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.75rem">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:.5rem">
       <button class="btn btn-ghost" onclick="document.getElementById('chat-name-modal').classList.remove('open')">Cancelar</button>
       <button class="btn btn-primary" onclick="confirmChatName()">Entrar al chat</button>
-    </div>
-  </div>
-</div>
-
-<!-- CHAT DELETE CONFIRM -->
-<div id="chat-confirm-del">
-  <div id="chat-confirm-box">
-    <p>¿Eliminar este mensaje? Esta acción no se puede deshacer.</p>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-ghost btn-sm" onclick="cancelDeleteMsg()">Cancelar</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmDeleteMsg()">🗑 Eliminar</button>
     </div>
   </div>
 </div>
@@ -484,14 +462,13 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
       <span>Chateando como:</span>
       <span id="chat-name-display" onclick="changeChatName()">—</span>
     </div>
-    <div id="chat-msgs"><div class="empty" style="margin:auto;font-size:12px">Conectando…</div></div>
+    <div id="chat-msgs"><div class="empty" style="margin:auto">Cargando mensajes…</div></div>
     <div id="chat-warn">⚠️ Tu mensaje contenía palabras no permitidas y fueron reemplazadas.</div>
-    <div id="chat-conn-status"></div>
     <div id="chat-footer">
       <textarea id="chat-input" placeholder="Escribí un mensaje…" rows="1" maxlength="300"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg()}"
         oninput="autoResizeChat(this)"></textarea>
-      <button id="chat-send" onclick="sendChatMsg()" title="Enviar (Enter)">➤</button>
+      <button id="chat-send" onclick="sendChatMsg()" title="Enviar">➤</button>
     </div>
   </div>
   <div id="chat-toggle-wrap">
@@ -1383,50 +1360,39 @@ function renderResumenPub(){
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
-// Firebase SDK — tiempo real verdadero con onValue (no polling)
-// Proyecto gratuito dedicado al chat del Prode PMK
-// Para usar el tuyo: console.firebase.google.com → Realtime Database
-// Reglas: {"rules":{".read":true,".write":true}}
+// Firebase Realtime Database — proyecto gratuito dedicado al chat
+// Para usar tu propio Firebase: creá un proyecto en console.firebase.google.com
+// → Realtime Database → Reglas: {"rules":{".read":true,".write":true}}
+// y reemplazá FB_URL con la URL de tu base.
+const FB_URL = 'https://prode-pmk-chat-default-rtdb.firebaseio.com';
 
-// ── Firebase init (SDK compat via CDN) ─────────────────────────────────────
-const FB_CONFIG = {
-  apiKey:            "AIzaSyDemo-ReplaceWithYours",   // reemplazar si usás tu propio proyecto
-  authDomain:        "prode-pmk-chat.firebaseapp.com",
-  databaseURL:       "https://prode-pmk-chat-default-rtdb.firebaseio.com",
-  projectId:         "prode-pmk-chat",
-  storageBucket:     "prode-pmk-chat.appspot.com",
-  messagingSenderId: "000000000000",
-  appId:             "1:000000000000:web:0000000000000000"
-};
-
-// Usamos la URL directa de la REST API pero con Firebase SDK compat
-// La URL real de la DB es la que ya estaba en el código original:
-const FB_DB_URL  = 'https://prode-pmk-chat-default-rtdb.firebaseio.com';
-const CHAT_PATH  = `${FB_DB_URL}/chat`;
-const CHAT_MAX   = 120;
-
+const CHAT_PATH = `${FB_URL}/chat`;
+const CHAT_MAX  = 120; // máximo mensajes a mostrar
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
 let chatUnread  = 0;
 let chatLastTs  = 0;
-let chatSSEConn = null;   // EventSource SSE de Firebase
-let chatPendingDelete = null;  // id del mensaje a borrar
+let chatSSE     = null; // EventSource para tiempo real
 
 // ── Filtro de palabras ─────────────────────────────────────────────────────
 const BAD_WORDS = [
+  // Groserías fuertes
   'puta','puto','putear','hijo de puta','hdp','concha','conchuda','conchudo',
   'chota','chotear','pelotudo','pelotuda','boludo','boluda','forro','forra',
   'cagon','cagona','mierda','mierdas','culo','culero','culera','anormal',
   'mogolico','mogolica','retrasado','retrasada','imbecil','imbécil',
   'idiota','idiotas','estupido','estupida','estúpido','estúpida',
   'tarado','tarada','animal','bestia','inutil','inútil',
+  // Variantes con números/símbolos comunes
   'put4','b0ludo','b0luda','pelot4','cul0',
+  // Agresiones directas
   'andate a cagar','andá a cagar','vete a la mierda','a la mierda',
   'la puta madre','la concha de tu madre','la concha de la lora',
   'te mato','te voy a matar','ojalá te mueras','ojala te mueras',
   'forro de mierda','gil','gila','cretino','cretina','zorra','zorr4',
   'perra','perr4','cabrón','cabron','maricón','maricon',
   'negro de mierda','vieja de mierda','gordo de mierda',
+  // Inglés básico
   'fuck','fucking','shit','asshole','bitch','bastard','damn you','go to hell'
 ].map(w => w.toLowerCase());
 
@@ -1434,137 +1400,17 @@ function filterMsg(text){
   let filtered = text;
   let censored = false;
   BAD_WORDS.forEach(word => {
+    // Regex que detecta la palabra con posibles variaciones de espaciado
     const re = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    if(re.test(filtered)){ censored = true; filtered = filtered.replace(re, '***'); }
+    if(re.test(filtered)){
+      censored = true;
+      filtered = filtered.replace(re, '***');
+    }
   });
   return { filtered, censored };
 }
 
-// ── Firebase REST helpers ──────────────────────────────────────────────────
-async function fbGet(path){
-  try{
-    const r = await fetch(`${path}.json`);
-    if(!r.ok) return null;
-    return await r.json();
-  } catch(e){ return null; }
-}
-
-async function fbPush(path, data){
-  try{
-    const r = await fetch(`${path}.json`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    });
-    return r.ok ? await r.json() : null;
-  } catch(e){ return null; }
-}
-
-async function fbDelete(path){
-  try{
-    const r = await fetch(`${path}.json`, { method:'DELETE' });
-    return r.ok;
-  } catch(e){ return false; }
-}
-
-// ── Tiempo real con SSE (Firebase REST streaming) ──────────────────────────
-// Firebase REST soporta SSE con Accept: text/event-stream — gratis, sin SDK
-function startChatRealtime(){
-  if(chatSSEConn) return;
-  const url = `${CHAT_PATH}.json?orderBy="ts"&limitToLast=${CHAT_MAX}`;
-  const sse = new EventSource(url);
-  chatSSEConn = sse;
-
-  sse.addEventListener('put', e => {
-    try{
-      const ev = JSON.parse(e.data);
-      if(!ev || !ev.data) return;
-      // Firebase envía el path raíz con todos los datos al conectar
-      let msgs;
-      if(ev.path === '/'){
-        msgs = ev.data ? Object.entries(ev.data).map(([id,v])=>({id,...v})) : [];
-      } else {
-        // Actualización parcial: recargar todo
-        loadAndRenderChat(); return;
-      }
-      msgs.sort((a,b)=>a.ts-b.ts);
-      const recent = msgs.slice(-CHAT_MAX);
-      const newMsgs = recent.filter(m => m.ts > chatLastTs);
-      if(recent.length) chatLastTs = recent[recent.length-1].ts;
-      renderChatMsgs(recent);
-      setOnlineDot(true);
-      // Badge unread si chat cerrado
-      if(!chatOpen && newMsgs.length){
-        chatUnread += newMsgs.length;
-        showUnreadBadge();
-        bounceChatBtn();
-      }
-    } catch(err){}
-  });
-
-  sse.addEventListener('patch', () => { loadAndRenderChat(); });
-
-  sse.onerror = () => {
-    setOnlineDot(false);
-    // Reconectar automáticamente en 5s
-    sse.close(); chatSSEConn = null;
-    setTimeout(startChatRealtime, 5000);
-  };
-}
-
-function stopChatRealtime(){
-  if(chatSSEConn){ chatSSEConn.close(); chatSSEConn = null; }
-}
-
-// ── Carga + render ─────────────────────────────────────────────────────────
-async function loadAndRenderChat(){
-  const data = await fbGet(CHAT_PATH);
-  if(!data){ renderChatMsgs([]); return; }
-  const msgs = Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts);
-  const recent = msgs.slice(-CHAT_MAX);
-  renderChatMsgs(recent);
-  if(recent.length) chatLastTs = recent[recent.length-1].ts;
-}
-
-// ── Render mensajes ────────────────────────────────────────────────────────
-function renderChatMsgs(msgs){
-  const box = document.getElementById('chat-msgs');
-  const wasBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
-  let lastDate = '';
-  let html = '';
-  if(!msgs.length){
-    html = '<div class="empty" style="margin:auto;font-size:12px">Todavía no hay mensajes. ¡Sé el primero!</div>';
-  } else {
-    msgs.forEach(m => {
-      const dateLabel = chatDateLabel(m.ts);
-      if(dateLabel !== lastDate){
-        lastDate = dateLabel;
-        html += `<div class="chat-date-sep">${dateLabel}</div>`;
-      }
-      const isMe  = m.author === chatUser;
-      const isAdm = m.isAdmin;
-      const delBtn = adminMode
-        ? `<button class="cmsg-del" onclick="askDeleteMsg('${m.id}')" title="Eliminar mensaje">🗑</button>`
-        : '';
-      const authorClass = `cmsg-author${isAdm?' is-admin':''}${isMe&&!isAdm?' is-me':''}`;
-      html += `<div class="cmsg" id="cm-${m.id}">
-        <div class="cmsg-head">
-          <span class="${authorClass}">${isAdm?'⭐ ':''}${escHtml(m.author)}${isMe?' <span style="font-weight:400;color:var(--text3)">(vos)</span>':''}</span>
-          <span class="cmsg-time">${fmtChatTime(m.ts)}</span>
-          ${delBtn}
-        </div>
-        <div class="cmsg-body">${escHtml(m.text)}</div>
-      </div>`;
-    });
-  }
-  box.innerHTML = html;
-  if(wasBottom || !chatLastTs) box.scrollTop = box.scrollHeight;
-}
-
-function escHtml(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Helpers de tiempo ──────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function fmtChatTime(ts){
   const d = new Date(ts);
   const now = new Date();
@@ -1587,87 +1433,6 @@ function autoResizeChat(el){
   el.style.height = Math.min(el.scrollHeight, 80) + 'px';
 }
 
-// ── Indicador de conexión ──────────────────────────────────────────────────
-function setOnlineDot(live){
-  const dot = document.getElementById('chat-online-dot');
-  if(!dot) return;
-  dot.classList.toggle('live', live);
-}
-
-// ── Badge unread ───────────────────────────────────────────────────────────
-function showUnreadBadge(){
-  const badge = document.getElementById('chat-unread');
-  badge.textContent = chatUnread > 9 ? '9+' : chatUnread;
-  badge.style.display = 'flex';
-}
-
-function bounceChatBtn(){
-  const btn = document.getElementById('chat-toggle');
-  btn.style.animation = 'none';
-  btn.offsetHeight;
-  btn.style.animation = 'chatBounce .4s ease';
-}
-
-// ── Enviar mensaje ─────────────────────────────────────────────────────────
-async function sendChatMsg(){
-  if(!chatUser){ openChatNameModal(sendChatMsg); return; }
-  const inp  = document.getElementById('chat-input');
-  const warn = document.getElementById('chat-warn');
-  const raw  = inp.value.trim();
-  if(!raw) return;
-
-  const { filtered, censored } = filterMsg(raw);
-  if(censored){
-    warn.style.display = 'block';
-    clearTimeout(warn._t);
-    warn._t = setTimeout(()=>{ warn.style.display='none'; }, 5000);
-  } else {
-    warn.style.display = 'none';
-  }
-
-  inp.value = '';
-  inp.style.height = '36px';
-
-  const msg = {
-    author:  chatUser,
-    text:    filtered,
-    ts:      Date.now(),
-    isAdmin: adminMode ? true : false
-  };
-
-  const btn = document.getElementById('chat-send');
-  btn.disabled = true;
-  const res = await fbPush(CHAT_PATH, msg);
-  btn.disabled = false;
-
-  if(!res){ toast('No se pudo enviar. Revisá tu conexión.','error'); return; }
-  // El SSE va a recibir el nuevo mensaje automáticamente,
-  // pero hacemos reload por si SSE tiene delay
-  await loadAndRenderChat();
-}
-
-// ── Borrar mensaje (admin) — con confirmación ──────────────────────────────
-function askDeleteMsg(id){
-  if(!adminMode) return;
-  chatPendingDelete = id;
-  document.getElementById('chat-confirm-del').classList.add('open');
-}
-
-function cancelDeleteMsg(){
-  chatPendingDelete = null;
-  document.getElementById('chat-confirm-del').classList.remove('open');
-}
-
-async function confirmDeleteMsg(){
-  if(!chatPendingDelete) return;
-  const id = chatPendingDelete;
-  chatPendingDelete = null;
-  document.getElementById('chat-confirm-del').classList.remove('open');
-  const ok = await fbDelete(`${CHAT_PATH}/${id}`);
-  if(ok){ toast('Mensaje eliminado'); await loadAndRenderChat(); }
-  else   { toast('No se pudo eliminar','error'); }
-}
-
 // ── Nombre de usuario ──────────────────────────────────────────────────────
 function openChatNameModal(cb){
   const modal = document.getElementById('chat-name-modal');
@@ -1675,7 +1440,7 @@ function openChatNameModal(cb){
   inp.value = chatUser || '';
   document.getElementById('chat-name-err').style.display = 'none';
   modal.classList.add('open');
-  setTimeout(()=>inp.focus(), 50);
+  inp.focus();
   modal._cb = cb || null;
 }
 
@@ -1705,35 +1470,197 @@ function confirmChatName(){
 
 function changeChatName(){ openChatNameModal(); }
 
+// ── Render mensajes ────────────────────────────────────────────────────────
+function renderChatMsgs(msgs){
+  const box = document.getElementById('chat-msgs');
+  const wasBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  let lastDate = '';
+  let html = '';
+  if(!msgs.length){
+    html = '<div class="empty" style="margin:auto;font-size:12px">Todavía no hay mensajes. ¡Sé el primero!</div>';
+  } else {
+    msgs.forEach(m => {
+      const dateLabel = chatDateLabel(m.ts);
+      if(dateLabel !== lastDate){
+        lastDate = dateLabel;
+        html += `<div class="chat-date-sep">— ${dateLabel} —</div>`;
+      }
+      const isMe = m.author === chatUser;
+      const isAdm = m.isAdmin;
+      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m.id}')" title="Borrar">🗑</button>` : '';
+      html += `<div class="cmsg" id="cm-${m.id}">
+        <div class="cmsg-head">
+          <span class="cmsg-author${isAdm?' is-admin':''}">${isAdm?'⭐ ':''} ${escHtml(m.author)}${isMe?' (vos)':''}</span>
+          <span class="cmsg-time">${fmtChatTime(m.ts)}</span>
+          ${delBtn}
+        </div>
+        <div class="cmsg-body">${escHtml(m.text)}</div>
+      </div>`;
+    });
+  }
+  box.innerHTML = html;
+  if(wasBottom || !chatLastTs) box.scrollTop = box.scrollHeight;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Firebase REST helpers ──────────────────────────────────────────────────
+async function fbGet(path){
+  try{
+    const r = await fetch(`${path}.json`);
+    if(!r.ok) return null;
+    return await r.json();
+  } catch(e){ return null; }
+}
+
+async function fbPush(path, data){
+  try{
+    const r = await fetch(`${path}.json`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    return r.ok ? await r.json() : null;
+  } catch(e){ return null; }
+}
+
+async function fbDelete(path){
+  try{
+    const r = await fetch(`${path}.json`, { method:'DELETE' });
+    return r.ok;
+  } catch(e){ return false; }
+}
+
+// ── Cargar mensajes ────────────────────────────────────────────────────────
+async function loadChatMsgs(){
+  const data = await fbGet(CHAT_PATH);
+  if(!data){ renderChatMsgs([]); return []; }
+  const msgs = Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts);
+  // Guardar últimos CHAT_MAX
+  const recent = msgs.slice(-CHAT_MAX);
+  renderChatMsgs(recent);
+  if(recent.length) chatLastTs = recent[recent.length-1].ts;
+  return recent;
+}
+
+// ── Tiempo real con polling (SSE no disponible en Firebase REST free) ──────
+let chatPollInterval = null;
+
+function startChatPolling(){
+  if(chatPollInterval) return;
+  chatPollInterval = setInterval(async ()=>{
+    const data = await fbGet(CHAT_PATH);
+    if(!data) return;
+    const msgs = Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts);
+    const recent = msgs.slice(-CHAT_MAX);
+    if(recent.length && recent[recent.length-1].ts > chatLastTs){
+      const newMsgs = recent.filter(m => m.ts > chatLastTs);
+      chatLastTs = recent[recent.length-1].ts;
+      renderChatMsgs(recent);
+      // Notificación si chat cerrado
+      if(!chatOpen && newMsgs.length){
+        chatUnread += newMsgs.length;
+        const badge = document.getElementById('chat-unread');
+        badge.textContent = chatUnread > 9 ? '9+' : chatUnread;
+        badge.style.display = 'flex';
+        // Animar botón
+        const btn = document.getElementById('chat-toggle');
+        btn.style.animation = 'none';
+        btn.offsetHeight;
+        btn.style.animation = 'chatBounce .4s ease';
+      }
+    }
+  }, 4000); // polling cada 4 segundos
+}
+
+function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=null; }
+
+// ── Enviar mensaje ─────────────────────────────────────────────────────────
+async function sendChatMsg(){
+  if(!chatUser){ openChatNameModal(sendChatMsg); return; }
+  const inp  = document.getElementById('chat-input');
+  const warn = document.getElementById('chat-warn');
+  const raw  = inp.value.trim();
+  if(!raw) return;
+
+  const { filtered, censored } = filterMsg(raw);
+
+  if(censored){
+    warn.style.display = 'block';
+    setTimeout(()=>{ warn.style.display='none'; }, 4000);
+  } else {
+    warn.style.display = 'none';
+  }
+
+  inp.value = '';
+  inp.style.height = '36px';
+
+  const msg = {
+    author: chatUser,
+    text:   filtered,
+    ts:     Date.now(),
+    isAdmin: adminMode ? true : false
+  };
+
+  const btn = document.getElementById('chat-send');
+  btn.disabled = true;
+  const res = await fbPush(CHAT_PATH, msg);
+  btn.disabled = false;
+
+  if(!res){ toast('No se pudo enviar el mensaje. Revisá tu conexión.','error'); return; }
+
+  // Recargar mensajes inmediatamente
+  await loadChatMsgs();
+}
+
+// ── Borrar mensaje (admin) ─────────────────────────────────────────────────
+async function deleteChatMsg(id){
+  if(!adminMode) return;
+  if(!confirm('¿Borrar este mensaje?')) return;
+  const ok = await fbDelete(`${CHAT_PATH}/${id}`);
+  if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); }
+  else toast('No se pudo eliminar','error');
+}
+
 // ── Toggle chat ────────────────────────────────────────────────────────────
 function toggleChat(){
   chatOpen = !chatOpen;
   const bubble = document.getElementById('chat-bubble');
   bubble.classList.toggle('open', chatOpen);
   if(chatOpen){
+    // Limpiar unread
     chatUnread = 0;
-    document.getElementById('chat-unread').style.display = 'none';
+    const badge = document.getElementById('chat-unread');
+    badge.style.display = 'none';
+    // Mostrar nombre
     document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
+    // Si no tiene nombre, pedir
     if(!chatUser){ setTimeout(()=>openChatNameModal(), 300); }
-    loadAndRenderChat();
-    startChatRealtime();
+    loadChatMsgs();
+    startChatPolling();
     setTimeout(()=>{ document.getElementById('chat-input').focus(); }, 200);
   }
 }
 
-// ── CSS keyframe bounce ────────────────────────────────────────────────────
+// ── CSS keyframe para bounce ───────────────────────────────────────────────
 (function(){
   const s = document.createElement('style');
   s.textContent = '@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}';
   document.head.appendChild(s);
 })();
 
-// ── Init chat ──────────────────────────────────────────────────────────────
+// ── Init chat (solo arrancar polling si hay mensajes previos) ──────────────
 function initChat(){
   document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-  // Arrancar SSE en background para badge de unread
-  startChatRealtime();
+  // Polling pasivo en background para el badge de unread
+  startChatPolling();
 }
+
+// ── Generar hash para producción ───────────────────────────────────────────
+// Descomenta esto en la consola para obtener el hash de tu nueva contraseña:
+// sha256('TuNuevaContraseña').then(h => console.log('HASH:', h));
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init(){
