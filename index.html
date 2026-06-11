@@ -372,11 +372,16 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div class="card">
       <div class="card-title">💬 Gestión del Chat</div>
       <div id="chat-admin-status" style="font-size:13px;color:var(--text2);margin-bottom:1rem"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">
         <button class="btn btn-primary btn-sm" onclick="adminActivarChat()">🚀 Activar / Crear chat</button>
-        <button class="btn btn-ghost btn-sm" onclick="adminVerMsgs()">🔄 Ver mensajes actuales</button>
-        <button class="btn btn-danger btn-sm" onclick="adminLimpiarChat()">🗑 Borrar todos los mensajes</button>
+        <button class="btn btn-ghost btn-sm" onclick="adminVerMsgs()">🔄 Ver mensajes</button>
+        <button class="btn btn-danger btn-sm" onclick="adminLimpiarChat()">🗑 Borrar todos</button>
       </div>
+      <p style="font-size:11px;color:var(--text3);line-height:1.6">
+        La primera vez pedirá tu <strong>Master Key</strong> de JSONBin
+        (la misma que usás para guardar el prode en la nube, empieza con <code>$2a$10$</code>).
+        Podés encontrarla en <a href="https://jsonbin.io/app/api-keys" target="_blank" style="color:var(--accent)">jsonbin.io → API Keys</a>.
+      </p>
       <div id="chat-admin-msgs" style="margin-top:1rem;font-size:12px;color:var(--text2)"></div>
     </div>
   </div>
@@ -1713,14 +1718,23 @@ async function adminActivarChat(){
     statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat ya activo. Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
     return;
   }
+  // Pedir Master Key si no está en sesión
+  let mk = getMasterKey();
+  if(!mk){
+    mk = prompt('Ingresá tu Master Key de JSONBin para crear el bin de chat
+(la que empieza con $2a$10$...):');
+    if(!mk || !mk.trim()){ statusEl.innerHTML = '<span style="color:#fca5a5">Cancelado. Se necesita la Master Key.</span>'; return; }
+    setMasterKey(mk.trim());
+  }
   statusEl.textContent = 'Creando bin de chat…';
   const ok = await chatBinCreate();
   if(ok){
     statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat creado exitosamente! Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
     toast('¡Chat activado! Los invitados ya pueden escribir.');
+    startChatPolling();
   } else {
-    statusEl.innerHTML = '<span style="color:#fca5a5">✕ Error al crear. Verificá que tenés la Master Key cargada.</span>';
-    toast('Error al activar chat. Verificá la Master Key.','error');
+    statusEl.innerHTML = '<span style="color:#fca5a5">✕ Error al crear. Verificá que la Master Key sea correcta.</span>';
+    toast('Error al activar chat. Master Key incorrecta.','error');
   }
 }
 
