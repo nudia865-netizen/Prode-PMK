@@ -1715,26 +1715,24 @@ function toggleChat(){
 async function adminActivarChat(){
   const statusEl = document.getElementById('chat-admin-status');
   if(CHAT_BIN_ID){
-    statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat ya activo. Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
+    statusEl.innerHTML = `<span style="color:var(--accent)">\u2713 Chat ya activo. Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
     return;
   }
-  // Pedir Master Key si no está en sesión
   let mk = getMasterKey();
   if(!mk){
-    mk = prompt('Ingresá tu Master Key de JSONBin para crear el bin de chat
-(la que empieza con $2a$10$...):');
+    mk = prompt('Ingresa tu Master Key de JSONBin (empieza con $2a$10$...):');
     if(!mk || !mk.trim()){ statusEl.innerHTML = '<span style="color:#fca5a5">Cancelado. Se necesita la Master Key.</span>'; return; }
     setMasterKey(mk.trim());
   }
-  statusEl.textContent = 'Creando bin de chat…';
+  statusEl.textContent = 'Creando bin de chat...';
   const ok = await chatBinCreate();
   if(ok){
-    statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat creado exitosamente! Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
-    toast('¡Chat activado! Los invitados ya pueden escribir.');
+    statusEl.innerHTML = `<span style="color:var(--accent)">\u2713 Chat creado! Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
+    toast('Chat activado! Los invitados ya pueden escribir.');
     startChatPolling();
   } else {
-    statusEl.innerHTML = '<span style="color:#fca5a5">✕ Error al crear. Verificá que la Master Key sea correcta.</span>';
-    toast('Error al activar chat. Master Key incorrecta.','error');
+    statusEl.innerHTML = '<span style="color:#fca5a5">Error al crear. Verifica que la Master Key sea correcta.</span>';
+    toast('Error al activar chat.','error');
   }
 }
 
