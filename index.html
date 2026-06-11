@@ -284,6 +284,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <button class="tab" onclick="showTab('resumen')">📋 Resumen</button>
     <button class="tab" onclick="showTab('tabla')">Tabla</button>
     <button class="tab" onclick="showTab('pozo')">Pozo</button>
+    <button class="tab" onclick="showTab('chat-admin')">💬 Chat</button>
   </div>
 
   <!-- PARTIDOS -->
@@ -364,6 +365,20 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- POZO -->
   <div id="tab-pozo" class="tab-sec">
     <div id="pozo-content"></div>
+  </div>
+
+  <!-- CHAT ADMIN TAB -->
+  <div id="tab-chat-admin" class="tab-sec">
+    <div class="card">
+      <div class="card-title">💬 Gestión del Chat</div>
+      <div id="chat-admin-status" style="font-size:13px;color:var(--text2);margin-bottom:1rem"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="adminActivarChat()">🚀 Activar / Crear chat</button>
+        <button class="btn btn-ghost btn-sm" onclick="adminVerMsgs()">🔄 Ver mensajes actuales</button>
+        <button class="btn btn-danger btn-sm" onclick="adminLimpiarChat()">🗑 Borrar todos los mensajes</button>
+      </div>
+      <div id="chat-admin-msgs" style="margin-top:1rem;font-size:12px;color:var(--text2)"></div>
+    </div>
   </div>
 </div>
 
@@ -549,7 +564,7 @@ let partidos=[], participantes=[], pronosticos={}, resultados={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null;
 
 function getState(){ return {partidos, participantes, pronosticos, resultados}; }
-function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; }
+function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); } }
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
@@ -699,13 +714,14 @@ function showTab(t){
   document.querySelectorAll('#admin-tabs .tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo'];
-  document.querySelectorAll('#admin-tabs .tab')[tabs.indexOf(t)].classList.add('active');
+  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','chat-admin'];
+  const idx=tabs.indexOf(t); if(idx>=0) document.querySelectorAll('#admin-tabs .tab')[idx].classList.add('active');
   if(t==='pronosticos') renderPronosticos();
   if(t==='resultados')  renderResultados();
   if(t==='resumen')     renderResumen();
   if(t==='tabla')       renderTabla();
   if(t==='pozo')        renderPozo();
+  if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
 }
 
 function setTablaView(v,btn){
@@ -1317,11 +1333,11 @@ function renderResumenPub(){
     initMap[s.nombre]=apellido ? inicial+' '+apellido : inicial;
   });
 
-  const th=`padding:5px 4px;font-size:10px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:nowrap;max-width:56px;width:56px;`;
-  const tdB=`padding:5px 4px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;`;
+  const th=`padding:4px 2px;font-size:9px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:normal;word-break:break-word;max-width:44px;width:44px;`;
+  const tdB=`padding:4px 2px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;width:44px;max-width:44px`;
   const hCells=ranked.map(s=>{
     const medal=!noPrizeSet.has(s.nombre)&&(s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'');
-    return `<th style="${th}" title="${s.nombre}">${medal||''}<span style="font-size:10px;line-height:1.3;display:block">${initMap[s.nombre]}${noPrizeSet.has(s.nombre)?'<sup style="color:var(--text3)">*</sup>':''}</span><span style="font-size:12px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`;
+    return `<th style="${th}" title="${s.nombre}">${medal||''}<span style="font-size:9px;line-height:1.3;display:block">${initMap[s.nombre]}${noPrizeSet.has(s.nombre)?'<sup style="color:var(--text3)">*</sup>':''}</span><span style="font-size:10px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`;
   }).join('');
   const rows=ps.map(p=>{
     const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
@@ -1331,7 +1347,7 @@ function renderResumenPub(){
       const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
       const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
       const badge=pts===3?`<span style="font-size:9px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#fca5a5;display:block">0</span>`:'';
-      return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'};width:56px;max-width:56px">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`;
+      return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`;
     }).join('');
     return `<tr>
       <td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">
@@ -1360,14 +1376,10 @@ function renderResumenPub(){
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
-// Firebase Realtime Database — proyecto gratuito dedicado al chat
-// Para usar tu propio Firebase: creá un proyecto en console.firebase.google.com
-// → Realtime Database → Reglas: {"rules":{".read":true,".write":true}}
-// y reemplazá FB_URL con la URL de tu base.
-const FB_URL = 'https://prode-pmk-chat-default-rtdb.firebaseio.com';
-
-const CHAT_PATH = `${FB_URL}/chat`;
-const CHAT_MAX  = 120; // máximo mensajes a mostrar
+// Backend: JSONBin (bin separado solo para el chat — misma API key del prode)
+// Se crea automáticamente el primer mensaje si no existe aún.
+let CHAT_BIN_ID = localStorage.getItem('pmk_chat_bin') || '';
+const CHAT_MAX  = 120; // máximo mensajes guardados
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
 let chatUnread  = 0;
@@ -1506,73 +1518,110 @@ function escHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Firebase REST helpers ──────────────────────────────────────────────────
-async function fbGet(path){
-  try{
-    const r = await fetch(`${path}.json`);
-    if(!r.ok) return null;
-    return await r.json();
-  } catch(e){ return null; }
-}
+// ── JSONBin chat helpers ──────────────────────────────────────────────────
+// ID del bin de chat — se configura una vez desde el panel admin
+// El bin debe estar creado con X-Bin-Private: false y permitir updates sin auth
+// (en JSONBin: bin público + "Allow Update Without API Key" activado)
+const CHAT_WRITE_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2';
 
-async function fbPush(path, data){
+async function chatBinGet(){
+  if(!CHAT_BIN_ID) return [];
   try{
-    const r = await fetch(`${path}.json`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
+    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}/latest`,{
+      headers:{'X-Access-Key': ACCESS_KEY}
     });
-    return r.ok ? await r.json() : null;
-  } catch(e){ return null; }
+    if(!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.record) ? d.record : [];
+  } catch(e){ return []; }
 }
 
-async function fbDelete(path){
+async function chatBinSet(msgs){
+  if(!CHAT_BIN_ID) return false;
   try{
-    const r = await fetch(`${path}.json`, { method:'DELETE' });
+    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}`,{
+      method:'PUT',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Access-Key': CHAT_WRITE_KEY
+      },
+      body: JSON.stringify(msgs)
+    });
     return r.ok;
   } catch(e){ return false; }
 }
 
+async function chatBinCreate(){
+  const mk = getMasterKey();
+  if(!mk) return false;
+  try{
+    const r = await fetch(`${JSONBIN}/b`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-chat','X-Bin-Private':'false'},
+      body: JSON.stringify([])
+    });
+    if(!r.ok) return false;
+    const d = await r.json();
+    CHAT_BIN_ID = d.metadata?.id || '';
+    if(CHAT_BIN_ID){
+      localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
+      // Guardar en nube para que todos los usuarios lo vean
+      await syncChatBinId();
+    }
+    return !!CHAT_BIN_ID;
+  } catch(e){ return false; }
+}
+
+// Sincroniza el CHAT_BIN_ID en el bin principal para que todos lo lean
+async function syncChatBinId(){
+  const mk = getMasterKey();
+  if(!mk || !CHAT_BIN_ID) return;
+  // Guardamos el chat bin id dentro del bin de prode como campo extra
+  // (se lee en init si está presente)
+  try{
+    const state = getState();
+    state._chatBin = CHAT_BIN_ID;
+    await fetch(`${JSONBIN}/b/${BIN_ID}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':mk},
+      body: JSON.stringify(state)
+    });
+  } catch(e){}
+}
+
 // ── Cargar mensajes ────────────────────────────────────────────────────────
 async function loadChatMsgs(){
-  const data = await fbGet(CHAT_PATH);
-  if(!data){ renderChatMsgs([]); return []; }
-  const msgs = Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts);
-  // Guardar últimos CHAT_MAX
+  const msgs = await chatBinGet();
   const recent = msgs.slice(-CHAT_MAX);
   renderChatMsgs(recent);
   if(recent.length) chatLastTs = recent[recent.length-1].ts;
   return recent;
 }
 
-// ── Tiempo real con polling (SSE no disponible en Firebase REST free) ──────
+// ── Polling cada 5 segundos ────────────────────────────────────────────────
 let chatPollInterval = null;
 
 function startChatPolling(){
   if(chatPollInterval) return;
   chatPollInterval = setInterval(async ()=>{
-    const data = await fbGet(CHAT_PATH);
-    if(!data) return;
-    const msgs = Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>a.ts-b.ts);
+    if(!CHAT_BIN_ID) return;
+    const msgs = await chatBinGet();
     const recent = msgs.slice(-CHAT_MAX);
     if(recent.length && recent[recent.length-1].ts > chatLastTs){
       const newMsgs = recent.filter(m => m.ts > chatLastTs);
       chatLastTs = recent[recent.length-1].ts;
       renderChatMsgs(recent);
-      // Notificación si chat cerrado
       if(!chatOpen && newMsgs.length){
         chatUnread += newMsgs.length;
         const badge = document.getElementById('chat-unread');
         badge.textContent = chatUnread > 9 ? '9+' : chatUnread;
         badge.style.display = 'flex';
-        // Animar botón
         const btn = document.getElementById('chat-toggle');
-        btn.style.animation = 'none';
-        btn.offsetHeight;
+        btn.style.animation = 'none'; btn.offsetHeight;
         btn.style.animation = 'chatBounce .4s ease';
       }
     }
-  }, 4000); // polling cada 4 segundos
+  }, 5000);
 }
 
 function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=null; }
@@ -1580,13 +1629,16 @@ function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=nu
 // ── Enviar mensaje ─────────────────────────────────────────────────────────
 async function sendChatMsg(){
   if(!chatUser){ openChatNameModal(sendChatMsg); return; }
+  if(!CHAT_BIN_ID){
+    toast('El chat aún no está activado. El admin debe iniciarlo desde el panel.','error');
+    return;
+  }
   const inp  = document.getElementById('chat-input');
   const warn = document.getElementById('chat-warn');
   const raw  = inp.value.trim();
   if(!raw) return;
 
   const { filtered, censored } = filterMsg(raw);
-
   if(censored){
     warn.style.display = 'block';
     setTimeout(()=>{ warn.style.display='none'; }, 4000);
@@ -1594,24 +1646,24 @@ async function sendChatMsg(){
     warn.style.display = 'none';
   }
 
-  inp.value = '';
-  inp.style.height = '36px';
+  inp.value = ''; inp.style.height = '36px';
 
-  const msg = {
+  const btn = document.getElementById('chat-send');
+  btn.disabled = true;
+
+  const msgs = await chatBinGet();
+  msgs.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
     author: chatUser,
     text:   filtered,
     ts:     Date.now(),
     isAdmin: adminMode ? true : false
-  };
-
-  const btn = document.getElementById('chat-send');
-  btn.disabled = true;
-  const res = await fbPush(CHAT_PATH, msg);
+  });
+  const trimmed = msgs.slice(-CHAT_MAX);
+  const ok = await chatBinSet(trimmed);
   btn.disabled = false;
 
-  if(!res){ toast('No se pudo enviar el mensaje. Revisá tu conexión.','error'); return; }
-
-  // Recargar mensajes inmediatamente
+  if(!ok){ toast('No se pudo enviar el mensaje. Intentá de nuevo.','error'); return; }
   await loadChatMsgs();
 }
 
@@ -1619,7 +1671,9 @@ async function sendChatMsg(){
 async function deleteChatMsg(id){
   if(!adminMode) return;
   if(!confirm('¿Borrar este mensaje?')) return;
-  const ok = await fbDelete(`${CHAT_PATH}/${id}`);
+  const msgs = await chatBinGet();
+  const filtered = msgs.filter(m => m.id !== id);
+  const ok = await chatBinSet(filtered);
   if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); }
   else toast('No se pudo eliminar','error');
 }
@@ -1652,10 +1706,59 @@ function toggleChat(){
 })();
 
 // ── Init chat (solo arrancar polling si hay mensajes previos) ──────────────
+// ── Admin chat functions ───────────────────────────────────────────────────
+async function adminActivarChat(){
+  const statusEl = document.getElementById('chat-admin-status');
+  if(CHAT_BIN_ID){
+    statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat ya activo. Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
+    return;
+  }
+  statusEl.textContent = 'Creando bin de chat…';
+  const ok = await chatBinCreate();
+  if(ok){
+    statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat creado exitosamente! Bin ID: <code>${CHAT_BIN_ID}</code></span>`;
+    toast('¡Chat activado! Los invitados ya pueden escribir.');
+  } else {
+    statusEl.innerHTML = '<span style="color:#fca5a5">✕ Error al crear. Verificá que tenés la Master Key cargada.</span>';
+    toast('Error al activar chat. Verificá la Master Key.','error');
+  }
+}
+
+async function adminVerMsgs(){
+  const el = document.getElementById('chat-admin-msgs');
+  if(!CHAT_BIN_ID){ el.textContent = 'Chat no activado aún.'; return; }
+  el.textContent = 'Cargando…';
+  const msgs = await chatBinGet();
+  if(!msgs.length){ el.textContent = 'No hay mensajes aún.'; return; }
+  el.innerHTML = msgs.slice(-20).reverse().map(m =>
+    `<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline">
+      <span style="color:var(--accent);min-width:100px">${escHtml(m.author)}</span>
+      <span style="flex:1">${escHtml(m.text)}</span>
+      <button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px" onclick="deleteChatMsg('${m.id}')">✕</button>
+    </div>`
+  ).join('');
+}
+
+async function adminLimpiarChat(){
+  if(!adminMode) return;
+  if(!confirm('¿Borrar TODOS los mensajes del chat? Esta acción no se puede deshacer.')) return;
+  const ok = await chatBinSet([]);
+  if(ok){ toast('Chat limpiado'); document.getElementById('chat-admin-msgs').textContent = 'Chat vaciado.'; await loadChatMsgs(); }
+  else toast('Error al limpiar','error');
+}
+
+function showChatAdminStatus(){
+  const el = document.getElementById('chat-admin-status');
+  if(!el) return;
+  el.innerHTML = CHAT_BIN_ID
+    ? `<span style="color:var(--accent)">✓ Chat activo · Bin ID: <code style="font-size:11px">${CHAT_BIN_ID}</code></span>`
+    : '<span style="color:#fde68a">⚠ Chat no activado. Hacé click en "Activar / Crear chat".</span>';
+}
+
 function initChat(){
   document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-  // Polling pasivo en background para el badge de unread
-  startChatPolling();
+  showChatAdminStatus();
+  if(CHAT_BIN_ID) startChatPolling();
 }
 
 // ── Generar hash para producción ───────────────────────────────────────────
@@ -1676,4 +1779,4 @@ async function init(){
 init();
 </script>
 </body>
-  </html>
+</html>
