@@ -1245,37 +1245,51 @@ function renderPozo(){
 }
 
 // ── Pozo público ───────────────────────────────────────────────────────────
+function distRowsFecha(c){
+  // Distribución de premios según pagadores de esa fecha
+  const ppal = c*5000 - Math.round(c*5000*0.2);
+  if(c===0) return '<div class="pozo-dist-row"><span style="color:var(--text3)">Sin pagos en esta fecha</span></div>';
+  if(c<10)  return `<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
+  if(c<=20) return `<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
+  return `<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
+    <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
+}
+
 function renderPozoPublico(){
   ['pozo-pub','pozo-pub-partidos'].forEach(id=>{
     const box=document.getElementById(id);
     if(!box) return;
     if(!participantes.length){ box.style.display='none'; return; }
     box.style.display='';
-    const n=participantes.length;
     const fechas=getFechas();
-    const total=totalRecaudado(), sp=Math.round(total*0.2), ppal=total-sp;
-    let distRows='';
-    if(n===0){
-      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes aún</span></div>';
-    } else if(n<10){
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
-    } else if(n<=20){
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
-    } else {
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
-    }
-    box.innerHTML=`<div class="metrics" style="margin-bottom:.75rem">
-      <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${n}</div></div>
-      <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-      <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
-    </div>
-    <div class="card" style="margin-bottom:0">
-      <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal</div>
-      ${distRows}
+    const total=totalRecaudado(), sp=Math.round(total*0.2);
+
+    // Una card por fecha
+    const fechaCards = fechas.length ? fechas.map(f=>{
+      const c=conCuotaFecha(f);
+      const subTotal=c*5000, subSp=Math.round(subTotal*0.2), subPpal=subTotal-subSp;
+      return `<div class="card" style="margin-bottom:.75rem">
+        <div class="card-title" style="font-size:14px">📅 ${f}</div>
+        <div class="metrics" style="margin-bottom:.6rem">
+          <div class="metric"><div class="metric-label">Pagaron</div><div class="metric-val">${c}</div></div>
+          <div class="metric"><div class="metric-label">Pozo fecha</div><div class="metric-val accent">$${subPpal.toLocaleString('es-AR')}</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:.4rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Distribución</div>
+        ${distRowsFecha(c)}
+      </div>`;
+    }).join('') : '';
+
+    // Súper pozo acumulado — solo una vez al final
+    const spBox=`<div class="pozo-box" style="margin-top:.25rem">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🏆 Súper Pozo acumulado</div>
+      <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Premio al líder al finalizar el torneo. En caso de empate se divide en partes iguales.</div>
     </div>`;
+
+    box.innerHTML = fechaCards + spBox +
+      `<div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:.75rem">* Actividad recreativa entre participantes. Participación voluntaria.</div>`;
   });
 }
 
