@@ -603,6 +603,11 @@ function superPozoTotal(){
   // Suma de aportes de $1.000 por cada fecha (todas, históricas + actuales) según pagos actuales
   return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0);
 }
+function fechaPozoActual(){
+  const fechas=getFechas();
+  if(!fechas.length) return null;
+  return fechas.find(f=>!pozosHistorial[f]) || fechas[fechas.length-1];
+}
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
@@ -1138,7 +1143,7 @@ function confirmarPozo(fecha){
   const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
   const conC = pagantesFecha(fecha).length;
   const total=conC*5000, sp=conC*1000, ppal=total-sp;
-  const dist = distPorCantidad(participantes.length, ppal);
+  const dist = distPorCantidad(conC, ppal);
   const ganadores = dist.map((d,i)=>{
     const sel = document.getElementById(`pozo-ganador-${i}`);
     let val = sel ? sel.value : '';
@@ -1162,12 +1167,12 @@ function renderPozo(){
   const cont=document.getElementById('pozo-content');
   const fechas=getFechas();
   if(!fechas.length){ cont.innerHTML='<p class="empty">Cargá partidos primero.</p>'; return; }
-  if(!pozoFechaSel || !fechas.includes(pozoFechaSel)) pozoFechaSel=fechas[fechas.length-1];
+  if(!pozoFechaSel || !fechas.includes(pozoFechaSel)) pozoFechaSel=fechaPozoActual();
   const f=pozoFechaSel;
   const conC=pagantesFecha(f).length;
   const total=conC*5000, sp=conC*1000, ppal=total-sp;
   const n=participantes.length;
-  const dist=distPorCantidad(n, ppal);
+  const dist=distPorCantidad(conC, ppal);
   const ps = partidos.filter(p=>p.fecha===f);
   const np = noPrizeSetFecha(f);
   const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
@@ -1196,7 +1201,8 @@ function renderPozo(){
     <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
     <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
   </div>
-  <div class="card"><div class="card-title">Distribución — ${n} participantes ${cerrado?'<span class="badge b-closed" style="margin-left:6px">🔒 Cerrado</span>':''}</div>
+  <div class="card"><div class="card-title">Distribución — ${conC} pagantes ${cerrado?'<span class="badge b-closed" style="margin-left:6px">🔒 Cerrado</span>':''}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;margin-top:-6px">(${n} participantes en total)</div>
     ${distHtml}
   </div>
   <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo acumulado (todas las fechas)</div>
@@ -1219,15 +1225,15 @@ function renderPozoPublico(){
     if(!participantes.length){ box.style.display='none'; return; }
     box.style.display='';
     const fechas=getFechas();
-    const f=fechas[fechas.length-1];
+    const f=fechaPozoActual();
     const conC=f?pagantesFecha(f).length:0;
     const total=conC*5000, sp=conC*1000, ppal=total-sp, n=participantes.length;
     const spTotal=superPozoTotal();
-    const dist=distPorCantidad(n,ppal);
+    const dist=distPorCantidad(conC,ppal);
     const medals=['🥇','🥈','🥉'];
     let distRows='';
-    if(n===0){
-      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes aún</span></div>';
+    if(conC===0){
+      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Todavía nadie pagó esta fecha</span></div>';
     } else {
       distRows=dist.map((d,i)=>`<div class="pozo-dist-row"><span>${medals[i]||''} ${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span></div>`).join('');
     }
@@ -1921,4 +1927,4 @@ async function init(){
 init();
 </script>
 </body>
-  </html>
+</html>
