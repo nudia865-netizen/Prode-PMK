@@ -585,7 +585,7 @@ let partidos=[], participantes=[], pronosticos={}, resultados={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null;
 
 function getState(){ return {partidos, participantes, pronosticos, resultados}; }
-function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); } if(d._pubBin && !PUBLIC_BIN_ID){ PUBLIC_BIN_ID=d._pubBin; localStorage.setItem('pmk_pub_bin',PUBLIC_BIN_ID); } }
+function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; if(d._chatBin && !CHAT_BIN_ID && /^[0-9]{10,}$/.test(d._chatBin)){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); } if(d._pubBin && !PUBLIC_BIN_ID){ PUBLIC_BIN_ID=d._pubBin; localStorage.setItem('pmk_pub_bin',PUBLIC_BIN_ID); } }
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
@@ -1560,7 +1560,14 @@ function renderResumenPub(){
 // ── CHAT ───────────────────────────────────────────────────────────────────
 // Backend: JSONBin (bin separado solo para el chat — misma API key del prode)
 // Se crea automáticamente el primer mensaje si no existe aún.
-let CHAT_BIN_ID = localStorage.getItem('pmk_chat_bin') || '6a2b43aff5f4af5e29e2f69b';
+// Validar que el ID guardado sea de jsonblob.com (solo dígitos, ~18 chars)
+// Si es un ID viejo de JSONBin (contiene letras hex), descartarlo
+(function(){
+  const saved = localStorage.getItem('pmk_chat_bin') || '';
+  const isJsonblob = saved && /^[0-9]{10,}$/.test(saved);
+  if(!isJsonblob && saved){ localStorage.removeItem('pmk_chat_bin'); }
+})();
+let CHAT_BIN_ID = localStorage.getItem('pmk_chat_bin') || '';
 const CHAT_MAX  = 120; // máximo mensajes guardados
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
