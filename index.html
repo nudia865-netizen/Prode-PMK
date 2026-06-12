@@ -1935,7 +1935,7 @@ async function init(){
     if(syncTimer) return; // hay un guardado propio pendiente, no pisarlo
     const ok2 = await loadFromCloud();
     if(ok2) refreshAll();
-  }, 15000);
+  }, 60000);
   document.addEventListener('visibilitychange', async ()=>{
     if(!document.hidden && !syncTimer){
       const ok3 = await loadFromCloud();
