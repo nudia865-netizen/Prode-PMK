@@ -324,11 +324,12 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
       <div class="info-box">Cada participante puede tener hasta 2 prodes. Usá nombres distintos (ej: "Juan" y "Juan B").</div>
       <div class="frow">
         <label>Nombre</label><input type="text" id="part-nombre" placeholder="Nombre o apodo" style="width:200px">
-        <label>Cuota</label>
-        <select id="part-cuota"><option value="si">Sí — $5.000</option><option value="no">No (solo juega)</option></select>
+        <label>Cuota fecha actual</label>
+        <select id="part-cuota"><option value="si">Sí — $5.000</option><option value="no">No (todavía no pagó)</option></select>
       </div>
       <button class="btn btn-primary" onclick="addParticipante()">+ Agregar</button>
     </div>
+    <div id="part-fecha-sel-wrap" class="frow" style="display:none"></div>
     <div id="lista-participantes"><p class="empty">No hay participantes.</p></div>
   </div>
 
@@ -444,8 +445,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
         <span class="fh-chev" id="schev-personas">&#9658;</span>
       </div>
     </div>
-    <div class="fecha-body" id="sec-pub-personas">
-      <div id="personas-content"><p class="empty">Sin datos aún.</p></div>
+  <!-- HISTORIAL DE FECHAS -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-historial','schev-historial')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">📜 Historial de fechas</div>
+      <span class="fh-chev" id="schev-historial">&#9658;</span>
+    </div>
+    <div class="fecha-body" id="sec-pub-historial">
+      <div id="historial-pub-content"><p class="empty">Sin fechas cerradas todavía.</p></div>
     </div>
   </div>
 
@@ -565,11 +572,37 @@ function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
 // ── State ──────────────────────────────────────────────────────────────────
-let partidos=[], participantes=[], pronosticos={}, resultados={};
-let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null;
+let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
+let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 
-function getState(){ return {partidos, participantes, pronosticos, resultados}; }
-function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); } }
+function getState(){ return {partidos, participantes, pronosticos, resultados, pozosHistorial}; }
+function setState(d){
+  partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; pozosHistorial=d.pozosHistorial||{};
+  // Migración: cuota (global) -> pagos (por fecha)
+  participantes.forEach(p=>{
+    if(!p.pagos){
+      p.pagos = {};
+      if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; }
+      delete p.cuota;
+    }
+  });
+  if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
+}
+
+// ── Helpers de pago por fecha ───────────────────────────────────────────────
+function pagoFecha(p, fecha){ return (p.pagos && p.pagos[fecha]) || 'no'; }
+function pagantesFecha(fecha){ return participantes.filter(p=>pagoFecha(p,fecha)==='si'); }
+function noPrizeSetFecha(fecha){ return new Set(participantes.filter(p=>pagoFecha(p,fecha)!=='si').map(p=>p.nombre)); }
+function distPorCantidad(n, ppal){
+  if(n===0) return [{pos:'—',pct:'—',monto:'—'}];
+  if(n<10)  return [{pos:'1°',pct:'100%',monto:ppal}];
+  if(n<=20) return [{pos:'1°',pct:'75%',monto:Math.round(ppal*.75)},{pos:'2°',pct:'25%',monto:Math.round(ppal*.25)}];
+  return [{pos:'1°',pct:'70%',monto:Math.round(ppal*.7)},{pos:'2°',pct:'20%',monto:Math.round(ppal*.2)},{pos:'3°',pct:'10%',monto:Math.round(ppal*.1)}];
+}
+function superPozoTotal(){
+  // Suma de aportes de $1.000 por cada fecha (todas, históricas + actuales) según pagos actuales
+  return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0);
+}
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
@@ -712,7 +745,7 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); }
 }
 
 function showTab(t){
@@ -753,7 +786,7 @@ function refreshAll(){
   if(at==='resumen')     renderResumen();
   if(at==='tabla')       renderTabla();
   if(document.getElementById('page-partidos-pub').classList.contains('active')){
-    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico();
+    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub();
   }
 }
 
@@ -810,7 +843,10 @@ function addParticipante(){
   const c=document.getElementById('part-cuota').value;
   if(!n){ toast('Escribí un nombre','error'); return; }
   if(participantes.find(p=>p.nombre===n)){ toast('Ya existe ese nombre','error'); return; }
-  participantes.push({nombre:n,cuota:c}); persist(); renderParticipantes();
+  const pagos={};
+  const f=partFechaSel||getFechas()[getFechas().length-1];
+  if(f) pagos[f]=c;
+  participantes.push({nombre:n,pagos}); persist(); renderParticipantes();
   document.getElementById('part-nombre').value=''; toast('✓ Participante agregado');
 }
 
@@ -828,30 +864,47 @@ function editParticipante(n){
   persist(); renderParticipantes(); toast('✓ Nombre actualizado');
 }
 
-function toggleCuota(n){
+function togglePago(n, fecha){
   const p=participantes.find(x=>x.nombre===n);
-  if(p){ p.cuota=p.cuota==='si'?'no':'si'; persist(); renderParticipantes(); }
+  if(p){ if(!p.pagos) p.pagos={}; p.pagos[fecha]=pagoFecha(p,fecha)==='si'?'no':'si'; persist(); renderParticipantes(); }
 }
+
+function setPartFecha(f){ partFechaSel=f; renderParticipantes(); }
 
 function renderParticipantes(){
   const cont=document.getElementById('lista-participantes');
+  const selWrap=document.getElementById('part-fecha-sel-wrap');
+  const fechas=getFechas();
+  if(!fechas.length){
+    if(selWrap) selWrap.style.display='none';
+  } else {
+    if(!partFechaSel || !fechas.includes(partFechaSel)) partFechaSel=fechas[fechas.length-1];
+    if(selWrap){
+      selWrap.style.display='';
+      selWrap.innerHTML = `<label>Fecha</label><select onchange="setPartFecha(this.value)">${fechas.map(f=>`<option value="${esc(f)}" ${f===partFechaSel?'selected':''}>${f}</option>`).join('')}</select>`;
+    }
+  }
   if(!participantes.length){ cont.innerHTML='<p class="empty">No hay participantes.</p>'; return; }
-  const conC=participantes.filter(p=>p.cuota==='si').length;
-  const ppal=conC*5000-conC*1000, sp=conC*1000;
-  cont.innerHTML=`<div class="metrics">
+  const f=partFechaSel;
+  const conC = f ? pagantesFecha(f).length : 0;
+  const ppal=conC*5000-conC*1000, sp=conC*1000, spTotal=superPozoTotal();
+  cont.innerHTML=`${f?`<div class="metrics">
     <div class="metric"><div class="metric-label">Total</div><div class="metric-val">${participantes.length}</div></div>
-    <div class="metric"><div class="metric-label">Pagan cuota</div><div class="metric-val">${conC}</div></div>
-    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
-  </div>
+    <div class="metric"><div class="metric-label">Pagaron (${esc(f)})</div><div class="metric-val">${conC}</div></div>
+    <div class="metric"><div class="metric-label">Pozo principal (${esc(f)})</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Súper pozo total</div><div class="metric-val accent">$${spTotal.toLocaleString('es-AR')}</div></div>
+  </div>`:''}
   <div style="display:flex;flex-wrap:wrap;gap:6px">
-    ${participantes.map(p=>`<div class="pchip">
+    ${participantes.map(p=>{
+      const pagado = f && pagoFecha(p,f)==='si';
+      return `<div class="pchip">
       <span style="font-size:15px;font-weight:600;color:var(--accent)">${p.nombre[0].toUpperCase()}</span>
       <span>${p.nombre}</span>
-      <span class="badge ${p.cuota==='si'?'b-win':'b-gray'}" style="cursor:pointer" onclick="toggleCuota('${esc(p.nombre)}')">$${p.cuota==='si'?'5k':'—'}</span>
+      ${f?`<span class="badge ${pagado?'b-win':'b-gray'}" style="cursor:pointer" onclick="togglePago('${esc(p.nombre)}','${esc(f)}')">$${pagado?'5k':'—'}</span>`:''}
       <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
       <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
   </div>`;
 }
 
@@ -1057,7 +1110,7 @@ function renderTablaFecha(cont){
   fechas.forEach(f=>{ selHtml+=`<option value="${f}" ${f===prevSel?'selected':''}>${f}</option>`; });
   selHtml+=`</select></div>`;
   const ps=partidos.filter(p=>p.fecha===prevSel);
-  const _np6=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _np6=noPrizeSetFecha(prevSel);
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np6);
   const jugados=ps.filter(p=>{ const r=resultados[p.id]; return r&&!isNaN(r.gl); }).length;
   cont.innerHTML=selHtml+`<div class="metrics">
@@ -1067,9 +1120,9 @@ function renderTablaFecha(cont){
 }
 
 function renderTablaGeneral(cont){
-  const _np8=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _np8=new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre));
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(partidos,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np8);
-  const sp=participantes.filter(p=>p.cuota==='si').length*1000;
+  const sp=superPozoTotal();
   cont.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
     <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
     <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
@@ -1077,24 +1130,83 @@ function renderTablaGeneral(cont){
 }
 
 // ── Pozo ───────────────────────────────────────────────────────────────────
+function setPozoFecha(f){ pozoFechaSel=f; renderPozo(); }
+
+function confirmarPozo(fecha){
+  const ps = partidos.filter(p=>p.fecha===fecha);
+  const np = noPrizeSetFecha(fecha);
+  const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
+  const conC = pagantesFecha(fecha).length;
+  const total=conC*5000, sp=conC*1000, ppal=total-sp;
+  const dist = distPorCantidad(participantes.length, ppal);
+  const ganadores = dist.map((d,i)=>{
+    const sel = document.getElementById(`pozo-ganador-${i}`);
+    let val = sel ? sel.value : '';
+    if(!val){
+      const cand = ranked.filter(r=>r.rank===i+1);
+      val = cand.map(c=>c.nombre).join(', ');
+    }
+    return {pos:d.pos, pct:d.pct, monto:d.monto, ganador:val};
+  });
+  if(!confirm(`¿Confirmar y cerrar el pozo de "${fecha}"? Esto queda fijo y se mostrará en el historial público.`)) return;
+  pozosHistorial[fecha] = {recaudado:total, principal:ppal, superPozoAporte:sp, dist:ganadores, fechaCierre:new Date().toISOString()};
+  persist(); renderPozo(); toast('✓ Pozo de '+fecha+' confirmado y guardado en historial');
+}
+
+function reabrirPozo(fecha){
+  if(!confirm(`¿Reabrir el pozo de "${fecha}"? Se borrará el registro del historial.`)) return;
+  delete pozosHistorial[fecha]; persist(); renderPozo(); toast('Pozo reabierto');
+}
+
 function renderPozo(){
   const cont=document.getElementById('pozo-content');
-  const conC=participantes.filter(p=>p.cuota==='si').length;
-  const total=conC*5000,sp=conC*1000,ppal=total-sp;
+  const fechas=getFechas();
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Cargá partidos primero.</p>'; return; }
+  if(!pozoFechaSel || !fechas.includes(pozoFechaSel)) pozoFechaSel=fechas[fechas.length-1];
+  const f=pozoFechaSel;
+  const conC=pagantesFecha(f).length;
+  const total=conC*5000, sp=conC*1000, ppal=total-sp;
   const n=participantes.length;
-  let dist=n===0?[{pos:'—',pct:'—',monto:'—'}]:n<10?[{pos:'1°',pct:'100%',monto:`$${ppal.toLocaleString('es-AR')}`}]:n<=20?[{pos:'1°',pct:'75%',monto:`$${Math.round(ppal*.75).toLocaleString('es-AR')}`},{pos:'2°',pct:'25%',monto:`$${Math.round(ppal*.25).toLocaleString('es-AR')}`}]:[{pos:'1°',pct:'70%',monto:`$${Math.round(ppal*.7).toLocaleString('es-AR')}`},{pos:'2°',pct:'20%',monto:`$${Math.round(ppal*.2).toLocaleString('es-AR')}`},{pos:'3°',pct:'10%',monto:`$${Math.round(ppal*.1).toLocaleString('es-AR')}`}];
-  cont.innerHTML=`<div class="metrics">
-    <div class="metric"><div class="metric-label">Cuotas</div><div class="metric-val">${conC}</div></div>
+  const dist=distPorCantidad(n, ppal);
+  const ps = partidos.filter(p=>p.fecha===f);
+  const np = noPrizeSetFecha(f);
+  const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
+  const cerrado = pozosHistorial[f];
+  const spTotal = superPozoTotal();
+
+  const selHtml = `<div class="frow"><label>Fecha</label><select onchange="setPozoFecha(this.value)">${fechas.map(ff=>`<option value="${esc(ff)}" ${ff===f?'selected':''}>${ff}${pozosHistorial[ff]?' ✓':''}</option>`).join('')}</select></div>`;
+
+  const distHtml = dist.map((d,i)=>{
+    const cand = ranked.filter(r=>r.rank===i+1).map(r=>r.nombre);
+    const guardado = cerrado?.dist?.[i]?.ganador;
+    const valorActual = guardado!==undefined ? guardado : cand.join(', ');
+    const monto = typeof d.monto==='number' ? `$${d.monto.toLocaleString('es-AR')}` : d.monto;
+    return `<div class="dist-item" style="align-items:center">
+      <span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span>
+      <span style="font-weight:600;color:var(--accent)">${monto}</span>
+      ${cerrado?`<span style="margin-left:8px">🏆 ${valorActual||'—'}</span>`
+        :`<input id="pozo-ganador-${i}" type="text" value="${esc(valorActual)}" placeholder="Ganador/es" style="margin-left:8px;width:160px;font-size:12px">`}
+    </div>`;
+  }).join('');
+
+  cont.innerHTML=`${selHtml}
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Cuotas pagadas (${esc(f)})</div><div class="metric-val">${conC}</div></div>
     <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${total.toLocaleString('es-AR')}</div></div>
     <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
   </div>
-  <div class="card"><div class="card-title">Distribución — ${n} participantes</div>
-    ${dist.map(d=>`<div class="dist-item"><span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">${d.monto}</span></div>`).join('')}
+  <div class="card"><div class="card-title">Distribución — ${n} participantes ${cerrado?'<span class="badge b-closed" style="margin-left:6px">🔒 Cerrado</span>':''}</div>
+    ${distHtml}
   </div>
-  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo</div>
-    <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
-    <div style="font-size:12px;color:var(--text2)">Premio al líder acumulado al finalizar el torneo. Empate: se divide en partes iguales.</div>
+  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo acumulado (todas las fechas)</div>
+    <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
+    <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. Empate: se divide.</div>
+  </div>
+  <div style="margin-top:1rem">
+    ${cerrado
+      ? `<button class="btn btn-ghost btn-sm" onclick="reabrirPozo('${esc(f)}')">🔓 Reabrir / editar</button> <span style="font-size:11px;color:var(--text3)">Cerrado el ${new Date(cerrado.fechaCierre).toLocaleDateString('es-AR')}</span>`
+      : `<button class="btn btn-primary btn-sm" onclick="confirmarPozo('${esc(f)}')">🔒 Confirmar y cerrar pozo de ${esc(f)}</button>`}
   </div>
   <div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:1rem">* Actividad recreativa entre participantes. PMK no organiza ni se responsabiliza. Participación voluntaria. Apostar puede ser perjudicial para la salud.</div>`;
 }
@@ -1106,28 +1218,26 @@ function renderPozoPublico(){
     if(!box) return;
     if(!participantes.length){ box.style.display='none'; return; }
     box.style.display='';
-    const conC=participantes.filter(p=>p.cuota==='si').length;
+    const fechas=getFechas();
+    const f=fechas[fechas.length-1];
+    const conC=f?pagantesFecha(f).length:0;
     const total=conC*5000, sp=conC*1000, ppal=total-sp, n=participantes.length;
+    const spTotal=superPozoTotal();
+    const dist=distPorCantidad(n,ppal);
+    const medals=['🥇','🥈','🥉'];
     let distRows='';
     if(n===0){
       distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Sin participantes aún</span></div>';
-    } else if(n<10){
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">100%</span><span style="font-weight:600;color:var(--accent)">$${ppal.toLocaleString('es-AR')}</span></div>`;
-    } else if(n<=20){
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">75%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.75).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">25%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.25).toLocaleString('es-AR')}</span></div>`;
     } else {
-      distRows=`<div class="pozo-dist-row"><span>🥇 1° puesto</span><span style="color:var(--text2)">70%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.7).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥈 2° puesto</span><span style="color:var(--text2)">20%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.2).toLocaleString('es-AR')}</span></div>
-      <div class="pozo-dist-row"><span>🥉 3° puesto</span><span style="color:var(--text2)">10%</span><span style="font-weight:600;color:var(--accent)">$${Math.round(ppal*.1).toLocaleString('es-AR')}</span></div>`;
+      distRows=dist.map((d,i)=>`<div class="pozo-dist-row"><span>${medals[i]||''} ${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span></div>`).join('');
     }
-    box.innerHTML=`<div class="metrics" style="margin-bottom:.75rem">
+    box.innerHTML=`${f?`<div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Pozo de ${esc(f)}</div>`:''}<div class="metrics" style="margin-bottom:.75rem">
       <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${n}</div></div>
       <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-      <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+      <div class="metric"><div class="metric-label">Súper pozo total</div><div class="metric-val accent">$${spTotal.toLocaleString('es-AR')}</div></div>
     </div>
     <div class="card" style="margin-bottom:0">
-      <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal</div>
+      <div class="card-title" style="margin-bottom:.75rem">💰 Distribución del pozo principal (${esc(f||'')})</div>
       ${distRows}
     </div>`;
   });
@@ -1301,14 +1411,33 @@ function renderTablaPublica(){
   if(!cerradas.length){ cont.innerHTML='<p class="empty">Todavía no hay fechas cerradas.</p>'; return; }
   const esGeneral=sel.value==='general';
   const ps=esGeneral?partidos.filter(p=>p.estado==='cerrada'):partidos.filter(p=>p.fecha===sel.value&&p.estado==='cerrada');
-  const _npPub=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _npPub=esGeneral?new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre)):noPrizeSetFecha(sel.value);
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_npPub);
   let extra='';
-  if(esGeneral){ const sp=participantes.filter(p=>p.cuota==='si').length*1000; extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
+  if(esGeneral){ const sp=superPozoTotal(); extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
   cont.innerHTML=extra+tableHTML(ranked,_npPub);
 }
 
-// ── Helpers página pública unificada ──────────────────────────────────────
+// ── Historial de fechas (pública) ──────────────────────────────────────────
+function renderHistorialPub(){
+  const cont=document.getElementById('historial-pub-content');
+  if(!cont) return;
+  const fechas=Object.keys(pozosHistorial);
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Sin fechas cerradas todavía.</p>'; return; }
+  cont.innerHTML=fechas.map(f=>{
+    const h=pozosHistorial[f];
+    const distRows=(h.dist||[]).map(d=>`<div class="pozo-dist-row"><span>${d.pos} puesto (${d.pct})</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span><span>🏆 ${esc(d.ganador||'—')}</span></div>`).join('');
+    return `<div class="card">
+      <div class="card-title">${esc(f)}</div>
+      <div class="metrics" style="margin-bottom:.5rem">
+        <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${(h.recaudado||0).toLocaleString('es-AR')}</div></div>
+        <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${(h.principal||0).toLocaleString('es-AR')}</div></div>
+        <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${(h.superPozoAporte||0).toLocaleString('es-AR')}</div></div>
+      </div>
+      ${distRows}
+    </div>`;
+  }).join('');
+}
 function toggleSecPub(bodyId, chevId){
   document.getElementById(bodyId)?.classList.toggle('open');
   document.getElementById(chevId)?.classList.toggle('open');
@@ -1325,7 +1454,9 @@ function renderResumenPub(){
   const ps = (sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value)).filter(p=>p.estado==='cerrada');
   if(!ps.length){ cont.innerHTML='<p class="empty">No hay fechas cerradas todavía.</p>'; return; }
 
-  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const noPrizeSet = sel.value==='todas'
+    ? new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre))
+    : noPrizeSetFecha(sel.value);
   const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
   const ranked = addRanks(sorted, noPrizeSet);
 
@@ -1790,4 +1921,4 @@ async function init(){
 init();
 </script>
 </body>
-</html>
+  </html>
