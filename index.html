@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -371,29 +370,11 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- CHAT ADMIN TAB -->
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
-      <div class="card-title">💬 Gestión del Chat</div>
-      <div id="chat-admin-status" style="font-size:13px;color:var(--text2);margin-bottom:1rem"></div>
-
-      <!-- Bin público de datos -->
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem">
-        <div style="font-size:12px;font-weight:600;margin-bottom:.4rem">🌐 Bin público (datos para invitados)</div>
-        <div id="pub-bin-status" style="font-size:11px;color:var(--text2);margin-bottom:.5rem"></div>
-        <button class="btn btn-primary btn-sm" onclick="forceSyncPublic()">🔄 Crear / Sincronizar bin público ahora</button>
+      <div class="card-title">💬 Gestión del Chat (Firebase)</div>
+      <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#86efac">
+        ✓ Chat funcionando con Firebase Realtime Database.<br>
+        URL: <code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code>
       </div>
-
-      <!-- Pegar Bin ID manualmente -->
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem">
-        <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">📋 Pegar Bin ID del chat</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:.6rem;line-height:1.6">
-          Creá un bin en <a href="https://jsonbin.io" target="_blank" style="color:var(--accent)">jsonbin.io</a> con contenido <code>[]</code>, sin tildar "Private", y pegá el ID acá:
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="chat-bin-input" placeholder="6849abc123def456..." style="flex:1;font-size:12px;font-family:monospace" maxlength="30">
-          <button class="btn btn-primary btn-sm" onclick="adminGuardarBinId()">Guardar</button>
-        </div>
-        <div id="chat-bin-msg" style="font-size:11px;margin-top:.4rem;display:none"></div>
-      </div>
-
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">
         <button class="btn btn-ghost btn-sm" onclick="adminVerMsgs()">🔄 Ver mensajes</button>
         <button class="btn btn-danger btn-sm" onclick="adminLimpiarChat()">🗑 Borrar todos</button>
@@ -406,7 +387,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
 
-  <!-- Pozo siempre visible -->
+  <!-- Pozo siempre visible, expandido por defecto -->
   <div id="pozo-pub-partidos" style="margin-bottom:1rem;display:none"></div>
 
   <!-- TABLA -->
@@ -1276,13 +1257,22 @@ function renderPozoPublico(){
     const fechas=getFechas();
     const sp=fechas.reduce((a,f)=>a+conCuotaFecha(f)*1000,0);
 
+    // Título con la fecha actual (última fecha con partidos, o hoy)
+    const hoy = new Date();
+    const diaHoy = hoy.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const diaCapit = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+
+    // Totales globales
+    const totalRec = fechas.reduce((a,f)=>a+conCuotaFecha(f)*5000,0);
+    const totalPpal = fechas.reduce((a,f)=>a+conCuotaFecha(f)*4000,0);
+
     // Una fila compacta por fecha, desplegable
     const fechaRows = fechas.length ? fechas.map((f,i)=>{
       const c=conCuotaFecha(f);
       const subTotal=c*4000;
-      const uid=`pzf-${i}`;
+      const uid=`pzf-${id}-${i}`;
       return `<div style="border-bottom:1px solid var(--border)">
-        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.pz-chev').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'"
+        <div onclick="var d=document.getElementById('${uid}');d.style.display=d.style.display==='none'?'block':'none';this.querySelector('.pz-chev').textContent=d.style.display==='none'?'▶':'▼'"
           style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;cursor:pointer;font-size:12px">
           <span style="font-weight:600">📅 ${f}</span>
           <span style="display:flex;align-items:center;gap:8px">
@@ -1291,7 +1281,7 @@ function renderPozoPublico(){
             <span class="pz-chev" style="font-size:9px;color:var(--text3)">▶</span>
           </span>
         </div>
-        <div style="display:none;padding:4px 8px 8px;background:var(--bg3)">
+        <div id="${uid}" style="display:none;padding:4px 8px 8px;background:var(--bg3)">
           ${distRowsFecha(c)}
         </div>
       </div>`;
@@ -1303,11 +1293,23 @@ function renderPozoPublico(){
       <span style="font-size:16px;font-weight:700;color:var(--accent);font-family:'Barlow Condensed',sans-serif">$${sp.toLocaleString('es-AR')}</span>
     </div>`;
 
-    box.innerHTML=`<div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:12px;margin-bottom:.5rem">
-      ${fechaRows}
-    </div>
-    ${spBox}
-    <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:.5rem">* Actividad recreativa entre participantes. Participación voluntaria.</div>`;
+    box.innerHTML=`
+    <div style="background:linear-gradient(135deg,rgba(74,222,128,.1),rgba(96,165,250,.06));border:1px solid rgba(74,222,128,.25);border-radius:var(--radius);padding:1rem;margin-bottom:.5rem">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">💰 Pozo — ${diaCapit}</div>
+          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--accent)">$${totalPpal.toLocaleString('es-AR')}</span>
+            <span style="font-size:11px;color:var(--text2)">principal · Total recaudado: <strong style="color:var(--text)">$${totalRec.toLocaleString('es-AR')}</strong></span>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:12px;margin-bottom:.5rem">
+        ${fechaRows}
+      </div>
+      ${spBox}
+      <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:.5rem">* Actividad recreativa entre participantes. Participación voluntaria.</div>
+    </div>`;
   });
 }
 
@@ -1559,16 +1561,9 @@ function renderResumenPub(){
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
-// Backend: JSONBin (bin separado solo para el chat — misma API key del prode)
-// Se crea automáticamente el primer mensaje si no existe aún.
-// Validar que el ID guardado sea de jsonblob.com (solo dígitos, ~18 chars)
-// Si es un ID viejo de JSONBin (contiene letras hex), descartarlo
-(function(){
-  const saved = localStorage.getItem('pmk_chat_bin') || '';
-  const isJsonblob = saved && /^[0-9]{10,}$/.test(saved);
-  if(!isJsonblob && saved){ localStorage.removeItem('pmk_chat_bin'); }
-})();
-let CHAT_BIN_ID = localStorage.getItem('pmk_chat_bin') || '';
+// Backend: Firebase Realtime Database
+// No requiere configuración previa — siempre disponible
+let CHAT_BIN_ID = 'firebase'; // siempre activo con Firebase
 const CHAT_MAX  = 120; // máximo mensajes guardados
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
@@ -1689,7 +1684,7 @@ function renderChatMsgs(msgs){
       }
       const isMe = m.author === chatUser;
       const isAdm = m.isAdmin;
-      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m.id}')" title="Borrar">🗑</button>` : '';
+      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m._fbKey || m.id}')" title="Borrar">🗑</button>` : '';
       html += `<div class="cmsg" id="cm-${m.id}">
         <div class="cmsg-head">
           <span class="cmsg-author${isAdm?' is-admin':''}">${isAdm?'⭐ ':''} ${escHtml(m.author)}${isMe?' (vos)':''}</span>
@@ -1708,52 +1703,63 @@ function escHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Chat backend: jsonblob.com (lectura y escritura pública sin auth) ──────
-const JSONBLOB = 'https://jsonblob.com/api/jsonBlob';
+// ── Chat backend: Firebase Realtime Database ───────────────────────────────
+const FIREBASE_URL = 'https://prode-pmk-f55d7-default-rtdb.firebaseio.com';
 
 async function chatBinGet(){
-  if(!CHAT_BIN_ID) return [];
   try{
-    const r = await fetch(`${JSONBLOB}/${CHAT_BIN_ID}`,{
-      headers:{'Accept':'application/json'}
-    });
+    const r = await fetch(`${FIREBASE_URL}/chat.json`);
     if(!r.ok) return [];
     const d = await r.json();
-    return Array.isArray(d) ? d : [];
-  } catch(e){ return []; }
+    if(!d) return [];
+    // Firebase devuelve un objeto con claves, lo convertimos a array ordenado por ts
+    const msgs = Object.entries(d).map(([k,v])=>({...v, _fbKey: k}));
+    msgs.sort((a,b)=>a.ts-b.ts);
+    return msgs;
+  } catch(e){ console.error('chatBinGet error:', e); return []; }
 }
 
-async function chatBinSet(msgs){
-  if(!CHAT_BIN_ID) return false;
+async function chatBinPush(msg){
   try{
-    const r = await fetch(`${JSONBLOB}/${CHAT_BIN_ID}`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify(msgs)
+    const r = await fetch(`${FIREBASE_URL}/chat.json`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(msg)
     });
     return r.ok;
   } catch(e){ return false; }
 }
 
-async function chatBinCreate(){
-  // Crear blob en jsonblob.com — no requiere autenticación
+async function chatBinSet(msgs){
+  // Usado para borrar todos o reemplazar
   try{
-    const r = await fetch(JSONBLOB,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify([])
-    });
-    if(!r.ok) return false;
-    // El ID viene en el header Location: .../api/jsonBlob/{ID}
-    const loc = r.headers.get('Location') || '';
-    CHAT_BIN_ID = loc.split('/').pop();
-    if(CHAT_BIN_ID){
-      localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-      const mk = getMasterKey();
-      if(mk) await syncChatBinId(mk);
+    // Borrar todos y volver a cargar
+    await fetch(`${FIREBASE_URL}/chat.json`,{method:'DELETE'});
+    if(msgs.length === 0) return true;
+    for(const m of msgs){
+      const {_fbKey, ...data} = m;
+      await fetch(`${FIREBASE_URL}/chat.json`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
     }
-    return !!CHAT_BIN_ID;
-  } catch(e){ console.error('chatBinCreate exception:', e); return false; }
+    return true;
+  } catch(e){ return false; }
+}
+
+async function chatDeleteMsg(fbKey){
+  try{
+    const r = await fetch(`${FIREBASE_URL}/chat/${fbKey}.json`,{method:'DELETE'});
+    return r.ok;
+  } catch(e){ return false; }
+}
+
+async function chatBinCreate(){
+  // Firebase no necesita creación previa — siempre disponible
+  CHAT_BIN_ID = 'firebase';
+  localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
+  return true;
 }
 
 // Sincroniza el CHAT_BIN_ID en el bin principal para que todos lo lean
@@ -1787,7 +1793,6 @@ let chatPollInterval = null;
 function startChatPolling(){
   if(chatPollInterval) return;
   chatPollInterval = setInterval(async ()=>{
-    if(!CHAT_BIN_ID) return;
     const msgs = await chatBinGet();
     const recent = msgs.slice(-CHAT_MAX);
     if(recent.length && recent[recent.length-1].ts > chatLastTs){
@@ -1812,10 +1817,6 @@ function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=nu
 // ── Enviar mensaje ─────────────────────────────────────────────────────────
 async function sendChatMsg(){
   if(!chatUser){ openChatNameModal(sendChatMsg); return; }
-  if(!CHAT_BIN_ID){
-    toast('El chat aún no está activado. El admin debe iniciarlo desde el panel.','error');
-    return;
-  }
   const inp  = document.getElementById('chat-input');
   const warn = document.getElementById('chat-warn');
   const raw  = inp.value.trim();
@@ -1834,16 +1835,14 @@ async function sendChatMsg(){
   const btn = document.getElementById('chat-send');
   btn.disabled = true;
 
-  const msgs = await chatBinGet();
-  msgs.push({
+  const newMsg = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
     author: chatUser,
     text:   filtered,
     ts:     Date.now(),
     isAdmin: adminMode ? true : false
-  });
-  const trimmed = msgs.slice(-CHAT_MAX);
-  const ok = await chatBinSet(trimmed);
+  };
+  const ok = await chatBinPush(newMsg);
   btn.disabled = false;
 
   if(!ok){ toast('No se pudo enviar el mensaje. Intentá de nuevo.','error'); return; }
@@ -1851,12 +1850,10 @@ async function sendChatMsg(){
 }
 
 // ── Borrar mensaje (admin) ─────────────────────────────────────────────────
-async function deleteChatMsg(id){
+async function deleteChatMsg(fbKey){
   if(!adminMode) return;
   if(!confirm('¿Borrar este mensaje?')) return;
-  const msgs = await chatBinGet();
-  const filtered = msgs.filter(m => m.id !== id);
-  const ok = await chatBinSet(filtered);
+  const ok = await chatDeleteMsg(fbKey);
   if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); }
   else toast('No se pudo eliminar','error');
 }
@@ -2001,8 +1998,9 @@ function showChatAdminStatus(){
 
 function initChat(){
   document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-  showChatAdminStatus();
-  if(CHAT_BIN_ID) startChatPolling();
+  // Firebase siempre disponible — arrancar polling directamente
+  startChatPolling();
+  loadChatMsgs();
 }
 
 // ── Generar hash para producción ───────────────────────────────────────────
