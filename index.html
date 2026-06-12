@@ -324,11 +324,12 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
       <div class="info-box">Cada participante puede tener hasta 2 prodes. Usá nombres distintos (ej: "Juan" y "Juan B").</div>
       <div class="frow">
         <label>Nombre</label><input type="text" id="part-nombre" placeholder="Nombre o apodo" style="width:200px">
-        <label>Cuota</label>
-        <select id="part-cuota"><option value="si">Sí — $5.000</option><option value="no">No (solo juega)</option></select>
+        <label>Cuota fecha actual</label>
+        <select id="part-cuota"><option value="si">Sí — $5.000</option><option value="no">No (todavía no pagó)</option></select>
       </div>
       <button class="btn btn-primary" onclick="addParticipante()">+ Agregar</button>
     </div>
+    <div id="part-fecha-sel-wrap" class="frow" style="display:none"></div>
     <div id="lista-participantes"><p class="empty">No hay participantes.</p></div>
   </div>
 
@@ -370,16 +371,19 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- CHAT ADMIN TAB -->
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
-      <div class="card-title">💬 Gestión del Chat (Firebase)</div>
-      <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#86efac">
-        ✓ Chat funcionando con Firebase Realtime Database.<br>
-        URL: <code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code>
-      </div>
+      <div class="card-title">💬 Gestión del Chat</div>
+      <div id="chat-admin-status" style="font-size:13px;color:var(--text2);margin-bottom:1rem"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">
+        <button class="btn btn-primary btn-sm" onclick="adminActivarChat()">🚀 Activar / Crear chat</button>
         <button class="btn btn-ghost btn-sm" onclick="adminVerMsgs()">🔄 Ver mensajes</button>
         <button class="btn btn-danger btn-sm" onclick="adminLimpiarChat()">🗑 Borrar todos</button>
       </div>
-      <div id="chat-admin-msgs" style="margin-top:.5rem;font-size:12px;color:var(--text2)"></div>
+      <p style="font-size:11px;color:var(--text3);line-height:1.6">
+        La primera vez pedirá tu <strong>Master Key</strong> de JSONBin
+        (la misma que usás para guardar el prode en la nube, empieza con <code>$2a$10$</code>).
+        Podés encontrarla en <a href="https://jsonbin.io/app/api-keys" target="_blank" style="color:var(--accent)">jsonbin.io → API Keys</a>.
+      </p>
+      <div id="chat-admin-msgs" style="margin-top:1rem;font-size:12px;color:var(--text2)"></div>
     </div>
   </div>
 </div>
@@ -387,7 +391,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
 
-  <!-- Pozo siempre visible, expandido por defecto -->
+  <!-- Pozo siempre visible -->
   <div id="pozo-pub-partidos" style="margin-bottom:1rem;display:none"></div>
 
   <!-- TABLA -->
@@ -441,8 +445,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
         <span class="fh-chev" id="schev-personas">&#9658;</span>
       </div>
     </div>
-    <div class="fecha-body" id="sec-pub-personas">
-      <div id="personas-content"><p class="empty">Sin datos aún.</p></div>
+  <!-- HISTORIAL DE FECHAS -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-historial','schev-historial')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">📜 Historial de fechas</div>
+      <span class="fh-chev" id="schev-historial">&#9658;</span>
+    </div>
+    <div class="fecha-body" id="sec-pub-historial">
+      <div id="historial-pub-content"><p class="empty">Sin fechas cerradas todavía.</p></div>
     </div>
   </div>
 
@@ -519,7 +529,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 const JSONBIN    = 'https://api.jsonbin.io/v3';
 const BIN_ID     = '6a28cfa3f5f4af5e29d5a0e8';
 const ACCESS_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2'; // solo lectura, ok en cliente
-let PUBLIC_BIN_ID = localStorage.getItem('pmk_pub_bin') || ''; // bin público para invitados
 
 // Hash SHA-256 de la contraseña admin — generado con: sha256('PrdPMK2026')
 // Para cambiarla: actualizar este hash con el nuevo sha256
@@ -563,11 +572,42 @@ function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
 // ── State ──────────────────────────────────────────────────────────────────
-let partidos=[], participantes=[], pronosticos={}, resultados={};
-let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null;
+let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
+let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 
-function getState(){ return {partidos, participantes, pronosticos, resultados}; }
-function setState(d){ partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; if(d._chatBin && !CHAT_BIN_ID && /^[0-9]{10,}$/.test(d._chatBin)){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); } if(d._pubBin && !PUBLIC_BIN_ID){ PUBLIC_BIN_ID=d._pubBin; localStorage.setItem('pmk_pub_bin',PUBLIC_BIN_ID); } }
+function getState(){ return {partidos, participantes, pronosticos, resultados, pozosHistorial}; }
+function setState(d){
+  partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; pozosHistorial=d.pozosHistorial||{};
+  // Migración: cuota (global) -> pagos (por fecha)
+  participantes.forEach(p=>{
+    if(!p.pagos){
+      p.pagos = {};
+      if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; }
+      delete p.cuota;
+    }
+  });
+  if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
+}
+
+// ── Helpers de pago por fecha ───────────────────────────────────────────────
+function pagoFecha(p, fecha){ return (p.pagos && p.pagos[fecha]) || 'no'; }
+function pagantesFecha(fecha){ return participantes.filter(p=>pagoFecha(p,fecha)==='si'); }
+function noPrizeSetFecha(fecha){ return new Set(participantes.filter(p=>pagoFecha(p,fecha)!=='si').map(p=>p.nombre)); }
+function distPorCantidad(n, ppal){
+  if(n===0) return [{pos:'—',pct:'—',monto:'—'}];
+  if(n<10)  return [{pos:'1°',pct:'100%',monto:ppal}];
+  if(n<=20) return [{pos:'1°',pct:'75%',monto:Math.round(ppal*.75)},{pos:'2°',pct:'25%',monto:Math.round(ppal*.25)}];
+  return [{pos:'1°',pct:'70%',monto:Math.round(ppal*.7)},{pos:'2°',pct:'20%',monto:Math.round(ppal*.2)},{pos:'3°',pct:'10%',monto:Math.round(ppal*.1)}];
+}
+function superPozoTotal(){
+  // Suma de aportes de $1.000 por cada fecha (todas, históricas + actuales) según pagos actuales
+  return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0);
+}
+function fechaPozoActual(){
+  const fechas=getFechas();
+  if(!fechas.length) return null;
+  return fechas.find(f=>!pozosHistorial[f]) || fechas[fechas.length-1];
+}
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
@@ -657,26 +697,10 @@ function applyRole(){
 async function loadFromCloud(){
   try{
     const mk = getMasterKey();
-    if(mk){
-      // Admin: lee del bin privado
-      const res  = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {'X-Master-Key': mk});
-      const data = await res.json();
-      if(data.record){ setState(data.record); saveLocal(); return true; }
-    } else {
-      // Invitado: lee del bin público si existe
-      if(PUBLIC_BIN_ID){
-        const res  = await fetch(`${JSONBIN}/b/${PUBLIC_BIN_ID}/latest`, {headers:{'X-Access-Key': ACCESS_KEY}});
-        const data = await res.json();
-        if(data.record){ setState(data.record); saveLocal(); return true; }
-      }
-      // Fallback: intentar con Access Key en bin principal
-      const res2 = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers:{'X-Access-Key': ACCESS_KEY}});
-      if(res2.ok){
-        const data2 = await res2.json();
-        if(data2.record){ setState(data2.record); saveLocal(); return true; }
-      }
-      return false;
-    }
+    const headers = mk ? {'X-Master-Key': mk} : {'X-Access-Key': ACCESS_KEY};
+    const res  = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
+    const data = await res.json();
+    if(data.record){ setState(data.record); saveLocal(); return true; }
     return false;
   }catch(e){ return false; }
 }
@@ -689,59 +713,18 @@ async function syncCloud(manual=false){
     return;
   }
   setSyncStatus('ing'); saveLocal();
-  const state = getState();
   try{
-    // Guardar en bin privado (admin)
     const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {
       method: 'PUT',
       headers: {'Content-Type':'application/json','X-Master-Key': mk},
-      body: JSON.stringify(state)
+      body: JSON.stringify(getState())
     });
-    if(res.ok){
-      setSyncStatus('ok');
-      if(manual) toast('☁ Guardado en la nube');
-      // También guardar en bin público para invitados
-      await syncPublicBin(mk, state);
-    } else {
-      setSyncStatus('err'); if(manual) toast('Error al guardar','error');
-    }
+    if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
+    else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
   }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
 }
 
-async function syncPublicBin(mk, state){
-  try{
-    if(!PUBLIC_BIN_ID){
-      // Crear bin público la primera vez
-      const r = await fetch(`${JSONBIN}/b`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-public','X-Bin-Private':'false'},
-        body: JSON.stringify(state)
-      });
-      if(!r.ok) return;
-      const d = await r.json();
-      PUBLIC_BIN_ID = d.metadata?.id || '';
-      if(PUBLIC_BIN_ID){
-        localStorage.setItem('pmk_pub_bin', PUBLIC_BIN_ID);
-        // Guardar el ID en el bin privado para que todos lo encuentren
-        const s2 = {...state, _pubBin: PUBLIC_BIN_ID, _chatBin: CHAT_BIN_ID||''};
-        await fetch(`${JSONBIN}/b/${BIN_ID}`, {
-          method:'PUT',
-          headers:{'Content-Type':'application/json','X-Master-Key':mk},
-          body: JSON.stringify(s2)
-        });
-      }
-    } else {
-      // Actualizar bin público existente
-      await fetch(`${JSONBIN}/b/${PUBLIC_BIN_ID}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json','X-Master-Key':mk},
-        body: JSON.stringify(state)
-      });
-    }
-  }catch(e){}
-}
-
-function persist(){ saveLocal(); clearTimeout(syncTimer); syncTimer=setTimeout(()=>syncCloud(),3000); }
+function persist(){ saveLocal(); clearTimeout(syncTimer); syncTimer=setTimeout(()=>{ syncTimer=null; syncCloud(); },3000); }
 
 // ── Export CSV ─────────────────────────────────────────────────────────────
 function exportCSV(){
@@ -767,7 +750,7 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); }
 }
 
 function showTab(t){
@@ -781,7 +764,7 @@ function showTab(t){
   if(t==='resumen')     renderResumen();
   if(t==='tabla')       renderTabla();
   if(t==='pozo')        renderPozo();
-  if(t==='chat-admin')  { showChatAdminStatus(); updatePubBinStatus(); adminVerMsgs(); }
+  if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
 }
 
 function setTablaView(v,btn){
@@ -808,7 +791,7 @@ function refreshAll(){
   if(at==='resumen')     renderResumen();
   if(at==='tabla')       renderTabla();
   if(document.getElementById('page-partidos-pub').classList.contains('active')){
-    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico();
+    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub();
   }
 }
 
@@ -865,7 +848,10 @@ function addParticipante(){
   const c=document.getElementById('part-cuota').value;
   if(!n){ toast('Escribí un nombre','error'); return; }
   if(participantes.find(p=>p.nombre===n)){ toast('Ya existe ese nombre','error'); return; }
-  participantes.push({nombre:n,cuota:c,cuotas:{}}); persist(); renderParticipantes();
+  const pagos={};
+  const f=partFechaSel||getFechas()[getFechas().length-1];
+  if(f) pagos[f]=c;
+  participantes.push({nombre:n,pagos}); persist(); renderParticipantes();
   document.getElementById('part-nombre').value=''; toast('✓ Participante agregado');
 }
 
@@ -883,101 +869,48 @@ function editParticipante(n){
   persist(); renderParticipantes(); toast('✓ Nombre actualizado');
 }
 
-function toggleCuota(n){
+function togglePago(n, fecha){
   const p=participantes.find(x=>x.nombre===n);
-  if(p){ p.cuota=p.cuota==='si'?'no':'si'; persist(); renderParticipantes(); renderPozo(); }
+  if(p){ if(!p.pagos) p.pagos={}; p.pagos[fecha]=pagoFecha(p,fecha)==='si'?'no':'si'; persist(); renderParticipantes(); }
 }
 
-function toggleCuotaFecha(nombre, fecha){
-  const p=participantes.find(x=>x.nombre===nombre);
-  if(!p) return;
-  if(!p.cuotas) p.cuotas={};
-  p.cuotas[fecha] = !p.cuotas[fecha];
-  persist(); renderParticipantes(); renderPozo();
-}
-
-// Cuántos participantes pagaron una fecha específica
-function conCuotaFecha(fecha){
-  return participantes.filter(p=>{
-    if(!p.cuotas) return p.cuota==='si'; // compatibilidad vieja data
-    return p.cuotas[fecha];
-  }).length;
-}
-
-// Total recaudado sumando todas las fechas
-function totalRecaudado(){
-  // Total recaudado = pozo fechas (4000 c/u) + superpozo (1000 c/u) = 5000 c/u
-  const fechas = getFechas();
-  if(!fechas.length) return participantes.filter(p=>p.cuota==='si').length * 5000;
-  return fechas.reduce((acc,f) => acc + conCuotaFecha(f)*5000, 0);
-}
-
-function totalPozoFechas(){
-  // Solo la parte que va al pozo de cada fecha (sin súper pozo)
-  const fechas = getFechas();
-  if(!fechas.length) return participantes.filter(p=>p.cuota==='si').length * 4000;
-  return fechas.reduce((acc,f) => acc + conCuotaFecha(f)*4000, 0);
-}
+function setPartFecha(f){ partFechaSel=f; renderParticipantes(); }
 
 function renderParticipantes(){
   const cont=document.getElementById('lista-participantes');
-  if(!participantes.length){ cont.innerHTML='<p class="empty">No hay participantes.</p>'; return; }
+  const selWrap=document.getElementById('part-fecha-sel-wrap');
   const fechas=getFechas();
-  const total=totalRecaudado();
-  const sp=fechas.reduce((a,f)=>a+conCuotaFecha(f)*1000,0);
-  const ppal=totalPozoFechas();
-  // Tabla por fecha
-  let tablaFechas='';
-  if(fechas.length){
-    const thFechas=fechas.map(f=>`<th style="font-size:10px;padding:4px 6px;text-align:center;color:var(--text2);white-space:nowrap">${f}</th>`).join('');
-    const rows=participantes.map(p=>{
-      if(!p.cuotas) p.cuotas={};
-      const celdas=fechas.map(f=>{
-        const pago=p.cuotas[f]||false;
-        return `<td style="text-align:center;padding:4px 6px">
-          <span class="badge ${pago?'b-win':'b-gray'}" style="cursor:pointer;font-size:11px" onclick="toggleCuotaFecha('${esc(p.nombre)}','${esc(f)}')">${pago?'✓':'—'}</span>
-        </td>`;
-      }).join('');
-      const totalPago=fechas.filter(f=>p.cuotas[f]).length;
-      return `<tr>
-        <td style="padding:4px 8px;font-weight:500;white-space:nowrap">${p.nombre}</td>
-        ${celdas}
-        <td style="text-align:center;padding:4px 6px;font-weight:600;color:var(--accent)">$${(totalPago*5000).toLocaleString('es-AR')}</td>
-        <td style="text-align:center;padding:4px 4px">
-          <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
-        </td>
-      </tr>`;
-    }).join('');
-    tablaFechas=`<div style="overflow-x:auto;margin-top:.75rem">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:4px 8px;font-size:11px;color:var(--text2)">Participante</th>
-          ${thFechas}
-          <th style="font-size:10px;padding:4px 6px;color:var(--text2);text-align:center">Total</th>
-          <th></th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+  if(!fechas.length){
+    if(selWrap) selWrap.style.display='none';
   } else {
-    // Sin fechas: fallback chips con cuota global
-    tablaFechas=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:.75rem">
-      ${participantes.map(p=>`<div class="pchip">
-        <span style="font-size:15px;font-weight:600;color:var(--accent)">${p.nombre[0].toUpperCase()}</span>
-        <span>${p.nombre}</span>
-        <span class="badge ${p.cuota==='si'?'b-win':'b-gray'}" style="cursor:pointer" onclick="toggleCuota('${esc(p.nombre)}')">$${p.cuota==='si'?'5k':'—'}</span>
-        <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
-        <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
-      </div>`).join('')}
-    </div>`;
+    if(!partFechaSel || !fechas.includes(partFechaSel)) partFechaSel=fechas[fechas.length-1];
+    if(selWrap){
+      selWrap.style.display='';
+      selWrap.innerHTML = `<label>Fecha</label><select onchange="setPartFecha(this.value)">${fechas.map(f=>`<option value="${esc(f)}" ${f===partFechaSel?'selected':''}>${f}</option>`).join('')}</select>`;
+    }
   }
-  cont.innerHTML=`<div class="metrics">
-    <div class="metric"><div class="metric-label">Participantes</div><div class="metric-val">${participantes.length}</div></div>
-    <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${total.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
-  </div>${tablaFechas}`;
+  if(!participantes.length){ cont.innerHTML='<p class="empty">No hay participantes.</p>'; return; }
+  const f=partFechaSel;
+  const conC = f ? pagantesFecha(f).length : 0;
+  const ppal=conC*5000-conC*1000, sp=conC*1000, spTotal=superPozoTotal();
+  cont.innerHTML=`${f?`<div class="metrics">
+    <div class="metric"><div class="metric-label">Total</div><div class="metric-val">${participantes.length}</div></div>
+    <div class="metric"><div class="metric-label">Pagaron (${esc(f)})</div><div class="metric-val">${conC}</div></div>
+    <div class="metric"><div class="metric-label">Pozo principal (${esc(f)})</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Súper pozo total</div><div class="metric-val accent">$${spTotal.toLocaleString('es-AR')}</div></div>
+  </div>`:''}
+  <div style="display:flex;flex-wrap:wrap;gap:6px">
+    ${participantes.map(p=>{
+      const pagado = f && pagoFecha(p,f)==='si';
+      return `<div class="pchip">
+      <span style="font-size:15px;font-weight:600;color:var(--accent)">${p.nombre[0].toUpperCase()}</span>
+      <span>${p.nombre}</span>
+      ${f?`<span class="badge ${pagado?'b-win':'b-gray'}" style="cursor:pointer" onclick="togglePago('${esc(p.nombre)}','${esc(f)}')">$${pagado?'5k':'—'}</span>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
+      <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
+    </div>`;
+    }).join('')}
+  </div>`;
 }
 
 // ── Pronósticos ────────────────────────────────────────────────────────────
@@ -1182,7 +1115,7 @@ function renderTablaFecha(cont){
   fechas.forEach(f=>{ selHtml+=`<option value="${f}" ${f===prevSel?'selected':''}>${f}</option>`; });
   selHtml+=`</select></div>`;
   const ps=partidos.filter(p=>p.fecha===prevSel);
-  const _np6=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _np6=noPrizeSetFecha(prevSel);
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np6);
   const jugados=ps.filter(p=>{ const r=resultados[p.id]; return r&&!isNaN(r.gl); }).length;
   cont.innerHTML=selHtml+`<div class="metrics">
@@ -1192,9 +1125,9 @@ function renderTablaFecha(cont){
 }
 
 function renderTablaGeneral(cont){
-  const _np8=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _np8=new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre));
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(partidos,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_np8);
-  const sp=participantes.filter(p=>p.cuota==='si').length*1000;
+  const sp=superPozoTotal();
   cont.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
     <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
     <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
@@ -1202,115 +1135,135 @@ function renderTablaGeneral(cont){
 }
 
 // ── Pozo ───────────────────────────────────────────────────────────────────
+function setPozoFecha(f){ pozoFechaSel=f; renderPozo(); }
+
+function confirmarPozo(fecha){
+  const ps = partidos.filter(p=>p.fecha===fecha);
+  const np = noPrizeSetFecha(fecha);
+  const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
+  const conC = pagantesFecha(fecha).length;
+  const total=conC*5000, sp=conC*1000, ppal=total-sp;
+  const dist = distPorCantidad(conC, ppal);
+  const ganadores = dist.map((d,i)=>{
+    const sel = document.getElementById(`pozo-ganador-${i}`);
+    let val = sel ? sel.value : '';
+    if(!val){
+      const cand = ranked.filter(r=>r.rank===i+1);
+      val = cand.map(c=>c.nombre).join(', ');
+    }
+    return {pos:d.pos, pct:d.pct, monto:d.monto, ganador:val};
+  });
+  if(!confirm(`¿Confirmar y cerrar el pozo de "${fecha}"? Esto queda fijo y se mostrará en el historial público.`)) return;
+  pozosHistorial[fecha] = {recaudado:total, principal:ppal, superPozoAporte:sp, dist:ganadores, fechaCierre:new Date().toISOString()};
+  persist(); renderPozo(); toast('✓ Pozo de '+fecha+' confirmado y guardado en historial');
+}
+
+function reabrirPozo(fecha){
+  if(!confirm(`¿Reabrir el pozo de "${fecha}"? Se borrará el registro del historial.`)) return;
+  delete pozosHistorial[fecha]; persist(); renderPozo(); toast('Pozo reabierto');
+}
+
 function renderPozo(){
   const cont=document.getElementById('pozo-content');
-  const n=participantes.length;
   const fechas=getFechas();
-  const total=totalRecaudado();
-  const sp=fechas.reduce((a,f)=>a+conCuotaFecha(f)*1000,0);
-  const ppal=totalPozoFechas();
-  let dist=n===0?[{pos:'—',pct:'—',monto:'—'}]:n<10?[{pos:'1°',pct:'100%',monto:`$${ppal.toLocaleString('es-AR')}`}]:n<=20?[{pos:'1°',pct:'75%',monto:`$${Math.round(ppal*.75).toLocaleString('es-AR')}`},{pos:'2°',pct:'25%',monto:`$${Math.round(ppal*.25).toLocaleString('es-AR')}`}]:[{pos:'1°',pct:'70%',monto:`$${Math.round(ppal*.7).toLocaleString('es-AR')}`},{pos:'2°',pct:'20%',monto:`$${Math.round(ppal*.2).toLocaleString('es-AR')}`},{pos:'3°',pct:'10%',monto:`$${Math.round(ppal*.1).toLocaleString('es-AR')}`}];
-  // Detalle por fecha
-  const detFechas = fechas.length ? `<div class="card" style="margin-bottom:.75rem">
-    <div class="card-title">💰 Detalle por fecha</div>
-    ${fechas.map(f=>{
-      const c=conCuotaFecha(f), sub=c*5000, subSp=Math.round(sub*0.2), subPpal=sub-subSp;
-      return `<div class="dist-item">
-        <span>${f}</span>
-        <span style="color:var(--text2)">${c} pagaron</span>
-        <span style="color:var(--accent);font-weight:600">$${sub.toLocaleString('es-AR')}</span>
-      </div>`;
-    }).join('')}
-  </div>` : '';
-  cont.innerHTML=`<div class="metrics">
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Cargá partidos primero.</p>'; return; }
+  if(!pozoFechaSel || !fechas.includes(pozoFechaSel)) pozoFechaSel=fechaPozoActual();
+  const f=pozoFechaSel;
+  const conC=pagantesFecha(f).length;
+  const total=conC*5000, sp=conC*1000, ppal=total-sp;
+  const n=participantes.length;
+  const dist=distPorCantidad(conC, ppal);
+  const ps = partidos.filter(p=>p.fecha===f);
+  const np = noPrizeSetFecha(f);
+  const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
+  const cerrado = pozosHistorial[f];
+  const spTotal = superPozoTotal();
+
+  const selHtml = `<div class="frow"><label>Fecha</label><select onchange="setPozoFecha(this.value)">${fechas.map(ff=>`<option value="${esc(ff)}" ${ff===f?'selected':''}>${ff}${pozosHistorial[ff]?' ✓':''}</option>`).join('')}</select></div>`;
+
+  const distHtml = dist.map((d,i)=>{
+    const cand = ranked.filter(r=>r.rank===i+1).map(r=>r.nombre);
+    const guardado = cerrado?.dist?.[i]?.ganador;
+    const valorActual = guardado!==undefined ? guardado : cand.join(', ');
+    const monto = typeof d.monto==='number' ? `$${d.monto.toLocaleString('es-AR')}` : d.monto;
+    return `<div class="dist-item" style="align-items:center">
+      <span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span>
+      <span style="font-weight:600;color:var(--accent)">${monto}</span>
+      ${cerrado?`<span style="margin-left:8px">🏆 ${valorActual||'—'}</span>`
+        :`<input id="pozo-ganador-${i}" type="text" value="${esc(valorActual)}" placeholder="Ganador/es" style="margin-left:8px;width:160px;font-size:12px">`}
+    </div>`;
+  }).join('');
+
+  cont.innerHTML=`${selHtml}
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Cuotas pagadas (${esc(f)})</div><div class="metric-val">${conC}</div></div>
     <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${total.toLocaleString('es-AR')}</div></div>
     <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
-    <div class="metric"><div class="metric-label">Súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
   </div>
-  ${detFechas}
-  <div class="card"><div class="card-title">Distribución final — ${n} participantes</div>
-    ${dist.map(d=>`<div class="dist-item"><span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">${d.monto}</span></div>`).join('')}
+  <div class="card"><div class="card-title">Distribución — ${conC} pagantes ${cerrado?'<span class="badge b-closed" style="margin-left:6px">🔒 Cerrado</span>':''}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;margin-top:-6px">(${n} participantes en total)</div>
+    ${distHtml}
   </div>
-  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo</div>
-    <div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div>
-    <div style="font-size:12px;color:var(--text2)">Premio al líder acumulado al finalizar el torneo. Empate: se divide en partes iguales.</div>
+  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo acumulado (todas las fechas)</div>
+    <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
+    <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. Empate: se divide.</div>
+  </div>
+  <div style="margin-top:1rem">
+    ${cerrado
+      ? `<button class="btn btn-ghost btn-sm" onclick="reabrirPozo('${esc(f)}')">🔓 Reabrir / editar</button> <span style="font-size:11px;color:var(--text3)">Cerrado el ${new Date(cerrado.fechaCierre).toLocaleDateString('es-AR')}</span>`
+      : `<button class="btn btn-primary btn-sm" onclick="confirmarPozo('${esc(f)}')">🔒 Confirmar y cerrar pozo de ${esc(f)}</button>`}
   </div>
   <div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:1rem">* Actividad recreativa entre participantes. PMK no organiza ni se responsabiliza. Participación voluntaria. Apostar puede ser perjudicial para la salud.</div>`;
 }
 
 // ── Pozo público ───────────────────────────────────────────────────────────
-function distRowsFecha(c){
-  const pozo=c*4000;
-  const row=(medal,pct,amt)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span>${medal}</span><span style="color:var(--text2)">${pct}</span><span style="font-weight:600;color:var(--accent)">$${amt.toLocaleString('es-AR')}</span></div>`;
-  if(c===0) return `<div style="font-size:11px;color:var(--text3);padding:3px 0">Sin pagos en esta fecha</div>`;
-  if(c<10)  return row('🥇 1° puesto','100%',pozo);
-  if(c<=20) return row('🥇 1° puesto','75%',Math.round(pozo*.75))+row('🥈 2° puesto','25%',Math.round(pozo*.25));
-  return row('🥇 1° puesto','70%',Math.round(pozo*.7))+row('🥈 2° puesto','20%',Math.round(pozo*.2))+row('🥉 3° puesto','10%',Math.round(pozo*.1));
-}
-
 function renderPozoPublico(){
-  ['pozo-pub','pozo-pub-partidos'].forEach(id=>{
-    const box=document.getElementById(id);
-    if(!box) return;
-    if(!participantes.length){ box.style.display='none'; return; }
-    box.style.display='';
-    const fechas=getFechas();
-    const sp=fechas.reduce((a,f)=>a+conCuotaFecha(f)*1000,0);
+  const pubBox=document.getElementById('pozo-pub');
+  if(pubBox) pubBox.style.display='none';
 
-    // Título con la fecha actual (última fecha con partidos, o hoy)
-    const hoy = new Date();
-    const diaHoy = hoy.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const diaCapit = diaHoy.charAt(0).toUpperCase() + diaHoy.slice(1);
+  const box=document.getElementById('pozo-pub-partidos');
+  if(!box) return;
+  if(!participantes.length){ box.style.display='none'; return; }
+  box.style.display='';
 
-    // Totales globales
-    const totalRec = fechas.reduce((a,f)=>a+conCuotaFecha(f)*5000,0);
-    const totalPpal = fechas.reduce((a,f)=>a+conCuotaFecha(f)*4000,0);
+  const fechas=getFechas();
+  const abiertas=fechas.filter(f=>!pozosHistorial[f]);
+  const spTotal=superPozoTotal();
+  const medals=['🥇','🥈','🥉'];
 
-    // Una fila compacta por fecha, desplegable
-    const fechaRows = fechas.length ? fechas.map((f,i)=>{
-      const c=conCuotaFecha(f);
-      const subTotal=c*4000;
-      const uid=`pzf-${id}-${i}`;
-      return `<div style="border-bottom:1px solid var(--border)">
-        <div onclick="var d=document.getElementById('${uid}');d.style.display=d.style.display==='none'?'block':'none';this.querySelector('.pz-chev').textContent=d.style.display==='none'?'▶':'▼'"
-          style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;cursor:pointer;font-size:12px">
-          <span style="font-weight:600">📅 ${f}</span>
-          <span style="display:flex;align-items:center;gap:8px">
-            <span style="color:var(--text2);font-size:11px">${c} pag.</span>
-            <span style="color:var(--accent);font-weight:700">$${subTotal.toLocaleString('es-AR')}</span>
-            <span class="pz-chev" style="font-size:9px;color:var(--text3)">▶</span>
-          </span>
-        </div>
-        <div id="${uid}" style="display:none;padding:4px 8px 8px;background:var(--bg3)">
-          ${distRowsFecha(c)}
-        </div>
-      </div>`;
-    }).join('') : '<div style="font-size:12px;color:var(--text3);padding:6px 8px">Sin fechas cargadas.</div>';
-
-    // Súper pozo — compacto, al final
-    const spBox=`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(74,222,128,.07);border-radius:var(--radius-sm);margin-top:6px">
-      <span style="font-size:11px;color:var(--text2);font-weight:600">🏆 Súper Pozo acumulado</span>
-      <span style="font-size:16px;font-weight:700;color:var(--accent);font-family:'Barlow Condensed',sans-serif">$${sp.toLocaleString('es-AR')}</span>
+  if(!abiertas.length){
+    box.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
+      <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
+      <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
     </div>`;
+    return;
+  }
 
-    box.innerHTML=`
-    <div style="background:linear-gradient(135deg,rgba(74,222,128,.1),rgba(96,165,250,.06));border:1px solid rgba(74,222,128,.25);border-radius:var(--radius);padding:1rem;margin-bottom:.5rem">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:.6rem">
-        <div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">💰 Pozo — ${diaCapit}</div>
-          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--accent)">$${totalPpal.toLocaleString('es-AR')}</span>
-            <span style="font-size:11px;color:var(--text2)">principal · Total recaudado: <strong style="color:var(--text)">$${totalRec.toLocaleString('es-AR')}</strong></span>
-          </div>
-        </div>
+  const boxesHtml = abiertas.map(f=>{
+    const conC=pagantesFecha(f).length;
+    const total=conC*5000, sp=conC*1000, ppal=total-sp;
+    const dist=distPorCantidad(conC,ppal);
+    let distRows='';
+    if(conC===0){
+      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Todavía nadie pagó esta fecha</span></div>';
+    } else {
+      distRows=dist.map((d,i)=>`<div class="pozo-dist-row"><span>${medals[i]||''} ${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span></div>`).join('');
+    }
+    return `<div class="card" style="margin-bottom:.75rem">
+      <div class="card-title" style="margin-bottom:.5rem">💰 Pozo de ${esc(f)}</div>
+      <div class="metrics" style="margin-bottom:.75rem">
+        <div class="metric"><div class="metric-label">Pagaron</div><div class="metric-val">${conC}</div></div>
+        <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
       </div>
-      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:12px;margin-bottom:.5rem">
-        ${fechaRows}
-      </div>
-      ${spBox}
-      <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:.5rem">* Actividad recreativa entre participantes. Participación voluntaria.</div>
+      ${distRows}
     </div>`;
-  });
+  }).join('');
+
+  box.innerHTML = boxesHtml + `<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
+    <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
+    <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
+  </div>`;
 }
 
 // ── Partidos públicos ──────────────────────────────────────────────────────
@@ -1481,14 +1434,33 @@ function renderTablaPublica(){
   if(!cerradas.length){ cont.innerHTML='<p class="empty">Todavía no hay fechas cerradas.</p>'; return; }
   const esGeneral=sel.value==='general';
   const ps=esGeneral?partidos.filter(p=>p.estado==='cerrada'):partidos.filter(p=>p.fecha===sel.value&&p.estado==='cerrada');
-  const _npPub=new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const _npPub=esGeneral?new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre)):noPrizeSetFecha(sel.value);
   const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_npPub);
   let extra='';
-  if(esGeneral){ const sp=participantes.filter(p=>p.cuota==='si').length*1000; extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
+  if(esGeneral){ const sp=superPozoTotal(); extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
   cont.innerHTML=extra+tableHTML(ranked,_npPub);
 }
 
-// ── Helpers página pública unificada ──────────────────────────────────────
+// ── Historial de fechas (pública) ──────────────────────────────────────────
+function renderHistorialPub(){
+  const cont=document.getElementById('historial-pub-content');
+  if(!cont) return;
+  const fechas=Object.keys(pozosHistorial);
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Sin fechas cerradas todavía.</p>'; return; }
+  cont.innerHTML=fechas.map(f=>{
+    const h=pozosHistorial[f];
+    const distRows=(h.dist||[]).map(d=>`<div class="pozo-dist-row"><span>${d.pos} puesto (${d.pct})</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span><span>🏆 ${esc(d.ganador||'—')}</span></div>`).join('');
+    return `<div class="card">
+      <div class="card-title">${esc(f)}</div>
+      <div class="metrics" style="margin-bottom:.5rem">
+        <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${(h.recaudado||0).toLocaleString('es-AR')}</div></div>
+        <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${(h.principal||0).toLocaleString('es-AR')}</div></div>
+        <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${(h.superPozoAporte||0).toLocaleString('es-AR')}</div></div>
+      </div>
+      ${distRows}
+    </div>`;
+  }).join('');
+}
 function toggleSecPub(bodyId, chevId){
   document.getElementById(bodyId)?.classList.toggle('open');
   document.getElementById(chevId)?.classList.toggle('open');
@@ -1505,7 +1477,9 @@ function renderResumenPub(){
   const ps = (sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value)).filter(p=>p.estado==='cerrada');
   if(!ps.length){ cont.innerHTML='<p class="empty">No hay fechas cerradas todavía.</p>'; return; }
 
-  const noPrizeSet = new Set(participantes.filter(p=>p.cuota!=='si').map(p=>p.nombre));
+  const noPrizeSet = sel.value==='todas'
+    ? new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre))
+    : noPrizeSetFecha(sel.value);
   const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
   const ranked = addRanks(sorted, noPrizeSet);
 
@@ -1561,9 +1535,9 @@ function renderResumenPub(){
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
-// Backend: Firebase Realtime Database
-// No requiere configuración previa — siempre disponible
-let CHAT_BIN_ID = 'firebase'; // siempre activo con Firebase
+// Backend: JSONBin (bin separado solo para el chat — misma API key del prode)
+// Se crea automáticamente el primer mensaje si no existe aún.
+let CHAT_BIN_ID = localStorage.getItem('pmk_chat_bin') || '6a2b43aff5f4af5e29e2f69b';
 const CHAT_MAX  = 120; // máximo mensajes guardados
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
@@ -1684,7 +1658,7 @@ function renderChatMsgs(msgs){
       }
       const isMe = m.author === chatUser;
       const isAdm = m.isAdmin;
-      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m._fbKey || m.id}')" title="Borrar">🗑</button>` : '';
+      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m.id}')" title="Borrar">🗑</button>` : '';
       html += `<div class="cmsg" id="cm-${m.id}">
         <div class="cmsg-head">
           <span class="cmsg-author${isAdm?' is-admin':''}">${isAdm?'⭐ ':''} ${escHtml(m.author)}${isMe?' (vos)':''}</span>
@@ -1703,63 +1677,58 @@ function escHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Chat backend: Firebase Realtime Database ───────────────────────────────
-const FIREBASE_URL = 'https://prode-pmk-f55d7-default-rtdb.firebaseio.com';
+// ── JSONBin chat helpers ──────────────────────────────────────────────────
+// ID del bin de chat — se configura una vez desde el panel admin
+// El bin debe estar creado con X-Bin-Private: false y permitir updates sin auth
+// (en JSONBin: bin público + "Allow Update Without API Key" activado)
+const CHAT_WRITE_KEY = '$2a$10$ENIZGMk9Gf4AFneYw3rbmeI9htbd65K4NRwCdI6y8JGr6wo.1phhO';
 
 async function chatBinGet(){
+  if(!CHAT_BIN_ID) return [];
   try{
-    const r = await fetch(`${FIREBASE_URL}/chat.json`);
+    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}/latest`,{
+      headers:{'X-Access-Key': ACCESS_KEY}
+    });
     if(!r.ok) return [];
     const d = await r.json();
-    if(!d) return [];
-    // Firebase devuelve un objeto con claves, lo convertimos a array ordenado por ts
-    const msgs = Object.entries(d).map(([k,v])=>({...v, _fbKey: k}));
-    msgs.sort((a,b)=>a.ts-b.ts);
-    return msgs;
-  } catch(e){ console.error('chatBinGet error:', e); return []; }
+    return Array.isArray(d.record) ? d.record : [];
+  } catch(e){ return []; }
 }
 
-async function chatBinPush(msg){
+async function chatBinSet(msgs){
+  if(!CHAT_BIN_ID) return false;
   try{
-    const r = await fetch(`${FIREBASE_URL}/chat.json`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(msg)
+    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}`,{
+      method:'PUT',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Access-Key': CHAT_WRITE_KEY
+      },
+      body: JSON.stringify(msgs)
     });
     return r.ok;
   } catch(e){ return false; }
 }
 
-async function chatBinSet(msgs){
-  // Usado para borrar todos o reemplazar
+async function chatBinCreate(mkOverride){
+  const mk = mkOverride || getMasterKey();
+  if(!mk){ console.error('chatBinCreate: no master key'); return false; }
   try{
-    // Borrar todos y volver a cargar
-    await fetch(`${FIREBASE_URL}/chat.json`,{method:'DELETE'});
-    if(msgs.length === 0) return true;
-    for(const m of msgs){
-      const {_fbKey, ...data} = m;
-      await fetch(`${FIREBASE_URL}/chat.json`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
+    const r = await fetch(`${JSONBIN}/b`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-chat'},
+      body: JSON.stringify([])
+    });
+    const d = await r.json();
+    console.log('chatBinCreate response:', r.status, JSON.stringify(d));
+    if(!r.ok){ console.error('chatBinCreate failed:', r.status, d); return false; }
+    CHAT_BIN_ID = d.metadata?.id || '';
+    if(CHAT_BIN_ID){
+      localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
+      await syncChatBinId(mk);
     }
-    return true;
-  } catch(e){ return false; }
-}
-
-async function chatDeleteMsg(fbKey){
-  try{
-    const r = await fetch(`${FIREBASE_URL}/chat/${fbKey}.json`,{method:'DELETE'});
-    return r.ok;
-  } catch(e){ return false; }
-}
-
-async function chatBinCreate(){
-  // Firebase no necesita creación previa — siempre disponible
-  CHAT_BIN_ID = 'firebase';
-  localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-  return true;
+    return !!CHAT_BIN_ID;
+  } catch(e){ console.error('chatBinCreate exception:', e); return false; }
 }
 
 // Sincroniza el CHAT_BIN_ID en el bin principal para que todos lo lean
@@ -1793,6 +1762,7 @@ let chatPollInterval = null;
 function startChatPolling(){
   if(chatPollInterval) return;
   chatPollInterval = setInterval(async ()=>{
+    if(!CHAT_BIN_ID) return;
     const msgs = await chatBinGet();
     const recent = msgs.slice(-CHAT_MAX);
     if(recent.length && recent[recent.length-1].ts > chatLastTs){
@@ -1817,6 +1787,10 @@ function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=nu
 // ── Enviar mensaje ─────────────────────────────────────────────────────────
 async function sendChatMsg(){
   if(!chatUser){ openChatNameModal(sendChatMsg); return; }
+  if(!CHAT_BIN_ID){
+    toast('El chat aún no está activado. El admin debe iniciarlo desde el panel.','error');
+    return;
+  }
   const inp  = document.getElementById('chat-input');
   const warn = document.getElementById('chat-warn');
   const raw  = inp.value.trim();
@@ -1835,14 +1809,16 @@ async function sendChatMsg(){
   const btn = document.getElementById('chat-send');
   btn.disabled = true;
 
-  const newMsg = {
+  const msgs = await chatBinGet();
+  msgs.push({
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
     author: chatUser,
     text:   filtered,
     ts:     Date.now(),
     isAdmin: adminMode ? true : false
-  };
-  const ok = await chatBinPush(newMsg);
+  });
+  const trimmed = msgs.slice(-CHAT_MAX);
+  const ok = await chatBinSet(trimmed);
   btn.disabled = false;
 
   if(!ok){ toast('No se pudo enviar el mensaje. Intentá de nuevo.','error'); return; }
@@ -1850,10 +1826,12 @@ async function sendChatMsg(){
 }
 
 // ── Borrar mensaje (admin) ─────────────────────────────────────────────────
-async function deleteChatMsg(fbKey){
+async function deleteChatMsg(id){
   if(!adminMode) return;
   if(!confirm('¿Borrar este mensaje?')) return;
-  const ok = await chatDeleteMsg(fbKey);
+  const msgs = await chatBinGet();
+  const filtered = msgs.filter(m => m.id !== id);
+  const ok = await chatBinSet(filtered);
   if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); }
   else toast('No se pudo eliminar','error');
 }
@@ -1887,57 +1865,6 @@ function toggleChat(){
 
 // ── Init chat (solo arrancar polling si hay mensajes previos) ──────────────
 // ── Admin chat functions ───────────────────────────────────────────────────
-async function forceSyncPublic(){
-  const mk = getMasterKey();
-  if(!mk){ toast('Necesitás estar logueado como admin','error'); return; }
-  const el = document.getElementById('pub-bin-status');
-  if(el) el.textContent = 'Sincronizando...';
-  await syncPublicBin(mk, getState());
-  updatePubBinStatus();
-  toast(PUBLIC_BIN_ID ? 'Bin público sincronizado!' : 'Error al crear bin público','error'[+!PUBLIC_BIN_ID]);
-}
-
-function updatePubBinStatus(){
-  const el = document.getElementById('pub-bin-status');
-  if(!el) return;
-  el.innerHTML = PUBLIC_BIN_ID
-    ? `<span style="color:var(--accent)">✓ Activo · ID: <code>${PUBLIC_BIN_ID}</code></span>`
-    : '<span style="color:#fde68a">⚠ No creado aún. Hacé click en el botón para crearlo.</span>';
-}
-
-async function adminGuardarBinId(){
-  const inp = document.getElementById('chat-bin-input');
-  const msg = document.getElementById('chat-bin-msg');
-  const val = inp.value.trim();
-  if(!val || val.length < 10){
-    msg.textContent = 'Bin ID inválido.';
-    msg.style.color = '#fca5a5';
-    msg.style.display = 'block';
-    return;
-  }
-  // Verificar que el bin existe y es accesible
-  msg.textContent = 'Verificando...';
-  msg.style.color = 'var(--text2)';
-  msg.style.display = 'block';
-  try{
-    const r = await fetch(`${JSONBLOB}/${val}`, { headers:{'Accept':'application/json'} });
-    if(!r.ok){ throw new Error('No se pudo acceder al blob'); }
-    const d = await r.json();
-    if(!Array.isArray(d)){ throw new Error('El blob no contiene un array []'); }
-    CHAT_BIN_ID = val;
-    localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-    await syncChatBinId();
-    msg.textContent = '✓ Chat activado correctamente!';
-    msg.style.color = 'var(--accent)';
-    showChatAdminStatus();
-    startChatPolling();
-    toast('Chat activado! Ya pueden escribir los invitados.');
-  } catch(e){
-    msg.textContent = 'Error: ' + e.message + '. Verifica que el bin sea publico y contenga []';
-    msg.style.color = '#fca5a5';
-  }
-}
-
 async function adminActivarChat(){
   const statusEl = document.getElementById('chat-admin-status');
   if(CHAT_BIN_ID){
@@ -1990,17 +1917,13 @@ function showChatAdminStatus(){
   if(!el) return;
   el.innerHTML = CHAT_BIN_ID
     ? `<span style="color:var(--accent)">✓ Chat activo · Bin ID: <code style="font-size:11px">${CHAT_BIN_ID}</code></span>`
-    : '<span style="color:#fde68a">⚠ Chat no activado. Pega el Bin ID abajo para activarlo.</span>';
-  // Mostrar bin id actual en el input
-  const inp = document.getElementById('chat-bin-input');
-  if(inp && CHAT_BIN_ID) inp.value = CHAT_BIN_ID;
+    : '<span style="color:#fde68a">⚠ Chat no activado. Hacé click en "Activar / Crear chat".</span>';
 }
 
 function initChat(){
   document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-  // Firebase siempre disponible — arrancar polling directamente
-  startChatPolling();
-  loadChatMsgs();
+  showChatAdminStatus();
+  if(CHAT_BIN_ID) startChatPolling();
 }
 
 // ── Generar hash para producción ───────────────────────────────────────────
@@ -2016,6 +1939,19 @@ async function init(){
   if(ok){ refreshAll(); setSyncStatus('ok'); }
   else setSyncStatus('none');
   initChat();
+  // Refresco periódico: trae cambios hechos desde otros dispositivos
+  setInterval(async ()=>{
+    if(document.hidden) return;
+    if(syncTimer) return; // hay un guardado propio pendiente, no pisarlo
+    const ok2 = await loadFromCloud();
+    if(ok2) refreshAll();
+  }, 15000);
+  document.addEventListener('visibilitychange', async ()=>{
+    if(!document.hidden && !syncTimer){
+      const ok3 = await loadFromCloud();
+      if(ok3) refreshAll();
+    }
+  });
 }
 
 init();
