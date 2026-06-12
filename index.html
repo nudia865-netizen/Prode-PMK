@@ -1700,55 +1700,49 @@ function escHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── JSONBin chat helpers ──────────────────────────────────────────────────
-// ID del bin de chat — se configura una vez desde el panel admin
-// El bin debe estar creado con X-Bin-Private: false y permitir updates sin auth
-// (en JSONBin: bin público + "Allow Update Without API Key" activado)
-const CHAT_WRITE_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2';
+// ── Chat backend: jsonblob.com (lectura y escritura pública sin auth) ──────
+const JSONBLOB = 'https://jsonblob.com/api/jsonBlob';
 
 async function chatBinGet(){
   if(!CHAT_BIN_ID) return [];
   try{
-    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}/latest`,{
-      headers:{'X-Access-Key': ACCESS_KEY}
+    const r = await fetch(`${JSONBLOB}/${CHAT_BIN_ID}`,{
+      headers:{'Accept':'application/json'}
     });
     if(!r.ok) return [];
     const d = await r.json();
-    return Array.isArray(d.record) ? d.record : [];
+    return Array.isArray(d) ? d : [];
   } catch(e){ return []; }
 }
 
 async function chatBinSet(msgs){
   if(!CHAT_BIN_ID) return false;
   try{
-    const r = await fetch(`${JSONBIN}/b/${CHAT_BIN_ID}`,{
+    const r = await fetch(`${JSONBLOB}/${CHAT_BIN_ID}`,{
       method:'PUT',
-      headers:{
-        'Content-Type':'application/json',
-        'X-Access-Key': CHAT_WRITE_KEY
-      },
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify(msgs)
     });
     return r.ok;
   } catch(e){ return false; }
 }
 
-async function chatBinCreate(mkOverride){
-  const mk = mkOverride || getMasterKey();
-  if(!mk){ console.error('chatBinCreate: no master key'); return false; }
+async function chatBinCreate(){
+  // Crear blob en jsonblob.com — no requiere autenticación
   try{
-    const r = await fetch(`${JSONBIN}/b`,{
+    const r = await fetch(JSONBLOB,{
       method:'POST',
-      headers:{'Content-Type':'application/json','X-Master-Key':mk,'X-Bin-Name':'pmk-chat'},
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify([])
     });
-    const d = await r.json();
-    console.log('chatBinCreate response:', r.status, JSON.stringify(d));
-    if(!r.ok){ console.error('chatBinCreate failed:', r.status, d); return false; }
-    CHAT_BIN_ID = d.metadata?.id || '';
+    if(!r.ok) return false;
+    // El ID viene en el header Location: .../api/jsonBlob/{ID}
+    const loc = r.headers.get('Location') || '';
+    CHAT_BIN_ID = loc.split('/').pop();
     if(CHAT_BIN_ID){
       localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-      await syncChatBinId(mk);
+      const mk = getMasterKey();
+      if(mk) await syncChatBinId(mk);
     }
     return !!CHAT_BIN_ID;
   } catch(e){ console.error('chatBinCreate exception:', e); return false; }
@@ -1921,10 +1915,10 @@ async function adminGuardarBinId(){
   msg.style.color = 'var(--text2)';
   msg.style.display = 'block';
   try{
-    const r = await fetch(`${JSONBIN}/b/${val}/latest`, { headers:{'X-Access-Key': ACCESS_KEY} });
-    if(!r.ok){ throw new Error('No se pudo acceder'); }
+    const r = await fetch(`${JSONBLOB}/${val}`, { headers:{'Accept':'application/json'} });
+    if(!r.ok){ throw new Error('No se pudo acceder al blob'); }
     const d = await r.json();
-    if(!Array.isArray(d.record)){ throw new Error('El bin no contiene un array'); }
+    if(!Array.isArray(d)){ throw new Error('El blob no contiene un array []'); }
     CHAT_BIN_ID = val;
     localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
     await syncChatBinId();
