@@ -6,7 +6,7 @@
 <title>Prode PMK — Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f1117;--bg2:#181c27;--bg3:#1f2435;--border:rgba(255,255,255,0.08);--text:#e8eaf0;--text2:#8b90a0;--text3:#555a6b;--accent:#4ade80;--accent2:#22c55e;--red:#f87171;--blue:#60a5fa;--radius:10px;--radius-sm:6px}
+:root{--bg:#0d1208;--bg2:#131a0e;--bg3:#1a2412;--border:rgba(255,255,255,0.09);--text:#e8f0e0;--text2:#8ba07a;--text3:#556650;--accent:#5fd436;--accent2:#4bbf27;--red:#f87171;--blue:#60a5fa;--radius:10px;--radius-sm:6px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
@@ -17,13 +17,13 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5
 .hnav a:hover,.hnav a.active{background:var(--bg3);color:var(--text)}
 .hright{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0}
 .btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:7px 14px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
-.btn-primary{background:var(--accent);color:#0a0f0a}.btn-primary:hover{background:var(--accent2)}
+.btn-primary{background:var(--accent);color:#071200}.btn-primary:hover{background:var(--accent2)}
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--text2);color:var(--text)}
 .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(248,113,113,.25)}.btn-danger:hover{background:rgba(248,113,113,.1)}
 .btn-sm{padding:4px 10px;font-size:12px}
-.btn-rule{background:rgba(96,165,250,.1);color:#93c5fd;border:1px solid rgba(96,165,250,.2)}.btn-rule:hover{background:rgba(96,165,250,.2)}
+.btn-rule{background:rgba(95,212,54,.12);color:#a3e87a;border:1px solid rgba(95,212,54,.25)}.btn-rule:hover{background:rgba(95,212,54,.22)}
 .sync-st{font-size:11px;padding:4px 10px;border-radius:var(--radius-sm)}
-.sync-ok{background:rgba(74,222,128,.1);color:#86efac}
+.sync-ok{background:rgba(95,212,54,.12);color:#a3e87a}
 .sync-err{background:rgba(248,113,113,.1);color:#fca5a5}
 .sync-ing{background:rgba(251,191,36,.1);color:#fde68a}
 .sync-none{background:var(--bg3);color:var(--text2)}
@@ -43,10 +43,10 @@ input[type=number]{width:56px;text-align:center}
 select option{background:var(--bg2)}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
 .b-exact{background:rgba(96,165,250,.15);color:#93c5fd}
-.b-win{background:rgba(74,222,128,.12);color:#86efac}
+.b-win{background:rgba(95,212,54,.12);color:#a3e87a}
 .b-zero{background:rgba(248,113,113,.12);color:#fca5a5}
 .b-gray{background:var(--bg3);color:var(--text2)}
-.b-open{background:rgba(74,222,128,.12);color:#86efac}
+.b-open{background:rgba(95,212,54,.12);color:#a3e87a}
 .b-closed{background:rgba(248,113,113,.12);color:#fca5a5}
 .b-group{background:rgba(251,191,36,.12);color:#fde68a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 10px}
 .empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
@@ -79,15 +79,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .mrow:last-child{border-bottom:none}
 .chevron{transition:transform .2s;color:var(--text3);font-size:14px;flex-shrink:0}
 .chevron.open{transform:rotate(90deg)}
-.pozo-box{background:linear-gradient(135deg,rgba(74,222,128,.08),rgba(96,165,250,.05));border:1px solid rgba(74,222,128,.2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
-.pozo-amount{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;color:var(--accent);margin:6px 0}
-.dist-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pozo-box{background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.pozo-amount{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--accent);margin:4px 0}
+.dist-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
 .dist-item:last-child{border-bottom:none}
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-size:13px;opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none;max-width:300px}
 .toast.show{opacity:1;transform:translateY(0)}
-.toast.success{border-color:rgba(74,222,128,.3);color:var(--accent)}
+.toast.success{border-color:rgba(95,212,54,.3);color:var(--accent)}
 .toast.error{border-color:rgba(248,113,113,.3);color:#fca5a5}
-/* MODAL */
 .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
 .moverlay.open{display:flex}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:540px;margin:1rem;max-height:90vh;overflow-y:auto}
@@ -99,7 +98,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .rules-content li{margin-bottom:.35rem}
 .rules-content strong{color:var(--text)}
 .rules-content .disclaimer{font-size:11px;color:var(--text3);margin-top:1.5rem;line-height:1.6;font-style:italic}
-/* PARTIDOS PUBLIC */
 .match-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
 .match-teams{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .match-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--accent);min-width:60px;text-align:center}
@@ -111,16 +109,23 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
-/* Colapsables públicos */
 .fecha-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:.75rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.5rem;gap:8px}
 .fecha-header:hover{border-color:rgba(255,255,255,.15)}
 .fecha-header .fh-left{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px}
 .fecha-header .fh-chev{color:var(--text3);font-size:13px;transition:transform .2s;flex-shrink:0}
 .fecha-header .fh-chev.open{transform:rotate(90deg)}
 .fecha-body{display:none;margin-bottom:1rem}.fecha-body.open{display:block}
-/* Pozo público distribución */
-.pozo-dist-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pozo-dist-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
 .pozo-dist-row:last-child{border-bottom:none}
+/* Compact pozo pub */
+.pozo-pub-compact{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:.5rem}
+.pozo-pub-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pozo-pub-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent)}
+.pozo-pub-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+/* Banner fecha 2 */
+.fecha2-banner{background:linear-gradient(135deg,rgba(95,212,54,.12),rgba(95,212,54,.05));border:1px solid rgba(95,212,54,.3);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(95,212,54,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
+.fecha2-banner a:hover{background:rgba(95,212,54,.25);border-color:var(--accent)}
 @media(max-width:640px){
   header{padding:0 .75rem}
   .page{padding:.75rem}
@@ -130,18 +135,16 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   .metrics{grid-template-columns:repeat(2,1fr)}
   .hnav a{font-size:12px;padding:5px 8px}
 }
-
-/* ── CHAT ─────────────────────────────────────────────────────────────── */
 #chat-widget{position:fixed;bottom:1.25rem;right:1.25rem;z-index:150;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-#chat-toggle{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(74,222,128,.35);transition:transform .15s}
+#chat-toggle{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(95,212,54,.3);transition:transform .15s}
 #chat-toggle:hover{transform:scale(1.08)}
 #chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden}
 #chat-bubble.open{display:flex}
 #chat-head{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 #chat-head-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
-#chat-online-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 6px rgba(74,222,128,.6)}
+#chat-online-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 6px rgba(95,212,54,.6)}
 #chat-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;padding:2px 4px}
-#chat-name-bar{padding:.6rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:12px;background:rgba(74,222,128,.05)}
+#chat-name-bar{padding:.6rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;font-size:12px;background:rgba(95,212,54,.05)}
 #chat-name-bar span{color:var(--text2)}
 #chat-name-display{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline dotted}
 #chat-msgs{height:280px;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:6px}
@@ -160,13 +163,12 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 #chat-footer{border-top:1px solid var(--border);padding:.5rem .75rem;display:flex;gap:6px;align-items:flex-end}
 #chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:7px 10px;outline:none;font-family:'Inter',sans-serif;resize:none;max-height:80px;min-height:36px;transition:border-color .15s;line-height:1.4}
 #chat-input:focus{border-color:var(--accent)}
-#chat-send{background:var(--accent);border:none;border-radius:var(--radius-sm);color:#0a0f0a;font-size:16px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+#chat-send{background:var(--accent);border:none;border-radius:var(--radius-sm);color:#071200;font-size:16px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
 #chat-send:hover{background:var(--accent2)}
 #chat-send:disabled{background:var(--bg3);color:var(--text3);cursor:default}
 #chat-warn{font-size:11px;color:#fde68a;padding:0 .75rem .4rem;display:none;line-height:1.4}
 #chat-unread{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center}
 #chat-toggle-wrap{position:relative;display:inline-block}
-/* Modal nombre chat */
 #chat-name-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:none;align-items:center;justify-content:center}
 #chat-name-modal.open{display:flex}
 #chat-name-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;width:100%;max-width:340px;margin:1rem}
@@ -187,7 +189,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Contraseña</label>
     <input type="password" id="admin-pw" placeholder="••••••••" style="width:100%" onkeydown="if(event.key==='Enter')checkAdminPw()">
     <div id="admin-pw-err" style="font-size:12px;color:#fca5a5;margin-top:6px;display:none"></div>
-    <!-- Master key: se guarda en sessionStorage, nunca en el código -->
     <div id="mk-section" style="margin-top:1rem;display:none">
       <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Master Key JSONBin <span style="color:var(--text3)">(se guarda solo en esta sesión)</span></label>
       <input type="password" id="admin-mk" placeholder="$2a$10$..." style="width:100%;font-size:12px">
@@ -287,7 +288,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <button class="tab" onclick="showTab('chat-admin')">💬 Chat</button>
   </div>
 
-  <!-- PARTIDOS -->
   <div id="tab-partidos" class="tab-sec active">
     <div class="card">
       <div class="card-title">Agregar partido</div>
@@ -317,7 +317,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="lista-partidos"><p class="empty">No hay partidos cargados aún.</p></div>
   </div>
 
-  <!-- PARTICIPANTES -->
   <div id="tab-participantes" class="tab-sec">
     <div class="card">
       <div class="card-title">Agregar participante</div>
@@ -333,19 +332,16 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="lista-participantes"><p class="empty">No hay participantes.</p></div>
   </div>
 
-  <!-- PRONOSTICOS -->
   <div id="tab-pronosticos" class="tab-sec">
     <div class="info-box">Las fechas <strong>cerradas</strong> no permiten modificar pronósticos.</div>
     <div id="pron-sel" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"></div>
     <div id="pronosticos-content"><p class="empty">Primero cargá partidos y participantes.</p></div>
   </div>
 
-  <!-- RESULTADOS -->
   <div id="tab-resultados" class="tab-sec">
     <div id="resultados-content"><p class="empty">No hay partidos cargados.</p></div>
   </div>
 
-  <!-- RESUMEN -->
   <div id="tab-resumen" class="tab-sec">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap">
       <label style="font-size:12px;color:var(--text2)">Fecha:</label>
@@ -354,7 +350,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="resumen-content"><p class="empty">Sin datos aún.</p></div>
   </div>
 
-  <!-- TABLA ADMIN -->
   <div id="tab-tabla" class="tab-sec">
     <div class="tabs" id="sub-tabs" style="margin-bottom:1.25rem">
       <button class="tab active" onclick="setTablaView('fecha',this)">Por fecha</button>
@@ -363,16 +358,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="tabla-content"><p class="empty">Sin datos aún.</p></div>
   </div>
 
-  <!-- POZO -->
   <div id="tab-pozo" class="tab-sec">
     <div id="pozo-content"></div>
   </div>
 
-  <!-- CHAT ADMIN TAB -->
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
-      <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#86efac">
+      <div style="background:rgba(95,212,54,.08);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#a3e87a">
         ✓ Chat funcionando con Firebase Realtime Database.<br>
         URL: <code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code>
       </div>
@@ -389,8 +382,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
 
-  <!-- Pozo siempre visible -->
-  <div id="pozo-pub-partidos" style="margin-bottom:1rem;display:none"></div>
+  <!-- BANNER FECHA 2 -->
+  <div class="fecha2-banner">
+    <div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">⚽ Fecha 2 — Cargá tu prode</div>
+      <div style="font-size:13px;color:var(--text)">Hacé click para ingresar tus pronósticos de la Fecha 2</div>
+    </div>
+    <a href="https://nudia865-netizen.github.io/Fecha-2/" target="_blank" rel="noopener">→ Cargar Fecha 2</a>
+  </div>
 
   <!-- TABLA -->
   <div style="margin-bottom:.5rem">
@@ -448,6 +447,18 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
+  <!-- POZOS — compactos, al final de personas -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-pozo','schev-pozo')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">💰 Pozos</div>
+      <span class="fh-chev" id="schev-pozo">&#9658;</span>
+    </div>
+    <div class="fecha-body" id="sec-pub-pozo">
+      <div id="pozo-pub-partidos"></div>
+      <div id="pozo-pub" style="display:none"></div>
+    </div>
+  </div>
+
   <!-- HISTORIAL DE FECHAS -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-historial','schev-historial')">
@@ -461,10 +472,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 </div>
 
-<!-- páginas legacy — IDs necesarios para las funciones JS existentes -->
-<div id="page-personas" class="page" style="display:none">
-  <div id="pozo-pub" style="display:none"></div>
-</div>
+<div id="page-personas" class="page" style="display:none"></div>
 <div id="page-tabla-pub" class="page" style="display:none"></div>
 
 <!-- CHAT NAME MODAL -->
@@ -509,15 +517,13 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 <!-- FOOTER -->
 <footer style="margin-top:3rem;border-top:1px solid var(--border);padding:2rem 1.5rem;max-width:1100px;margin-left:auto;margin-right:auto">
-  <!-- Último campeón -->
-  <div style="background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(74,222,128,.06));border:1px solid rgba(251,191,36,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+  <div style="background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(95,212,54,.06));border:1px solid rgba(251,191,36,.25);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:32px">🏆</div>
     <div>
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:3px">Último campeón</div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:#fbbf24">Nicolas Herrera</div>
     </div>
   </div>
-  <!-- Disclaimer -->
   <p style="font-size:11px;color:var(--text3);line-height:1.7;font-style:italic">
     * Actividad recreativa entre participantes de PMK. PMK no organiza ni se responsabiliza por los pronósticos ni por eventuales intercambios entre los mismos. La participación es completamente voluntaria. Apostar puede ser perjudicial para la salud — jugá responsablemente.<br>
     ** El Súper Pozo se distribuye de forma independiente según su propia modalidad al finalizar el torneo.<br>
@@ -528,71 +534,40 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────────────────
 const JSONBIN    = 'https://api.jsonbin.io/v3';
 const BIN_ID     = '6a28cfa3f5f4af5e29d5a0e8';
-const ACCESS_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2'; // solo lectura, ok en cliente
+const ACCESS_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2';
+const ADMIN_PW_HASH = '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5';
 
-// Hash SHA-256 de la contraseña admin — generado con: sha256('PrdPMK2026')
-// Para cambiarla: actualizar este hash con el nuevo sha256
-const ADMIN_PW_HASH = '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5'; // placeholder, ver nota abajo
-
-// ── Security helpers ───────────────────────────────────────────────────────
 async function sha256(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-// Bloqueo por intentos fallidos
 const LOCK_KEY   = 'pmk_lock';
 const MAX_TRIES  = 3;
-const LOCK_MS    = 5 * 60 * 1000; // 5 minutos
+const LOCK_MS    = 5 * 60 * 1000;
 
 function getLockInfo(){ try{ return JSON.parse(localStorage.getItem(LOCK_KEY)||'{}'); }catch(e){ return {}; } }
-function isLocked(){
-  const {until} = getLockInfo();
-  return until && Date.now() < until;
-}
-function lockRemaining(){
-  const {until} = getLockInfo();
-  if(!until) return 0;
-  return Math.max(0, Math.ceil((until - Date.now()) / 1000));
-}
-function recordFailedAttempt(){
-  const info = getLockInfo();
-  const tries = (info.tries || 0) + 1;
-  if(tries >= MAX_TRIES){
-    localStorage.setItem(LOCK_KEY, JSON.stringify({tries, until: Date.now() + LOCK_MS}));
-  } else {
-    localStorage.setItem(LOCK_KEY, JSON.stringify({tries}));
-  }
-  return tries;
-}
+function isLocked(){ const {until} = getLockInfo(); return until && Date.now() < until; }
+function lockRemaining(){ const {until} = getLockInfo(); if(!until) return 0; return Math.max(0, Math.ceil((until - Date.now()) / 1000)); }
+function recordFailedAttempt(){ const info = getLockInfo(); const tries = (info.tries || 0) + 1; if(tries >= MAX_TRIES){ localStorage.setItem(LOCK_KEY, JSON.stringify({tries, until: Date.now() + LOCK_MS})); } else { localStorage.setItem(LOCK_KEY, JSON.stringify({tries})); } return tries; }
 function clearLock(){ localStorage.removeItem(LOCK_KEY); }
-
-// Master Key: solo en sessionStorage (se borra al cerrar pestaña)
 function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
-// ── State ──────────────────────────────────────────────────────────────────
 let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 
 function getState(){ return {partidos, participantes, pronosticos, resultados, pozosHistorial}; }
 function setState(d){
   partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; pozosHistorial=d.pozosHistorial||{};
-  // Migración: cuota (global) -> pagos (por fecha)
   participantes.forEach(p=>{
-    if(!p.pagos){
-      p.pagos = {};
-      if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; }
-      delete p.cuota;
-    }
+    if(!p.pagos){ p.pagos = {}; if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; } delete p.cuota; }
   });
   if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
 }
 
-// ── Helpers de pago por fecha ───────────────────────────────────────────────
 function pagoFecha(p, fecha){ return (p.pagos && p.pagos[fecha]) || 'no'; }
 function pagantesFecha(fecha){ return participantes.filter(p=>pagoFecha(p,fecha)==='si'); }
 function noPrizeSetFecha(fecha){ return new Set(participantes.filter(p=>pagoFecha(p,fecha)!=='si').map(p=>p.nombre)); }
@@ -602,87 +577,54 @@ function distPorCantidad(n, ppal){
   if(n<=20) return [{pos:'1°',pct:'75%',monto:Math.round(ppal*.75)},{pos:'2°',pct:'25%',monto:Math.round(ppal*.25)}];
   return [{pos:'1°',pct:'70%',monto:Math.round(ppal*.7)},{pos:'2°',pct:'20%',monto:Math.round(ppal*.2)},{pos:'3°',pct:'10%',monto:Math.round(ppal*.1)}];
 }
-function superPozoTotal(){
-  // Suma de aportes de $1.000 por cada fecha (todas, históricas + actuales) según pagos actuales
-  return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0);
-}
-function fechaPozoActual(){
-  const fechas=getFechas();
-  if(!fechas.length) return null;
-  return fechas.find(f=>!pozosHistorial[f]) || fechas[fechas.length-1];
-}
+function superPozoTotal(){ return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0); }
+function fechaPozoActual(){ const fechas=getFechas(); if(!fechas.length) return null; return fechas.find(f=>!pozosHistorial[f]) || fechas[fechas.length-1]; }
 function saveLocal(){ localStorage.setItem('pmk_data', JSON.stringify(getState())); }
 function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem('pmk_data')||'null'); if(d) setState(d); }catch(e){} }
 
-// ── Toast ──────────────────────────────────────────────────────────────────
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className='toast '+type; el.classList.add('show');
   clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
-// ── Sync status ────────────────────────────────────────────────────────────
 function setSyncStatus(s){
   const el=document.getElementById('sync-status');
   const m={ok:['sync-ok','✓ Guardado'],ing:['sync-ing','⟳ Sync…'],err:['sync-err','✕ Error'],none:['sync-none','Sin nube']};
   const [c,t]=m[s]||m.none; el.className='sync-st '+c; el.textContent=t;
 }
 
-// ── Modal helpers ──────────────────────────────────────────────────────────
 function openModal(id){
   document.getElementById(id).classList.add('open');
-  if(id==='modal-admin'){
-    // Mostrar sección de master key solo si no está guardada
-    document.getElementById('mk-section').style.display = getMasterKey() ? 'none' : '';
-  }
+  if(id==='modal-admin'){ document.getElementById('mk-section').style.display = getMasterKey() ? 'none' : ''; }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
-// ── Admin auth ─────────────────────────────────────────────────────────────
 async function checkAdminPw(){
   const errEl = document.getElementById('admin-pw-err');
-
-  if(isLocked()){
-    errEl.style.display=''; errEl.textContent=`🔒 Demasiados intentos. Esperá ${lockRemaining()}s.`;
-    return;
-  }
-
+  if(isLocked()){ errEl.style.display=''; errEl.textContent=`🔒 Demasiados intentos. Esperá ${lockRemaining()}s.`; return; }
   const pw   = document.getElementById('admin-pw').value;
   const hash = await sha256(pw);
-
-  // Comparamos el hash. Si ADMIN_PW_HASH es el placeholder, usamos la contraseña default hasheada.
-  // Para producción: reemplazá ADMIN_PW_HASH con sha256 de tu contraseña real.
   const isOk = (hash === ADMIN_PW_HASH) || (ADMIN_PW_HASH === '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5' && pw === 'PrdPMK2026');
-
   if(isOk){
-    clearLock();
-    adminMode=true; errEl.style.display='none';
-    // Guardar master key si fue ingresada
+    clearLock(); adminMode=true; errEl.style.display='none';
     const mk = document.getElementById('admin-mk').value.trim();
     if(mk) setMasterKey(mk);
-    document.getElementById('admin-pw').value='';
-    document.getElementById('admin-mk').value='';
-    closeModal('modal-admin');
-    applyRole();
-    toast('🔑 Modo admin activado');
+    document.getElementById('admin-pw').value=''; document.getElementById('admin-mk').value='';
+    closeModal('modal-admin'); applyRole(); toast('🔑 Modo admin activado');
     const navAdmin=document.getElementById('nav-admin');
     showPage('admin', navAdmin);
   } else {
     const tries = recordFailedAttempt();
     const remaining = MAX_TRIES - tries;
-    if(isLocked()){
-      errEl.style.display=''; errEl.textContent=`🔒 Cuenta bloqueada por ${LOCK_MS/60000} min. Demasiados intentos.`;
-    } else {
-      errEl.style.display=''; errEl.textContent=`❌ Contraseña incorrecta. ${remaining > 0 ? `(${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''})` : ''}`;
-    }
+    if(isLocked()){ errEl.style.display=''; errEl.textContent=`🔒 Cuenta bloqueada por ${LOCK_MS/60000} min. Demasiados intentos.`; }
+    else { errEl.style.display=''; errEl.textContent=`❌ Contraseña incorrecta. ${remaining > 0 ? `(${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''})` : ''}`; }
   }
 }
 
 function adminLogout(){
   if(!confirm('¿Salir del modo admin?')) return;
-  adminMode=false; applyRole();
-  showPage('partidos-pub', document.getElementById('nav-pub'));
-  toast('Sesión admin cerrada');
+  adminMode=false; applyRole(); showPage('partidos-pub', document.getElementById('nav-pub')); toast('Sesión admin cerrada');
 }
 
 function applyRole(){
@@ -696,7 +638,6 @@ function applyRole(){
   document.getElementById('page-admin').style.display  = a?'':'none';
 }
 
-// ── Cloud ──────────────────────────────────────────────────────────────────
 async function loadFromCloud(){
   try{
     const mk = getMasterKey();
@@ -710,18 +651,10 @@ async function loadFromCloud(){
 
 async function syncCloud(manual=false){
   const mk = getMasterKey();
-  if(!mk){
-    saveLocal();
-    if(manual) toast('Sin Master Key — guardado solo local. Ingresá la clave al hacer login.','error');
-    return;
-  }
+  if(!mk){ saveLocal(); if(manual) toast('Sin Master Key — guardado solo local.','error'); return; }
   setSyncStatus('ing'); saveLocal();
   try{
-    const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json','X-Master-Key': mk},
-      body: JSON.stringify(getState())
-    });
+    const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body: JSON.stringify(getState())});
     if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
     else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
   }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
@@ -729,7 +662,6 @@ async function syncCloud(manual=false){
 
 function persist(){ saveLocal(); clearTimeout(syncTimer); syncTimer=setTimeout(()=>{ syncTimer=null; syncCloud(); },3000); }
 
-// ── Export CSV ─────────────────────────────────────────────────────────────
 function exportCSV(){
   const rows=[['Fecha','Grupo','Partido','Fecha/Hora','Participante','Pronóstico','Resultado Real','Puntos']];
   partidos.forEach(p=>{
@@ -746,7 +678,6 @@ function exportCSV(){
   toast('✓ CSV exportado');
 }
 
-// ── Navigation ─────────────────────────────────────────────────────────────
 function showPage(p,el){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.hnav a').forEach(x=>x.classList.remove('active'));
@@ -770,20 +701,12 @@ function showTab(t){
   if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
 }
 
-function setTablaView(v,btn){
-  tablaView=v;
-  document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); renderTabla();
-}
-
+function setTablaView(v,btn){ tablaView=v; document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTabla(); }
 function getFechas(){ return [...new Set(partidos.map(p=>p.fecha))]; }
 function esc(s){ return String(s).replace(/'/g,"\\'"); }
 function fmtDt(dt){
   if(!dt) return '';
-  try{
-    const d=new Date(dt);
-    return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-  }catch(e){ return dt; }
+  try{ const d=new Date(dt); return d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return dt; }
 }
 
 function refreshAll(){
@@ -798,7 +721,6 @@ function refreshAll(){
   }
 }
 
-// ── Partidos admin ─────────────────────────────────────────────────────────
 function addPartido(){
   const f=document.getElementById('p-fecha').value.trim();
   const l=document.getElementById('p-local').value.trim();
@@ -845,7 +767,6 @@ function renderPartidos(){
   }).join('');
 }
 
-// ── Participantes ──────────────────────────────────────────────────────────
 function addParticipante(){
   const n=document.getElementById('part-nombre').value.trim();
   const c=document.getElementById('part-cuota').value;
@@ -883,14 +804,10 @@ function renderParticipantes(){
   const cont=document.getElementById('lista-participantes');
   const selWrap=document.getElementById('part-fecha-sel-wrap');
   const fechas=getFechas();
-  if(!fechas.length){
-    if(selWrap) selWrap.style.display='none';
-  } else {
+  if(!fechas.length){ if(selWrap) selWrap.style.display='none'; }
+  else {
     if(!partFechaSel || !fechas.includes(partFechaSel)) partFechaSel=fechas[fechas.length-1];
-    if(selWrap){
-      selWrap.style.display='';
-      selWrap.innerHTML = `<label>Fecha</label><select onchange="setPartFecha(this.value)">${fechas.map(f=>`<option value="${esc(f)}" ${f===partFechaSel?'selected':''}>${f}</option>`).join('')}</select>`;
-    }
+    if(selWrap){ selWrap.style.display=''; selWrap.innerHTML = `<label>Fecha</label><select onchange="setPartFecha(this.value)">${fechas.map(f=>`<option value="${esc(f)}" ${f===partFechaSel?'selected':''}>${f}</option>`).join('')}</select>`; }
   }
   if(!participantes.length){ cont.innerHTML='<p class="empty">No hay participantes.</p>'; return; }
   const f=partFechaSel;
@@ -916,7 +833,6 @@ function renderParticipantes(){
   </div>`;
 }
 
-// ── Pronósticos ────────────────────────────────────────────────────────────
 function setPron(pid,nombre,glId,gvId){
   const gl=parseInt(document.getElementById(glId)?.value);
   const gv=parseInt(document.getElementById(gvId)?.value);
@@ -934,7 +850,7 @@ function renderPronosticos(){
     const active=p.nombre===pronPersonaSel;
     const cargados=partidos.filter(pt=>{ const pr=pronosticos[pt.id]&&pronosticos[pt.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length;
     return `<button onclick="pronPersonaSel='${esc(p.nombre)}';renderPronosticos()"
-      style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'rgba(74,222,128,.08)':'var(--bg2)'};cursor:pointer;min-width:80px">
+      style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'rgba(95,212,54,.08)':'var(--bg2)'};cursor:pointer;min-width:80px">
       <span style="font-size:20px;font-weight:700;color:${active?'var(--accent)':'var(--text2)'}">${p.nombre[0].toUpperCase()}</span>
       <span style="font-size:12px;font-weight:500;color:${active?'var(--text)':'var(--text2)'};max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre}</span>
       <span style="font-size:11px;color:${cargados===partidos.length?'var(--accent)':'var(--text3)'}">${cargados}/${partidos.length}</span>
@@ -974,7 +890,6 @@ function renderPronosticos(){
   }).join('');
 }
 
-// ── Resultados ─────────────────────────────────────────────────────────────
 function setRes(id){
   const gl=parseInt(document.getElementById(`rgl_${id}`)?.value);
   const gv=parseInt(document.getElementById(`rgv_${id}`)?.value);
@@ -1006,7 +921,6 @@ function renderResultados(){
   ).join('');
 }
 
-// ── Puntos ─────────────────────────────────────────────────────────────────
 function calcPuntos(pr,r){
   if(!r||r.gl===undefined||isNaN(r.gl)) return null;
   if(!pr||pr.gl===undefined||isNaN(pr.gl)) return 0;
@@ -1054,7 +968,6 @@ function tableHTML(ranked, noPrizeSet){
   ${np.size>0?'<div style="font-size:11px;color:var(--text3);margin-top:.5rem">* Juegan sin cuota — no computan para premios.</div>':''}`;
 }
 
-// ── Resumen ────────────────────────────────────────────────────────────────
 function renderResumen(){
   const cont=document.getElementById('resumen-content');
   const sel=document.getElementById('res-fecha-sel');
@@ -1074,8 +987,8 @@ function renderResumen(){
     const pCells=ranked.map(s=>{
       const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
       const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
-      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
-      const ptsBadge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
+      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(95,212,54,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
+      const ptsBadge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#a3e87a;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
       return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${ptsBadge}</td>`;
     }).join('');
     return `<tr>
@@ -1098,12 +1011,11 @@ function renderResumen(){
   </div>
   <div style="display:flex;gap:12px;margin-top:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
     <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(74,222,128,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(95,212,54,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
     <span><span style="display:inline-block;width:12px;height:12px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
   </div>`;
 }
 
-// ── Tabla Admin ────────────────────────────────────────────────────────────
 function renderTabla(){
   const cont=document.getElementById('tabla-content');
   if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
@@ -1137,7 +1049,6 @@ function renderTablaGeneral(cont){
   </div>`+tableHTML(ranked,_np8);
 }
 
-// ── Pozo ───────────────────────────────────────────────────────────────────
 function setPozoFecha(f){ pozoFechaSel=f; renderPozo(); }
 
 function confirmarPozo(fecha){
@@ -1150,19 +1061,16 @@ function confirmarPozo(fecha){
   const ganadores = dist.map((d,i)=>{
     const sel = document.getElementById(`pozo-ganador-${i}`);
     let val = sel ? sel.value : '';
-    if(!val){
-      const cand = ranked.filter(r=>r.rank===i+1);
-      val = cand.map(c=>c.nombre).join(', ');
-    }
+    if(!val){ const cand = ranked.filter(r=>r.rank===i+1); val = cand.map(c=>c.nombre).join(', '); }
     return {pos:d.pos, pct:d.pct, monto:d.monto, ganador:val};
   });
-  if(!confirm(`¿Confirmar y cerrar el pozo de "${fecha}"? Esto queda fijo y se mostrará en el historial público.`)) return;
+  if(!confirm(`¿Confirmar y cerrar el pozo de "${fecha}"?`)) return;
   pozosHistorial[fecha] = {recaudado:total, principal:ppal, superPozoAporte:sp, dist:ganadores, fechaCierre:new Date().toISOString()};
-  persist(); renderPozo(); toast('✓ Pozo de '+fecha+' confirmado y guardado en historial');
+  persist(); renderPozo(); toast('✓ Pozo de '+fecha+' confirmado');
 }
 
 function reabrirPozo(fecha){
-  if(!confirm(`¿Reabrir el pozo de "${fecha}"? Se borrará el registro del historial.`)) return;
+  if(!confirm(`¿Reabrir el pozo de "${fecha}"?`)) return;
   delete pozosHistorial[fecha]; persist(); renderPozo(); toast('Pozo reabierto');
 }
 
@@ -1181,9 +1089,7 @@ function renderPozo(){
   const ranked = addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos), np);
   const cerrado = pozosHistorial[f];
   const spTotal = superPozoTotal();
-
   const selHtml = `<div class="frow"><label>Fecha</label><select onchange="setPozoFecha(this.value)">${fechas.map(ff=>`<option value="${esc(ff)}" ${ff===f?'selected':''}>${ff}${pozosHistorial[ff]?' ✓':''}</option>`).join('')}</select></div>`;
-
   const distHtml = dist.map((d,i)=>{
     const cand = ranked.filter(r=>r.rank===i+1).map(r=>r.nombre);
     const guardado = cerrado?.dist?.[i]?.ganador;
@@ -1196,10 +1102,9 @@ function renderPozo(){
         :`<input id="pozo-ganador-${i}" type="text" value="${esc(valorActual)}" placeholder="Ganador/es" style="margin-left:8px;width:160px;font-size:12px">`}
     </div>`;
   }).join('');
-
   cont.innerHTML=`${selHtml}
   <div class="metrics">
-    <div class="metric"><div class="metric-label">Cuotas pagadas (${esc(f)})</div><div class="metric-val">${conC}</div></div>
+    <div class="metric"><div class="metric-label">Cuotas pagadas</div><div class="metric-val">${conC}</div></div>
     <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$${total.toLocaleString('es-AR')}</div></div>
     <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
     <div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$${sp.toLocaleString('es-AR')}</div></div>
@@ -1208,7 +1113,7 @@ function renderPozo(){
     <div style="font-size:11px;color:var(--text3);margin-bottom:8px;margin-top:-6px">(${n} participantes en total)</div>
     ${distHtml}
   </div>
-  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Súper Pozo acumulado (todas las fechas)</div>
+  <div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Súper Pozo acumulado</div>
     <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
     <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. Empate: se divide.</div>
   </div>
@@ -1216,86 +1121,61 @@ function renderPozo(){
     ${cerrado
       ? `<button class="btn btn-ghost btn-sm" onclick="reabrirPozo('${esc(f)}')">🔓 Reabrir / editar</button> <span style="font-size:11px;color:var(--text3)">Cerrado el ${new Date(cerrado.fechaCierre).toLocaleDateString('es-AR')}</span>`
       : `<button class="btn btn-primary btn-sm" onclick="confirmarPozo('${esc(f)}')">🔒 Confirmar y cerrar pozo de ${esc(f)}</button>`}
-  </div>
-  <div style="font-size:11px;color:var(--text3);line-height:1.7;margin-top:1rem">* Actividad recreativa entre participantes. PMK no organiza ni se responsabiliza. Participación voluntaria. Apostar puede ser perjudicial para la salud.</div>`;
+  </div>`;
 }
 
-// ── Pozo público ───────────────────────────────────────────────────────────
+// ── Pozo público — compacto ────────────────────────────────────────────────
 function renderPozoPublico(){
-  const pubBox=document.getElementById('pozo-pub');
-  if(pubBox) pubBox.style.display='none';
-
   const box=document.getElementById('pozo-pub-partidos');
   if(!box) return;
-  if(!participantes.length){ box.style.display='none'; return; }
-  box.style.display='';
-
+  if(!participantes.length){ box.innerHTML=''; return; }
   const fechas=getFechas();
   const abiertas=fechas.filter(f=>!pozosHistorial[f]);
   const spTotal=superPozoTotal();
   const medals=['🥇','🥈','🥉'];
-
   if(!abiertas.length){
-    box.innerHTML=`<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
-      <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
-      <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
+    box.innerHTML=`<div class="pozo-pub-compact">
+      <div class="pozo-pub-label">Súper Pozo acumulado</div>
+      <div class="pozo-pub-row"><div class="pozo-pub-num">$${spTotal.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">Gana el líder al final del torneo</div></div>
     </div>`;
     return;
   }
-
   const boxesHtml = abiertas.map(f=>{
     const conC=pagantesFecha(f).length;
     const total=conC*5000, sp=conC*1000, ppal=total-sp;
     const dist=distPorCantidad(conC,ppal);
     let distRows='';
     if(conC===0){
-      distRows='<div class="pozo-dist-row"><span style="color:var(--text3)">Todavía nadie pagó esta fecha</span></div>';
+      distRows='<div class="pozo-dist-row" style="color:var(--text3)">Todavía nadie pagó esta fecha</div>';
     } else {
-      distRows=dist.map((d,i)=>`<div class="pozo-dist-row"><span>${medals[i]||''} ${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span></div>`).join('');
+      distRows=dist.map((d,i)=>`<div class="pozo-dist-row"><span>${medals[i]||''} ${d.pos}</span><span style="color:var(--text2)">${d.pct}</span><span style="font-weight:600;color:var(--accent)">$${(d.monto||0).toLocaleString('es-AR')}</span></div>`).join('');
     }
-    return `<div class="card" style="margin-bottom:.75rem">
-      <div class="card-title" style="margin-bottom:.5rem">💰 Pozo de ${esc(f)}</div>
-      <div class="metrics" style="margin-bottom:.75rem">
-        <div class="metric"><div class="metric-label">Pagaron</div><div class="metric-val">${conC}</div></div>
-        <div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$${ppal.toLocaleString('es-AR')}</div></div>
+    return `<div class="pozo-pub-compact" style="margin-bottom:.4rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">💰 ${esc(f)}</span>
+        <div class="pozo-pub-row" style="gap:6px"><span class="pozo-pub-label">Pozo</span><span class="pozo-pub-num">$${ppal.toLocaleString('es-AR')}</span><span class="pozo-pub-label">${conC} pagantes</span></div>
       </div>
       ${distRows}
     </div>`;
   }).join('');
-
-  box.innerHTML = boxesHtml + `<div class="pozo-box"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div>
-    <div class="pozo-amount">$${spTotal.toLocaleString('es-AR')}</div>
-    <div style="font-size:12px;color:var(--text2)">El líder al final del torneo gana el 100%. En empate se divide.</div>
+  box.innerHTML = boxesHtml + `<div class="pozo-pub-compact" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">
+    <div class="pozo-pub-label">Súper Pozo acumulado (todas las fechas)</div>
+    <div class="pozo-pub-row" style="margin-top:4px"><div class="pozo-pub-num" style="font-size:28px">$${spTotal.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">Gana el líder al final del torneo</div></div>
   </div>`;
 }
 
-// ── Partidos públicos ──────────────────────────────────────────────────────
-// Muestra todos los partidos. En fechas cerradas, muestra pronósticos y resultado.
-// En fechas abiertas, oculta pronósticos para no dar ventaja.
 function renderPartidosPublicos(){
   const cont = document.getElementById('partidos-pub-content');
   const sel  = document.getElementById('pp-fecha-sel');
   const fechas = getFechas();
   const curVal = sel.value;
   sel.innerHTML = '<option value="todas">Todas las fechas</option>';
-  fechas.forEach(f => {
-    const o = document.createElement('option');
-    o.value = f; o.textContent = f;
-    if(f === curVal) o.selected = true;
-    sel.appendChild(o);
-  });
-
-  if(!partidos.length){
-    cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>';
-    return;
-  }
-
+  fechas.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; if(f === curVal) o.selected = true; sel.appendChild(o); });
+  if(!partidos.length){ cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>'; return; }
   const ps = sel.value === 'todas' ? partidos : partidos.filter(p => p.fecha === sel.value);
   if(!ps.length){ cont.innerHTML = '<p class="empty">No hay partidos para esta fecha.</p>'; return; }
-
   const byFecha = {};
   ps.forEach(p => { if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
-
   const fechaKeys = Object.keys(byFecha);
   cont.innerHTML = fechaKeys.map((fecha, fi) => {
     const fps = byFecha[fecha];
@@ -1305,18 +1185,10 @@ function renderPartidosPublicos(){
     const cards = fps.map(p => {
       const r   = resultados[p.id];
       const hasR = r && !isNaN(r.gl);
-
-      // Resultado o estado del partido
       let scoreHtml;
-      if(hasR){
-        scoreHtml = `<div class="match-score">${r.gl}<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>${r.gv}</div>`;
-      } else if(cerrada){
-        scoreHtml = `<div class="match-score pending">vs</div>`;
-      } else {
-        scoreHtml = `<div class="match-score pending" style="font-size:14px">vs</div>`;
-      }
-
-      // Pronósticos — solo visibles cuando la fecha está cerrada
+      if(hasR){ scoreHtml = `<div class="match-score">${r.gl}<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>${r.gv}</div>`; }
+      else if(cerrada){ scoreHtml = `<div class="match-score pending">vs</div>`; }
+      else { scoreHtml = `<div class="match-score pending" style="font-size:14px">vs</div>`; }
       let pronsHtml = '';
       if(cerrada && participantes.length){
         const chips = participantes.map(part => {
@@ -1324,7 +1196,7 @@ function renderPartidosPublicos(){
           const has = pr && !isNaN(pr.gl);
           if(!has) return `<span class="pron-chip"><span style="color:var(--text3);font-size:11px">${part.nombre}</span><span class="score" style="color:var(--text3)">—</span></span>`;
           const pts = calcPuntos(pr, r);
-          const color = pts===3?'#93c5fd':pts===1?'#86efac':pts===0&&hasR?'#fca5a5':'var(--text2)';
+          const color = pts===3?'#93c5fd':pts===1?'#a3e87a':pts===0&&hasR?'#fca5a5':'var(--text2)';
           const medal = pts===3?'🎯':pts===1?'✓':'';
           return `<span class="pron-chip"><span style="color:var(--text2);font-size:11px">${part.nombre}</span><span class="score" style="color:${color}">${pr.gl}-${pr.gv}</span>${medal?`<span style="font-size:11px">${medal}</span>`:''}</span>`;
         }).join('');
@@ -1332,15 +1204,12 @@ function renderPartidosPublicos(){
       } else if(!cerrada){
         pronsHtml = `<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>`;
       }
-
       return `<div class="match-card">
         <div class="match-teams">
           ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
           <div style="flex:1">
             <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span>${p.local}</span>
-              ${scoreHtml}
-              <span>${p.visitante}</span>
+              <span>${p.local}</span>${scoreHtml}<span>${p.visitante}</span>
             </div>
             ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
           </div>
@@ -1348,7 +1217,6 @@ function renderPartidosPublicos(){
         ${pronsHtml}
       </div>`;
     }).join('');
-
     const isFirst = fi === 0;
     return `<div>
       <div class="fecha-header" onclick="toggleFechaBody('${bodyId}','${chevId}')">
@@ -1363,19 +1231,14 @@ function renderPartidosPublicos(){
     </div>`;
   }).join('');
 }
-function toggleFechaBody(bodyId, chevId){
-  document.getElementById(bodyId)?.classList.toggle('open');
-  document.getElementById(chevId)?.classList.toggle('open');
-}
+function toggleFechaBody(bodyId, chevId){ document.getElementById(bodyId)?.classList.toggle('open'); document.getElementById(chevId)?.classList.toggle('open'); }
 
-// ── Personas (pública) ─────────────────────────────────────────────────────
 function renderPersonas(){
   const cont=document.getElementById('personas-content');
   const sel=document.getElementById('per-fecha-sel');
   const fechas=getFechas(); const curVal=sel.value;
   sel.innerHTML='<option value="todas">Todas las fechas</option>';
   fechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; if(f===curVal) o.selected=true; sel.appendChild(o); });
-  renderPozoPublico();
   if(!participantes.length){ cont.innerHTML='<p class="empty">Cargá participantes primero.</p>'; return; }
   const ps=sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value);
   const psScore=ps.filter(p=>p.estado==='cerrada');
@@ -1420,12 +1283,8 @@ function renderPersonas(){
   }).join('');
 }
 
-function togglePerson(idx){
-  document.getElementById('pbody_'+idx)?.classList.toggle('open');
-  document.getElementById('chev_'+idx)?.classList.toggle('open');
-}
+function togglePerson(idx){ document.getElementById('pbody_'+idx)?.classList.toggle('open'); document.getElementById('chev_'+idx)?.classList.toggle('open'); }
 
-// ── Tabla pública ──────────────────────────────────────────────────────────
 function renderTablaPublica(){
   const cont=document.getElementById('tabla-pub-content');
   const sel=document.getElementById('tp-fecha-sel');
@@ -1435,15 +1294,12 @@ function renderTablaPublica(){
   sel.innerHTML='<option value="general">General — Súper Pozo</option>';
   todasFechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f+(cerradasSet.has(f)?'':' (en curso)'); sel.appendChild(o); });
   if(!sel.dataset.init){
-    // Default: la fecha cargada más lejana que todavía está en juego (no cerrada en historial)
     const abiertas=todasFechas.filter(f=>!pozosHistorial[f]);
     sel.value = abiertas.length ? abiertas[0] : 'general';
     sel.dataset.init='1';
     document.getElementById('sec-pub-tabla')?.classList.add('open');
     document.getElementById('schev-tabla')?.classList.add('open');
-  } else if(curVal){
-    sel.value=curVal;
-  }
+  } else if(curVal){ sel.value=curVal; }
   if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
   const esGeneral=sel.value==='general';
   const fechaSel=sel.value;
@@ -1457,7 +1313,6 @@ function renderTablaPublica(){
   cont.innerHTML=extra+(ps.length||esGeneral?tableHTML(ranked,_npPub):'');
 }
 
-// ── Historial de fechas (pública) ──────────────────────────────────────────
 function renderHistorialPub(){
   const cont=document.getElementById('historial-pub-content');
   if(!cont) return;
@@ -1477,10 +1332,7 @@ function renderHistorialPub(){
     </div>`;
   }).join('');
 }
-function toggleSecPub(bodyId, chevId){
-  document.getElementById(bodyId)?.classList.toggle('open');
-  document.getElementById(chevId)?.classList.toggle('open');
-}
+function toggleSecPub(bodyId, chevId){ document.getElementById(bodyId)?.classList.toggle('open'); document.getElementById(chevId)?.classList.toggle('open'); }
 
 function renderResumenPub(){
   const cont = document.getElementById('resumen-pub-content');
@@ -1492,456 +1344,88 @@ function renderResumenPub(){
   if(!partidos.length||!participantes.length){ cont.innerHTML='<p class="empty">Sin datos aún.</p>'; return; }
   const ps = (sel.value==='todas'?partidos:partidos.filter(p=>p.fecha===sel.value)).filter(p=>p.estado==='cerrada');
   if(!ps.length){ cont.innerHTML='<p class="empty">No hay fechas cerradas todavía.</p>'; return; }
-
   const noPrizeSet = sel.value==='todas'
     ? new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre))
     : noPrizeSetFecha(sel.value);
   const sorted = participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
   const ranked = addRanks(sorted, noPrizeSet);
-
-  // Nombre: inicial. Apellido: completo (primer palabra = nombre, segunda = apellido)
   const initMap = {};
-  ranked.forEach(s=>{
-    const w=s.nombre.trim().split(/\s+/);
-    const inicial=(w[0]?.[0]||'').toUpperCase()+'.';
-    const apellido=w[1]?w[1].charAt(0).toUpperCase()+w[1].slice(1).toLowerCase():'';
-    initMap[s.nombre]=apellido ? inicial+' '+apellido : inicial;
-  });
-
+  ranked.forEach(s=>{ const w=s.nombre.trim().split(/\s+/); const inicial=(w[0]?.[0]||'').toUpperCase()+'.'; const apellido=w[1]?w[1].charAt(0).toUpperCase()+w[1].slice(1).toLowerCase():''; initMap[s.nombre]=apellido ? inicial+' '+apellido : inicial; });
   const th=`padding:4px 2px;font-size:9px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;white-space:normal;word-break:break-word;max-width:44px;width:44px;`;
   const tdB=`padding:4px 2px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;width:44px;max-width:44px`;
-  const hCells=ranked.map(s=>{
-    const medal=!noPrizeSet.has(s.nombre)&&(s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'');
-    return `<th style="${th}" title="${s.nombre}">${medal||''}<span style="font-size:9px;line-height:1.3;display:block">${initMap[s.nombre]}${noPrizeSet.has(s.nombre)?'<sup style="color:var(--text3)">*</sup>':''}</span><span style="font-size:10px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`;
-  }).join('');
+  const hCells=ranked.map(s=>{ const medal=!noPrizeSet.has(s.nombre)&&(s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':''); return `<th style="${th}" title="${s.nombre}">${medal||''}<span style="font-size:9px;line-height:1.3;display:block">${initMap[s.nombre]}${noPrizeSet.has(s.nombre)?'<sup style="color:var(--text3)">*</sup>':''}</span><span style="font-size:10px;color:var(--accent);font-family:'Barlow Condensed',sans-serif">${s.pts}pts</span></th>`; }).join('');
   const rows=ps.map(p=>{
     const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
     const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
-    const pCells=ranked.map(s=>{
-      const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
-      const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
-      const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(74,222,128,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
-      const badge=pts===3?`<span style="font-size:9px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#86efac;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#fca5a5;display:block">0</span>`:'';
-      return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`;
-    }).join('');
-    return `<tr>
-      <td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">
-        ${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}
-      </td>
-      <td style="padding:7px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>
-      ${pCells}
-    </tr>`;
+    const pCells=ranked.map(s=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre]; const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r); const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(95,212,54,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':''; const badge=pts===3?`<span style="font-size:9px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#a3e87a;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#fca5a5;display:block">0</span>`:''; return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`; }).join('');
+    return `<tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>${pCells}</tr>`;
   }).join('');
-  cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)">
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead><tr style="background:var(--bg2)">
-        <th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th>
-        <th style="${th}">Real</th>${hCells}
-      </tr></thead>
-      <tbody style="background:var(--bg)">${rows}</tbody>
-    </table>
-  </div>
+  cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--bg2)"><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th><th style="${th}">Real</th>${hCells}</tr></thead><tbody style="background:var(--bg)">${rows}</tbody></table></div>
   <div style="display:flex;gap:10px;margin-top:.75rem;flex-wrap:wrap;font-size:11px;color:var(--text2)">
     <span><span style="display:inline-block;width:10px;height:10px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:3px"></span>Exacto +3</span>
-    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,222,128,.15);border-radius:2px;margin-right:3px"></span>Acierto +1</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(95,212,54,.15);border-radius:2px;margin-right:3px"></span>Acierto +1</span>
     <span><span style="display:inline-block;width:10px;height:10px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:3px"></span>Sin puntos</span>
     <span style="color:var(--text3)">Pasá el cursor por las iniciales para ver el nombre.</span>
   </div>`;
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
-// Backend: Firebase Realtime Database
 const FIREBASE_URL = 'https://prode-pmk-f55d7-default-rtdb.firebaseio.com';
-let CHAT_BIN_ID = 'firebase'; // siempre activo con Firebase
-const CHAT_MAX  = 120; // máximo mensajes guardados
+let CHAT_BIN_ID = 'firebase';
+const CHAT_MAX  = 120;
 let chatOpen    = false;
 let chatUser    = localStorage.getItem('pmk_chat_user') || '';
 let chatUnread  = 0;
 let chatLastTs  = 0;
-let chatSSE     = null; // EventSource para tiempo real
 
-// ── Filtro de palabras ─────────────────────────────────────────────────────
-const BAD_WORDS = [
-  // Groserías fuertes
-  'puta','puto','putear','hijo de puta','hdp','concha','conchuda','conchudo',
-  'chota','chotear','pelotudo','pelotuda','boludo','boluda','forro','forra',
-  'cagon','cagona','mierda','mierdas','culo','culero','culera','anormal',
-  'mogolico','mogolica','retrasado','retrasada','imbecil','imbécil',
-  'idiota','idiotas','estupido','estupida','estúpido','estúpida',
-  'tarado','tarada','animal','bestia','inutil','inútil',
-  // Variantes con números/símbolos comunes
-  'put4','b0ludo','b0luda','pelot4','cul0',
-  // Agresiones directas
-  'andate a cagar','andá a cagar','vete a la mierda','a la mierda',
-  'la puta madre','la concha de tu madre','la concha de la lora',
-  'te mato','te voy a matar','ojalá te mueras','ojala te mueras',
-  'forro de mierda','gil','gila','cretino','cretina','zorra','zorr4',
-  'perra','perr4','cabrón','cabron','maricón','maricon',
-  'negro de mierda','vieja de mierda','gordo de mierda',
-  // Inglés básico
-  'fuck','fucking','shit','asshole','bitch','bastard','damn you','go to hell'
-].map(w => w.toLowerCase());
+const BAD_WORDS = ['puta','puto','putear','hijo de puta','hdp','concha','conchuda','conchudo','chota','chotear','pelotudo','pelotuda','boludo','boluda','forro','forra','cagon','cagona','mierda','mierdas','culo','culero','culera','anormal','mogolico','mogolica','retrasado','retrasada','imbecil','imbécil','idiota','idiotas','estupido','estupida','estúpido','estúpida','tarado','tarada','animal','bestia','inutil','inútil','put4','b0ludo','b0luda','pelot4','cul0','andate a cagar','andá a cagar','vete a la mierda','a la mierda','la puta madre','la concha de tu madre','la concha de la lora','te mato','te voy a matar','ojalá te mueras','ojala te mueras','forro de mierda','gil','gila','cretino','cretina','zorra','zorr4','perra','perr4','cabrón','cabron','maricón','maricon','negro de mierda','vieja de mierda','gordo de mierda','fuck','fucking','shit','asshole','bitch','bastard','damn you','go to hell'].map(w=>w.toLowerCase());
 
-function filterMsg(text){
-  let filtered = text;
-  let censored = false;
-  BAD_WORDS.forEach(word => {
-    // Regex que detecta la palabra con posibles variaciones de espaciado
-    const re = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
-    if(re.test(filtered)){
-      censored = true;
-      filtered = filtered.replace(re, '***');
-    }
-  });
-  return { filtered, censored };
-}
+function filterMsg(text){ let filtered=text, censored=false; BAD_WORDS.forEach(word=>{ const re=new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'); if(re.test(filtered)){ censored=true; filtered=filtered.replace(re,'***'); } }); return {filtered,censored}; }
+function fmtChatTime(ts){ const d=new Date(ts), now=new Date(); const isToday=d.toDateString()===now.toDateString(); const hm=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); return isToday?hm:d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})+' '+hm; }
+function chatDateLabel(ts){ const d=new Date(ts), now=new Date(); if(d.toDateString()===now.toDateString()) return 'Hoy'; const y=new Date(now); y.setDate(y.getDate()-1); if(d.toDateString()===y.toDateString()) return 'Ayer'; return d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}); }
+function autoResizeChat(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,80)+'px'; }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-function fmtChatTime(ts){
-  const d = new Date(ts);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const hm = d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-  return isToday ? hm : d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}) + ' ' + hm;
-}
+function openChatNameModal(cb){ const modal=document.getElementById('chat-name-modal'); const inp=document.getElementById('chat-name-input'); inp.value=chatUser||''; document.getElementById('chat-name-err').style.display='none'; modal.classList.add('open'); inp.focus(); modal._cb=cb||null; }
 
-function chatDateLabel(ts){
-  const d = new Date(ts);
-  const now = new Date();
-  if(d.toDateString() === now.toDateString()) return 'Hoy';
-  const y = new Date(now); y.setDate(y.getDate()-1);
-  if(d.toDateString() === y.toDateString()) return 'Ayer';
-  return d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
-}
-
-function autoResizeChat(el){
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
-}
-
-// ── Nombre de usuario ──────────────────────────────────────────────────────
-function openChatNameModal(cb){
-  const modal = document.getElementById('chat-name-modal');
-  const inp   = document.getElementById('chat-name-input');
-  inp.value = chatUser || '';
-  document.getElementById('chat-name-err').style.display = 'none';
-  modal.classList.add('open');
-  inp.focus();
-  modal._cb = cb || null;
-}
-
-function confirmChatName(){
-  const inp = document.getElementById('chat-name-input');
-  const err = document.getElementById('chat-name-err');
-  const val = inp.value.trim();
-  if(!val || val.length < 2){
-    err.textContent = 'El nombre debe tener al menos 2 caracteres.';
-    err.style.display = 'block'; return;
-  }
-  if(val.length > 24){
-    err.textContent = 'Máximo 24 caracteres.';
-    err.style.display = 'block'; return;
-  }
-  const { censored } = filterMsg(val);
-  if(censored){
-    err.textContent = 'Ese nombre no está permitido.';
-    err.style.display = 'block'; return;
-  }
-  chatUser = val;
-  localStorage.setItem('pmk_chat_user', chatUser);
-  document.getElementById('chat-name-modal').classList.remove('open');
-  document.getElementById('chat-name-display').textContent = chatUser;
-  if(document.getElementById('chat-name-modal')._cb) document.getElementById('chat-name-modal')._cb();
-}
-
+function confirmChatName(){ const inp=document.getElementById('chat-name-input'); const err=document.getElementById('chat-name-err'); const val=inp.value.trim(); if(!val||val.length<2){ err.textContent='El nombre debe tener al menos 2 caracteres.'; err.style.display='block'; return; } if(val.length>24){ err.textContent='Máximo 24 caracteres.'; err.style.display='block'; return; } const {censored}=filterMsg(val); if(censored){ err.textContent='Ese nombre no está permitido.'; err.style.display='block'; return; } chatUser=val; localStorage.setItem('pmk_chat_user',chatUser); document.getElementById('chat-name-modal').classList.remove('open'); document.getElementById('chat-name-display').textContent=chatUser; if(document.getElementById('chat-name-modal')._cb) document.getElementById('chat-name-modal')._cb(); }
 function changeChatName(){ openChatNameModal(); }
 
-// ── Render mensajes ────────────────────────────────────────────────────────
-function renderChatMsgs(msgs){
-  const box = document.getElementById('chat-msgs');
-  const wasBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
-  let lastDate = '';
-  let html = '';
-  if(!msgs.length){
-    html = '<div class="empty" style="margin:auto;font-size:12px">Todavía no hay mensajes. ¡Sé el primero!</div>';
-  } else {
-    msgs.forEach(m => {
-      const dateLabel = chatDateLabel(m.ts);
-      if(dateLabel !== lastDate){
-        lastDate = dateLabel;
-        html += `<div class="chat-date-sep">— ${dateLabel} —</div>`;
-      }
-      const isMe = m.author === chatUser;
-      const isAdm = m.isAdmin;
-      const delBtn = adminMode ? `<button class="cmsg-del" onclick="deleteChatMsg('${m._fbKey || m.id}')" title="Borrar">🗑</button>` : '';
-      html += `<div class="cmsg" id="cm-${m.id}">
-        <div class="cmsg-head">
-          <span class="cmsg-author${isAdm?' is-admin':''}">${isAdm?'⭐ ':''} ${escHtml(m.author)}${isMe?' (vos)':''}</span>
-          <span class="cmsg-time">${fmtChatTime(m.ts)}</span>
-          ${delBtn}
-        </div>
-        <div class="cmsg-body">${escHtml(m.text)}</div>
-      </div>`;
-    });
-  }
-  box.innerHTML = html;
-  if(wasBottom || !chatLastTs) box.scrollTop = box.scrollHeight;
-}
+function renderChatMsgs(msgs){ const box=document.getElementById('chat-msgs'); const wasBottom=box.scrollHeight-box.scrollTop-box.clientHeight<60; let lastDate='',html=''; if(!msgs.length){ html='<div class="empty" style="margin:auto;font-size:12px">Todavía no hay mensajes. ¡Sé el primero!</div>'; } else { msgs.forEach(m=>{ const dateLabel=chatDateLabel(m.ts); if(dateLabel!==lastDate){ lastDate=dateLabel; html+=`<div class="chat-date-sep">— ${dateLabel} —</div>`; } const isMe=m.author===chatUser; const isAdm=m.isAdmin; const delBtn=adminMode?`<button class="cmsg-del" onclick="deleteChatMsg('${m._fbKey||m.id}')" title="Borrar">🗑</button>`:''; html+=`<div class="cmsg" id="cm-${m.id}"><div class="cmsg-head"><span class="cmsg-author${isAdm?' is-admin':''}">${isAdm?'⭐ ':''} ${escHtml(m.author)}${isMe?' (vos)':''}</span><span class="cmsg-time">${fmtChatTime(m.ts)}</span>${delBtn}</div><div class="cmsg-body">${escHtml(m.text)}</div></div>`; }); } box.innerHTML=html; if(wasBottom||!chatLastTs) box.scrollTop=box.scrollHeight; }
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function escHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+async function chatBinGet(){ try{ const r=await fetch(`${FIREBASE_URL}/chat.json`); if(!r.ok) return []; const d=await r.json(); if(!d) return []; const msgs=Object.entries(d).map(([k,v])=>({...v,_fbKey:k})); msgs.sort((a,b)=>a.ts-b.ts); return msgs; } catch(e){ return []; } }
+async function chatBinPush(msg){ try{ const r=await fetch(`${FIREBASE_URL}/chat.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(msg)}); return r.ok; } catch(e){ return false; } }
+async function chatBinSet(msgs){ try{ await fetch(`${FIREBASE_URL}/chat.json`,{method:'DELETE'}); if(msgs.length===0) return true; for(const m of msgs){ const {_fbKey,...data}=m; await fetch(`${FIREBASE_URL}/chat.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } return true; } catch(e){ return false; } }
+async function chatDeleteMsg(fbKey){ try{ const r=await fetch(`${FIREBASE_URL}/chat/${fbKey}.json`,{method:'DELETE'}); return r.ok; } catch(e){ return false; } }
 
-// ── Firebase chat helpers ──────────────────────────────────────────────────
+async function loadChatMsgs(){ const msgs=await chatBinGet(); const recent=msgs.slice(-CHAT_MAX); renderChatMsgs(recent); if(recent.length) chatLastTs=recent[recent.length-1].ts; return recent; }
 
-async function chatBinGet(){
-  try{
-    const r = await fetch(`${FIREBASE_URL}/chat.json`);
-    if(!r.ok) return [];
-    const d = await r.json();
-    if(!d) return [];
-    // Firebase devuelve un objeto con claves, lo convertimos a array ordenado por ts
-    const msgs = Object.entries(d).map(([k,v])=>({...v, _fbKey: k}));
-    msgs.sort((a,b)=>a.ts-b.ts);
-    return msgs;
-  } catch(e){ console.error('chatBinGet error:', e); return []; }
-}
-
-async function chatBinPush(msg){
-  try{
-    const r = await fetch(`${FIREBASE_URL}/chat.json`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(msg)
-    });
-    return r.ok;
-  } catch(e){ return false; }
-}
-
-async function chatBinSet(msgs){
-  // Usado para borrar todos (limpiar chat)
-  try{
-    await fetch(`${FIREBASE_URL}/chat.json`,{method:'DELETE'});
-    if(msgs.length === 0) return true;
-    for(const m of msgs){
-      const {_fbKey, ...data} = m;
-      await fetch(`${FIREBASE_URL}/chat.json`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-    }
-    return true;
-  } catch(e){ return false; }
-}
-
-async function chatDeleteMsg(fbKey){
-  try{
-    const r = await fetch(`${FIREBASE_URL}/chat/${fbKey}.json`,{method:'DELETE'});
-    return r.ok;
-  } catch(e){ return false; }
-}
-
-async function chatBinCreate(){
-  // Firebase no necesita creación previa — siempre disponible
-  CHAT_BIN_ID = 'firebase';
-  localStorage.setItem('pmk_chat_bin', CHAT_BIN_ID);
-  return true;
-}
-
-// Sincroniza el CHAT_BIN_ID en el bin principal para que todos lo lean
-async function syncChatBinId(mkOverride){
-  const mk = mkOverride || getMasterKey();
-  if(!mk || !CHAT_BIN_ID) return;
-  try{
-    const state = getState();
-    state._chatBin = CHAT_BIN_ID;
-    const r = await fetch(`${JSONBIN}/b/${BIN_ID}`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':mk},
-      body: JSON.stringify(state)
-    });
-    console.log('syncChatBinId:', r.status);
-  } catch(e){ console.error('syncChatBinId error:', e); }
-}
-
-// ── Cargar mensajes ────────────────────────────────────────────────────────
-async function loadChatMsgs(){
-  const msgs = await chatBinGet();
-  const recent = msgs.slice(-CHAT_MAX);
-  renderChatMsgs(recent);
-  if(recent.length) chatLastTs = recent[recent.length-1].ts;
-  return recent;
-}
-
-// ── Polling cada 5 segundos ────────────────────────────────────────────────
-let chatPollInterval = null;
-
-function startChatPolling(){
-  if(chatPollInterval) return;
-  chatPollInterval = setInterval(async ()=>{
-    const msgs = await chatBinGet();
-    const recent = msgs.slice(-CHAT_MAX);
-    if(recent.length && recent[recent.length-1].ts > chatLastTs){
-      const newMsgs = recent.filter(m => m.ts > chatLastTs);
-      chatLastTs = recent[recent.length-1].ts;
-      renderChatMsgs(recent);
-      if(!chatOpen && newMsgs.length){
-        chatUnread += newMsgs.length;
-        const badge = document.getElementById('chat-unread');
-        badge.textContent = chatUnread > 9 ? '9+' : chatUnread;
-        badge.style.display = 'flex';
-        const btn = document.getElementById('chat-toggle');
-        btn.style.animation = 'none'; btn.offsetHeight;
-        btn.style.animation = 'chatBounce .4s ease';
-      }
-    }
-  }, 5000);
-}
-
+let chatPollInterval=null;
+function startChatPolling(){ if(chatPollInterval) return; chatPollInterval=setInterval(async()=>{ const msgs=await chatBinGet(); const recent=msgs.slice(-CHAT_MAX); if(recent.length&&recent[recent.length-1].ts>chatLastTs){ const newMsgs=recent.filter(m=>m.ts>chatLastTs); chatLastTs=recent[recent.length-1].ts; renderChatMsgs(recent); if(!chatOpen&&newMsgs.length){ chatUnread+=newMsgs.length; const badge=document.getElementById('chat-unread'); badge.textContent=chatUnread>9?'9+':chatUnread; badge.style.display='flex'; } } },5000); }
 function stopChatPolling(){ clearInterval(chatPollInterval); chatPollInterval=null; }
 
-// ── Enviar mensaje ─────────────────────────────────────────────────────────
-async function sendChatMsg(){
-  if(!chatUser){ openChatNameModal(sendChatMsg); return; }
-  const inp  = document.getElementById('chat-input');
-  const warn = document.getElementById('chat-warn');
-  const raw  = inp.value.trim();
-  if(!raw) return;
+async function sendChatMsg(){ if(!chatUser){ openChatNameModal(sendChatMsg); return; } const inp=document.getElementById('chat-input'); const warn=document.getElementById('chat-warn'); const raw=inp.value.trim(); if(!raw) return; const {filtered,censored}=filterMsg(raw); if(censored){ warn.style.display='block'; setTimeout(()=>{ warn.style.display='none'; },4000); } else { warn.style.display='none'; } inp.value=''; inp.style.height='36px'; const btn=document.getElementById('chat-send'); btn.disabled=true; const newMsg={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),author:chatUser,text:filtered,ts:Date.now(),isAdmin:adminMode?true:false}; const ok=await chatBinPush(newMsg); btn.disabled=false; if(!ok){ toast('No se pudo enviar el mensaje.','error'); return; } await loadChatMsgs(); }
 
-  const { filtered, censored } = filterMsg(raw);
-  if(censored){
-    warn.style.display = 'block';
-    setTimeout(()=>{ warn.style.display='none'; }, 4000);
-  } else {
-    warn.style.display = 'none';
-  }
+async function deleteChatMsg(fbKey){ if(!adminMode) return; if(!confirm('¿Borrar este mensaje?')) return; const ok=await chatDeleteMsg(fbKey); if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); } else toast('No se pudo eliminar','error'); }
 
-  inp.value = ''; inp.style.height = '36px';
+function toggleChat(){ chatOpen=!chatOpen; const bubble=document.getElementById('chat-bubble'); bubble.classList.toggle('open',chatOpen); if(chatOpen){ chatUnread=0; const badge=document.getElementById('chat-unread'); badge.style.display='none'; document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; if(!chatUser){ setTimeout(()=>openChatNameModal(),300); } loadChatMsgs(); startChatPolling(); setTimeout(()=>{ document.getElementById('chat-input').focus(); },200); } }
 
-  const btn = document.getElementById('chat-send');
-  btn.disabled = true;
+(function(){ const s=document.createElement('style'); s.textContent='@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}'; document.head.appendChild(s); })();
 
-  const newMsg = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-    author: chatUser,
-    text:   filtered,
-    ts:     Date.now(),
-    isAdmin: adminMode ? true : false
-  };
-  const ok = await chatBinPush(newMsg);
-  btn.disabled = false;
+async function adminActivarChat(){ const statusEl=document.getElementById('chat-admin-status'); statusEl.innerHTML=`<span style="color:var(--accent)">✓ Chat activo con Firebase.</span>`; toast('Chat Firebase ya está activo.'); }
+async function adminVerMsgs(){ const el=document.getElementById('chat-admin-msgs'); el.textContent='Cargando…'; const msgs=await chatBinGet(); if(!msgs.length){ el.textContent='No hay mensajes aún.'; return; } el.innerHTML=msgs.slice(-20).reverse().map(m=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline"><span style="color:var(--accent);min-width:100px">${escHtml(m.author)}</span><span style="flex:1">${escHtml(m.text)}</span><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px" onclick="deleteChatMsg('${m._fbKey||m.id}')">✕</button></div>`).join(''); }
+async function adminLimpiarChat(){ if(!adminMode) return; if(!confirm('¿Borrar TODOS los mensajes del chat?')) return; const ok=await chatBinSet([]); if(ok){ toast('Chat limpiado'); document.getElementById('chat-admin-msgs').textContent='Chat vaciado.'; await loadChatMsgs(); } else toast('Error al limpiar','error'); }
+function showChatAdminStatus(){ const el=document.getElementById('chat-admin-status'); if(!el) return; el.innerHTML=`<span style="color:var(--accent)">✓ Chat funcionando con Firebase Realtime Database.</span>`; }
 
-  if(!ok){ toast('No se pudo enviar el mensaje. Intentá de nuevo.','error'); return; }
-  await loadChatMsgs();
-}
+function initChat(){ document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; showChatAdminStatus(); startChatPolling(); loadChatMsgs(); }
 
-// ── Borrar mensaje (admin) ─────────────────────────────────────────────────
-async function deleteChatMsg(fbKey){
-  if(!adminMode) return;
-  if(!confirm('¿Borrar este mensaje?')) return;
-  const ok = await chatDeleteMsg(fbKey);
-  if(ok){ await loadChatMsgs(); toast('Mensaje eliminado'); }
-  else toast('No se pudo eliminar','error');
-}
-
-// ── Toggle chat ────────────────────────────────────────────────────────────
-function toggleChat(){
-  chatOpen = !chatOpen;
-  const bubble = document.getElementById('chat-bubble');
-  bubble.classList.toggle('open', chatOpen);
-  if(chatOpen){
-    // Limpiar unread
-    chatUnread = 0;
-    const badge = document.getElementById('chat-unread');
-    badge.style.display = 'none';
-    // Mostrar nombre
-    document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-    // Si no tiene nombre, pedir
-    if(!chatUser){ setTimeout(()=>openChatNameModal(), 300); }
-    loadChatMsgs();
-    startChatPolling();
-    setTimeout(()=>{ document.getElementById('chat-input').focus(); }, 200);
-  }
-}
-
-// ── CSS keyframe para bounce ───────────────────────────────────────────────
-(function(){
-  const s = document.createElement('style');
-  s.textContent = '@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}';
-  document.head.appendChild(s);
-})();
-
-// ── Init chat (solo arrancar polling si hay mensajes previos) ──────────────
-// ── Admin chat functions ───────────────────────────────────────────────────
-async function adminActivarChat(){
-  const statusEl = document.getElementById('chat-admin-status');
-  statusEl.innerHTML = `<span style="color:var(--accent)">✓ Chat activo con Firebase. No requiere configuración adicional.</span>`;
-  toast('Chat Firebase ya está activo y listo.');
-}
-
-async function adminVerMsgs(){
-  const el = document.getElementById('chat-admin-msgs');
-  el.textContent = 'Cargando…';
-  const msgs = await chatBinGet();
-  if(!msgs.length){ el.textContent = 'No hay mensajes aún.'; return; }
-  el.innerHTML = msgs.slice(-20).reverse().map(m =>
-    `<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline">
-      <span style="color:var(--accent);min-width:100px">${escHtml(m.author)}</span>
-      <span style="flex:1">${escHtml(m.text)}</span>
-      <button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px" onclick="deleteChatMsg('${m._fbKey || m.id}')">✕</button>
-    </div>`
-  ).join('');
-}
-
-async function adminLimpiarChat(){
-  if(!adminMode) return;
-  if(!confirm('¿Borrar TODOS los mensajes del chat? Esta acción no se puede deshacer.')) return;
-  const ok = await chatBinSet([]);
-  if(ok){ toast('Chat limpiado'); document.getElementById('chat-admin-msgs').textContent = 'Chat vaciado.'; await loadChatMsgs(); }
-  else toast('Error al limpiar','error');
-}
-
-function showChatAdminStatus(){
-  const el = document.getElementById('chat-admin-status');
-  if(!el) return;
-  el.innerHTML = `<span style="color:var(--accent)">✓ Chat funcionando con Firebase Realtime Database.<br><code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code></span>`;
-}
-
-function initChat(){
-  document.getElementById('chat-name-display').textContent = chatUser || '(elegir nombre)';
-  showChatAdminStatus();
-  // Firebase siempre disponible — arrancar polling directamente
-  startChatPolling();
-  loadChatMsgs();
-}
-
-// ── Generar hash para producción ───────────────────────────────────────────
-// Descomenta esto en la consola para obtener el hash de tu nueva contraseña:
-// sha256('TuNuevaContraseña').then(h => console.log('HASH:', h));
-
-// ── Init ───────────────────────────────────────────────────────────────────
 async function init(){
-  loadLocal();
-  applyRole();
-  refreshAll();
-  const ok = await loadFromCloud();
-  if(ok){ refreshAll(); setSyncStatus('ok'); }
-  else setSyncStatus('none');
+  loadLocal(); applyRole(); refreshAll();
+  const ok=await loadFromCloud();
+  if(ok){ refreshAll(); setSyncStatus('ok'); } else setSyncStatus('none');
   initChat();
-  // Refresco periódico: trae cambios hechos desde otros dispositivos
-  setInterval(async ()=>{
-    if(document.hidden) return;
-    if(syncTimer) return; // hay un guardado propio pendiente, no pisarlo
-    const ok2 = await loadFromCloud();
-    if(ok2) refreshAll();
-  }, 60000);
-  document.addEventListener('visibilitychange', async ()=>{
-    if(!document.hidden && !syncTimer){
-      const ok3 = await loadFromCloud();
-      if(ok3) refreshAll();
-    }
-  });
+  setInterval(async()=>{ if(document.hidden) return; if(syncTimer) return; const ok2=await loadFromCloud(); if(ok2) refreshAll(); },60000);
+  document.addEventListener('visibilitychange',async()=>{ if(!document.hidden&&!syncTimer){ const ok3=await loadFromCloud(); if(ok3) refreshAll(); } });
 }
 
 init();
