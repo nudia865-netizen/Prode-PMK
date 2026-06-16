@@ -122,6 +122,13 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .pozo-pub-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pozo-pub-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent)}
 .pozo-pub-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+/* Pozos pendientes top */
+.pozos-top-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.75rem}
+.pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:.75rem 1rem}
+.pozo-top-card .ptp-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.pozo-top-card .ptp-fecha{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.pozo-top-card .ptp-amount{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--accent);line-height:1}
+.pozo-top-card .ptp-sub{font-size:11px;color:var(--text2);margin-top:2px}
 /* Banner fecha 2 */
 .fecha2-banner{background:linear-gradient(135deg,rgba(95,212,54,.12),rgba(95,212,54,.05));border:1px solid rgba(95,212,54,.3);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(95,212,54,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
@@ -381,6 +388,9 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
+
+  <!-- POZOS PENDIENTES — fila superior -->
+  <div id="pozos-top-row" class="pozos-top-row"></div>
 
   <!-- BANNER FECHA 2 -->
   <div class="fecha2-banner">
@@ -1127,8 +1137,9 @@ function renderPozo(){
 // ── Pozo público — compacto ────────────────────────────────────────────────
 function renderPozoPublico(){
   const box=document.getElementById('pozo-pub-partidos');
+  const topRow=document.getElementById('pozos-top-row');
   if(!box) return;
-  if(!participantes.length){ box.innerHTML=''; return; }
+  if(!participantes.length){ box.innerHTML=''; if(topRow) topRow.innerHTML=''; return; }
   const fechas=getFechas();
   const abiertas=fechas.filter(f=>!pozosHistorial[f]);
   const spTotal=superPozoTotal();
@@ -1138,7 +1149,25 @@ function renderPozoPublico(){
       <div class="pozo-pub-label">Súper Pozo acumulado</div>
       <div class="pozo-pub-row"><div class="pozo-pub-num">$${spTotal.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">Gana el líder al final del torneo</div></div>
     </div>`;
+    if(topRow) topRow.innerHTML='';
     return;
+  }
+  // Llenar fila superior con los pozos sin resultados
+  if(topRow){
+    topRow.innerHTML = abiertas.map(f=>{
+      const conC=pagantesFecha(f).length;
+      const total=conC*5000, sp=conC*1000, ppal=total-sp;
+      return `<div class="pozo-top-card">
+        <div class="ptp-label">💰 Pozo pendiente</div>
+        <div class="ptp-fecha">${esc(f)}</div>
+        <div class="ptp-amount">$${ppal.toLocaleString('es-AR')}</div>
+        <div class="ptp-sub">${conC} pagante${conC!==1?'s':''} · Sin resultados aún</div>
+      </div>`;
+    }).join('') + `<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">
+      <div class="ptp-label">🏆 Súper Pozo acumulado</div>
+      <div class="ptp-amount" style="margin-top:6px">$${spTotal.toLocaleString('es-AR')}</div>
+      <div class="ptp-sub">Gana el líder al final</div>
+    </div>`;
   }
   const boxesHtml = abiertas.map(f=>{
     const conC=pagantesFecha(f).length;
