@@ -1180,20 +1180,41 @@ function renderPozoPublico(){
   }
   // Llenar fila superior con los pozos sin resultados
   if(topRow){
-    topRow.innerHTML = abiertas.map(f=>{
-      const conC=pagantesFecha(f).length;
-      const total=conC*5000, sp=conC*1000, ppal=total-sp;
-      return `<div class="pozo-top-card">
-        <div class="ptp-label">💰 Pozo pendiente</div>
-        <div class="ptp-fecha">${esc(f)}</div>
-        <div class="ptp-amount">$${ppal.toLocaleString('es-AR')}</div>
-        <div class="ptp-sub">${conC} pagante${conC!==1?'s':''} · Sin resultados aún</div>
-      </div>`;
-    }).join('') + `<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">
-      <div class="ptp-label">🏆 Súper Pozo acumulado</div>
-      <div class="ptp-amount" style="margin-top:6px">$${spTotal.toLocaleString('es-AR')}</div>
-      <div class="ptp-sub">Gana el líder al final</div>
-    </div>`;
+    var topMedals=['🥇','🥈','🥉'];
+    var cardsHtml = abiertas.map(function(f){
+      var conC=pagantesFecha(f).length;
+      var total=conC*5000, sp=conC*1000, ppal=total-sp;
+      var dist=distPorCantidad(conC,ppal);
+      var distHtml='';
+      if(conC===0){
+        distHtml='<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Nadie pagó aún</div>';
+      } else {
+        distHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'
+          +dist.map(function(d,i){
+            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">'
+              +'<div style="display:flex;align-items:center;gap:6px">'
+              +'<span style="font-size:16px;line-height:1">'+(topMedals[i]||'·')+'</span>'
+              +'<div style="font-size:11px;color:var(--text2)">'+d.pos+'<br><span style="color:var(--text3)">'+d.pct+'</span></div>'
+              +'</div>'
+              +'<span style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span>'
+              +'</div>';
+          }).join('')
+          +'</div>';
+      }
+      return '<div class="pozo-top-card">'
+        +'<div class="ptp-label">&#x1F4B0; Pozo pendiente</div>'
+        +'<div class="ptp-fecha">'+esc(f)+'</div>'
+        +'<div class="ptp-amount">$'+ppal.toLocaleString('es-AR')+'</div>'
+        +'<div class="ptp-sub">'+conC+(conC!==1?' pagantes':' pagante')+' &middot; Sin resultados a&uacute;n</div>'
+        +distHtml
+        +'</div>';
+    }).join('');
+    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">'
+      +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
+      +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
+      +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
+      +'</div>';
+    topRow.innerHTML = cardsHtml;
   }
   const boxesHtml = abiertas.map(f=>{
     const conC=pagantesFecha(f).length;
