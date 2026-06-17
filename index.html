@@ -568,6 +568,7 @@ function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
 let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
+let pronFechasOpen={}; // estado colapso por fecha en pestaña pronósticos
 
 function getState(){ return {partidos, participantes, pronosticos, resultados, pozosHistorial}; }
 function setState(d){
@@ -867,10 +868,26 @@ function renderPronosticos(){
     </button>`;
   }).join('');
   const nombre=pronPersonaSel;
+  // Para cada fecha, si no hay estado guardado: abierta=open, cerrada=collapsed
+  getFechas().forEach(f=>{
+    const cerrada=partidos.filter(p=>p.fecha===f)[0]?.estado==='cerrada';
+    if(!(f in pronFechasOpen)) pronFechasOpen[f]= !cerrada;
+  });
   cont.innerHTML=getFechas().map(f=>{
     const ps=partidos.filter(p=>p.fecha===f);
     const cerrada=ps[0]?.estado==='cerrada';
-    return `<div class="fhdr">${f}<span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span></div>`+
+    const isOpen=pronFechasOpen[f];
+    const cargados=ps.filter(p=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][nombre]; return pr&&!isNaN(pr.gl); }).length;
+    const fKey=f.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="fecha-header" onclick="togglePronFecha('${f.replace(/'/g,"\\'")}','pron-body-${fKey}')" style="margin-bottom:${isOpen?'.25rem':'.5rem'}">
+      <div class="fh-left">
+        <span class="fh-chev ${isOpen?'open':''}" id="pron-chev-${fKey}">&#9658;</span>
+        ${f}
+        <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+        <span style="font-size:11px;color:${cargados===ps.length?'var(--accent)':'var(--text3)'}">· ${cargados}/${ps.length} cargados</span>
+      </div>
+    </div>
+    <div id="pron-body-${fKey}" class="fecha-body ${isOpen?'open':''}">`+
     ps.map(p=>{
       const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
       const has=pr&&!isNaN(pr.gl);
@@ -896,8 +913,17 @@ function renderPronosticos(){
           ${has?`<span class="badge b-exact">✓ ${pr.gl}-${pr.gv}</span>`:`<span class="badge b-gray">Sin cargar</span>`}
         </div>
       </div>`;
-    }).join('');
+    }).join('')+`</div>`;
   }).join('');
+}
+
+function togglePronFecha(f, bodyId){
+  pronFechasOpen[f]=!pronFechasOpen[f];
+  const body=document.getElementById(bodyId);
+  const fKey=f.replace(/[^a-zA-Z0-9]/g,'_');
+  const chev=document.getElementById('pron-chev-'+fKey);
+  if(body) body.classList.toggle('open', pronFechasOpen[f]);
+  if(chev) chev.classList.toggle('open', pronFechasOpen[f]);
 }
 
 function setRes(id){
