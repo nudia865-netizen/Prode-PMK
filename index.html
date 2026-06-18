@@ -477,6 +477,12 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   </div>
 
   <!-- PARTIDOS -->
+  <!-- PARTIDOS DE HOY -->
+  <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
+    <div id="partidos-hoy-content"></div>
+  </div>
+
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
       <div class="fh-left" style="font-size:14px;font-weight:700">⚽ Partidos</div>
@@ -1416,71 +1422,115 @@ function renderPozoPublico(){
   </div>`;
 }
 
+function buildMatchCard(p, participantesVisibles){
+  const r    = resultados[p.id];
+  const hasR = r && !isNaN(r.gl);
+  const cerrada = p.estado === 'cerrada';
+  let scoreHtml;
+  if(hasR){ scoreHtml = '<div class="match-score">'+r.gl+'<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>'+r.gv+'</div>'; }
+  else if(cerrada){ scoreHtml = '<div class="match-score pending">vs</div>'; }
+  else { scoreHtml = '<div class="match-score pending" style="font-size:14px">vs</div>'; }
+  let pronsHtml = '';
+  if(cerrada && participantesVisibles.length){
+    const chips = participantesVisibles.map(function(part){
+      const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+      const has = pr && !isNaN(pr.gl);
+      if(!has) return '<span class="pron-chip"><span style="color:var(--text3);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--text3)">—</span></span>';
+      const pts = calcPuntos(pr, r);
+      const color = pts===3?'#4ade80':pts===1?'#86efac':pts===0&&hasR?'#fca5a5':'var(--text2)';
+      const medal = pts===3?'🎯':pts===1?'✓':'';
+      return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'+(medal?'<span style="font-size:11px">'+medal+'</span>':'')+'</span>';
+    }).join('');
+    pronsHtml = '<div class="match-prons">'+chips+'</div>';
+  } else if(!cerrada && participantesVisibles.length){
+    // Partidos abiertos: mostrar solo quien YA tiene pronóstico cargado
+    const chipsAbiertos = participantesVisibles.map(function(part){
+      const pr = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+      const has = pr && !isNaN(pr.gl);
+      if(!has) return '';
+      return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--accent)">'+pr.gl+'-'+pr.gv+'</span></span>';
+    }).filter(Boolean).join('');
+    if(chipsAbiertos){
+      pronsHtml = '<div class="match-prons">'+chipsAbiertos+'</div>';
+    } else {
+      pronsHtml = '<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>';
+    }
+  }
+  const grupoHtml = p.grupo ? '<span class="badge b-group">G-'+p.grupo+'</span>' : '';
+  const dtHtml = p.dt ? '<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 '+fmtDt(p.dt)+'</div>' : '';
+  return '<div class="match-card">'
+    +'<div class="match-teams">'+grupoHtml
+    +'<div style="flex:1">'
+    +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+    +'<span>'+p.local+'</span>'+scoreHtml+'<span>'+p.visitante+'</span>'
+    +'</div>'+dtHtml+'</div></div>'+pronsHtml+'</div>';
+}
+
 function renderPartidosPublicos(){
   const cont = document.getElementById('partidos-pub-content');
   const sel  = document.getElementById('pp-fecha-sel');
   const fechas = getFechas();
   const curVal = sel.value;
   sel.innerHTML = '<option value="todas">Todas las fechas</option>';
-  fechas.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f; if(f === curVal) o.selected = true; sel.appendChild(o); });
+  fechas.forEach(function(f){ const o = document.createElement('option'); o.value = f; o.textContent = f; if(f === curVal) o.selected = true; sel.appendChild(o); });
+
+  // ── Partidos de hoy ──────────────────────────────────────────────────────
+  const secHoy = document.getElementById('sec-partidos-hoy');
+  const contHoy = document.getElementById('partidos-hoy-content');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const manana = new Date(hoy); manana.setDate(manana.getDate()+1);
+  const partHoy = partidos.filter(function(p){
+    if(!p.dt) return false;
+    const d = new Date(p.dt); d.setHours(0,0,0,0);
+    return d.getTime() === hoy.getTime();
+  });
+  if(secHoy && contHoy){
+    if(partHoy.length){
+      secHoy.style.display = '';
+      // En partidos de hoy mostrar todos los participantes
+      contHoy.innerHTML = partHoy.map(function(p){ return buildMatchCard(p, participantes); }).join('');
+    } else {
+      secHoy.style.display = 'none';
+    }
+  }
+
+  // ── Tabla de fechas ──────────────────────────────────────────────────────
   if(!partidos.length){ cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>'; return; }
-  const ps = sel.value === 'todas' ? partidos : partidos.filter(p => p.fecha === sel.value);
+  const ps = sel.value === 'todas' ? partidos : partidos.filter(function(p){ return p.fecha === sel.value; });
   if(!ps.length){ cont.innerHTML = '<p class="empty">No hay partidos para esta fecha.</p>'; return; }
   const byFecha = {};
-  ps.forEach(p => { if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
+  ps.forEach(function(p){ if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
   const fechaKeys = Object.keys(byFecha);
-  cont.innerHTML = fechaKeys.map((fecha, fi) => {
+  cont.innerHTML = fechaKeys.map(function(fecha, fi){
     const fps = byFecha[fecha];
-    const cerrada = fps[0]?.estado === 'cerrada';
-    const bodyId = `fp-body-${fi}`;
-    const chevId = `fp-chev-${fi}`;
-    const cards = fps.map(p => {
-      const r   = resultados[p.id];
-      const hasR = r && !isNaN(r.gl);
-      let scoreHtml;
-      if(hasR){ scoreHtml = `<div class="match-score">${r.gl}<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>${r.gv}</div>`; }
-      else if(cerrada){ scoreHtml = `<div class="match-score pending">vs</div>`; }
-      else { scoreHtml = `<div class="match-score pending" style="font-size:14px">vs</div>`; }
-      let pronsHtml = '';
-      if(cerrada && participantes.length){
-        const chips = participantes.map(part => {
-          const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
-          const has = pr && !isNaN(pr.gl);
-          if(!has) return `<span class="pron-chip"><span style="color:var(--text3);font-size:11px">${part.nombre}</span><span class="score" style="color:var(--text3)">—</span></span>`;
-          const pts = calcPuntos(pr, r);
-          const color = pts===3?'#93c5fd':pts===1?'#a3e87a':pts===0&&hasR?'#fca5a5':'var(--text2)';
-          const medal = pts===3?'🎯':pts===1?'✓':'';
-          return `<span class="pron-chip"><span style="color:var(--text2);font-size:11px">${part.nombre}</span><span class="score" style="color:${color}">${pr.gl}-${pr.gv}</span>${medal?`<span style="font-size:11px">${medal}</span>`:''}</span>`;
-        }).join('');
-        pronsHtml = `<div class="match-prons">${chips}</div>`;
-      } else if(!cerrada){
-        pronsHtml = `<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>`;
-      }
-      return `<div class="match-card">
-        <div class="match-teams">
-          ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
-          <div style="flex:1">
-            <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span>${p.local}</span>${scoreHtml}<span>${p.visitante}</span>
-            </div>
-            ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
-          </div>
-        </div>
-        ${pronsHtml}
-      </div>`;
-    }).join('');
+    const cerrada = fps[0] && fps[0].estado === 'cerrada';
+    const bodyId = 'fp-body-'+fi;
+    const chevId = 'fp-chev-'+fi;
+
+    // Filtrar participantes: en fechas abiertas, ocultar quienes no cargaron ningún pronóstico en esa fecha
+    var partsVisibles = participantes;
+    if(!cerrada){
+      partsVisibles = participantes.filter(function(part){
+        return fps.some(function(p){
+          const pr = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+          return pr && !isNaN(pr.gl);
+        });
+      });
+    }
+
+    const cards = fps.map(function(p){ return buildMatchCard(p, partsVisibles); }).join('');
     const isFirst = fi === 0;
-    return `<div>
-      <div class="fecha-header" onclick="toggleFechaBody('${bodyId}','${chevId}')">
-        <div class="fh-left">
-          <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
-          <span>${fecha}</span>
-          <span style="font-size:12px;color:var(--text3);font-weight:400">${fps.length} partido${fps.length!==1?'s':''}</span>
-        </div>
-        <span class="fh-chev${isFirst?' open':''}" id="${chevId}">▶</span>
-      </div>
-      <div class="fecha-body${isFirst?' open':''}" id="${bodyId}">${cards}</div>
-    </div>`;
+    return '<div>'
+      +'<div class="fecha-header" onclick="toggleFechaBody(''+bodyId+'',''+chevId+'')">'
+      +'<div class="fh-left">'
+      +'<span class="badge '+(cerrada?'b-closed':'b-open')+'">'+(cerrada?'Cerrada':'Abierta')+'</span>'
+      +'<span>'+fecha+'</span>'
+      +'<span style="font-size:12px;color:var(--text3);font-weight:400">'+fps.length+' partido'+(fps.length!==1?'s':'')+'</span>'
+      +'</div>'
+      +'<span class="fh-chev'+(isFirst?' open':'')+'" id="'+chevId+'">&#9658;</span>'
+      +'</div>'
+      +'<div class="fecha-body'+(isFirst?' open':'')+'" id="'+bodyId+'">'+cards+'</div>'
+      +'</div>';
   }).join('');
 }
 function toggleFechaBody(bodyId, chevId){ document.getElementById(bodyId)?.classList.toggle('open'); document.getElementById(chevId)?.classList.toggle('open'); }
@@ -1715,4 +1765,4 @@ async function init(){
 init();
 </script>
 </body>
-  </html>
+</html>
