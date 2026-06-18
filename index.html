@@ -1521,7 +1521,7 @@ function renderPartidosPublicos(){
     const cards = fps.map(function(p){ return buildMatchCard(p, partsVisibles); }).join('');
     const isFirst = fi === 0;
     return '<div>'
-      +'<div class="fecha-header" onclick="toggleFechaBody(''+bodyId+'',''+chevId+'')">'
+      +'<div class="fecha-header" onclick="toggleFechaBody(&quot;'+bodyId+'&quot;,&quot;'+chevId+'&quot;)">'
       +'<div class="fh-left">'
       +'<span class="badge '+(cerrada?'b-closed':'b-open')+'">'+(cerrada?'Cerrada':'Abierta')+'</span>'
       +'<span>'+fecha+'</span>'
