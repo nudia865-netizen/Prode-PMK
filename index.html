@@ -6,7 +6,7 @@
 <title>Prode PMK — Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0d1208;--bg2:#131a0e;--bg3:#1a2412;--border:rgba(255,255,255,0.09);--text:#e8f0e0;--text2:#8ba07a;--text3:#556650;--accent:#5fd436;--accent2:#4bbf27;--red:#f87171;--blue:#60a5fa;--radius:10px;--radius-sm:6px}
+:root{--bg:#faf8f4;--bg2:#ffffff;--bg3:#f0ede8;--border:rgba(0,0,0,0.10);--text:#1a2410;--text2:#4a6e38;--text3:#8aab76;--accent:#2a7a1a;--accent2:#1f6012;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
@@ -21,9 +21,9 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--text2);color:var(--text)}
 .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(248,113,113,.25)}.btn-danger:hover{background:rgba(248,113,113,.1)}
 .btn-sm{padding:4px 10px;font-size:12px}
-.btn-rule{background:rgba(95,212,54,.12);color:#a3e87a;border:1px solid rgba(95,212,54,.25)}.btn-rule:hover{background:rgba(95,212,54,.22)}
+.btn-rule{background:rgba(42,122,26,.12);color:#a3e87a;border:1px solid rgba(95,212,54,.25)}.btn-rule:hover{background:rgba(95,212,54,.22)}
 .sync-st{font-size:11px;padding:4px 10px;border-radius:var(--radius-sm)}
-.sync-ok{background:rgba(95,212,54,.12);color:#a3e87a}
+.sync-ok{background:rgba(42,122,26,.12);color:#a3e87a}
 .sync-err{background:rgba(248,113,113,.1);color:#fca5a5}
 .sync-ing{background:rgba(251,191,36,.1);color:#fde68a}
 .sync-none{background:var(--bg3);color:var(--text2)}
@@ -43,10 +43,10 @@ input[type=number]{width:56px;text-align:center}
 select option{background:var(--bg2)}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
 .b-exact{background:rgba(96,165,250,.15);color:#93c5fd}
-.b-win{background:rgba(95,212,54,.12);color:#a3e87a}
+.b-win{background:rgba(42,122,26,.12);color:#a3e87a}
 .b-zero{background:rgba(248,113,113,.12);color:#fca5a5}
 .b-gray{background:var(--bg3);color:var(--text2)}
-.b-open{background:rgba(95,212,54,.12);color:#a3e87a}
+.b-open{background:rgba(42,122,26,.12);color:#a3e87a}
 .b-closed{background:rgba(248,113,113,.12);color:#fca5a5}
 .b-group{background:rgba(251,191,36,.12);color:#fde68a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 10px}
 .empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
@@ -79,7 +79,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .mrow:last-child{border-bottom:none}
 .chevron{transition:transform .2s;color:var(--text3);font-size:14px;flex-shrink:0}
 .chevron.open{transform:rotate(90deg)}
-.pozo-box{background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.pozo-box{background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border:1px solid rgba(42,122,26,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
 .pozo-amount{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--accent);margin:4px 0}
 .dist-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
 .dist-item:last-child{border-bottom:none}
@@ -124,14 +124,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .pozo-pub-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
 /* Pozos pendientes top */
 .pozos-top-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.75rem}
-.pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:.75rem 1rem}
+.pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(42,122,26,.2);border-radius:var(--radius);padding:.75rem 1rem}
 .pozo-top-card .ptp-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
 .pozo-top-card .ptp-fecha{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
 .pozo-top-card .ptp-amount{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--accent);line-height:1}
 .pozo-top-card .ptp-sub{font-size:11px;color:var(--text2);margin-top:2px}
 /* Banner fecha 2 */
-.fecha2-banner{background:linear-gradient(135deg,rgba(95,212,54,.12),rgba(95,212,54,.05));border:1px solid rgba(95,212,54,.3);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(95,212,54,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
+.fecha2-banner{background:linear-gradient(135deg,rgba(42,122,26,.12),rgba(95,212,54,.05));border:1px solid rgba(95,212,54,.3);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(42,122,26,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
 .fecha2-banner a:hover{background:rgba(95,212,54,.25);border-color:var(--accent)}
 @media(max-width:640px){
   header{padding:0 .75rem}
@@ -145,7 +145,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 #chat-widget{position:fixed;bottom:1.25rem;right:1.25rem;z-index:150;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #chat-toggle{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(95,212,54,.3);transition:transform .15s}
 #chat-toggle:hover{transform:scale(1.08)}
-#chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden}
+#chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.12);overflow:hidden}
 #chat-bubble.open{display:flex}
 #chat-head{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 #chat-head-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
@@ -419,7 +419,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
-      <div style="background:rgba(95,212,54,.08);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#a3e87a">
+      <div style="background:rgba(42,122,26,.08);border:1px solid rgba(42,122,26,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#a3e87a">
         ✓ Chat funcionando con Firebase Realtime Database.<br>
         URL: <code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code>
       </div>
@@ -439,13 +439,10 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- POZOS PENDIENTES — fila superior -->
   <div id="pozos-top-row" class="pozos-top-row"></div>
 
-  <!-- BANNER FECHA 2 -->
-  <div class="fecha2-banner">
-    <div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">⚽ Fecha 2 — Cargá tu prode</div>
-      <div style="font-size:13px;color:var(--text)">Hacé click para ingresar tus pronósticos de la Fecha 2</div>
-    </div>
-    <a href="https://nudia865-netizen.github.io/Fecha-2/" target="_blank" rel="noopener">→ Cargar Fecha 2</a>
+  <!-- PARTIDOS DE HOY — reemplaza banner fecha 2 -->
+  <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
+    <div id="partidos-hoy-content"></div>
   </div>
 
   <!-- TABLA -->
@@ -477,12 +474,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   </div>
 
   <!-- PARTIDOS -->
-  <!-- PARTIDOS DE HOY -->
-  <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
-    <div id="partidos-hoy-content"></div>
-  </div>
-
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
       <div class="fh-left" style="font-size:14px;font-weight:700">⚽ Partidos</div>
@@ -963,7 +954,7 @@ function renderPronosticos(){
     const active=p.nombre===pronPersonaSel;
     const cargados=partidos.filter(pt=>{ const pr=pronosticos[pt.id]&&pronosticos[pt.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length;
     return `<button onclick="pronPersonaSel='${esc(p.nombre)}';renderPronosticos()"
-      style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'rgba(95,212,54,.08)':'var(--bg2)'};cursor:pointer;min-width:80px">
+      style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'rgba(42,122,26,.08)':'var(--bg2)'};cursor:pointer;min-width:80px">
       <span style="font-size:20px;font-weight:700;color:${active?'var(--accent)':'var(--text2)'}">${p.nombre[0].toUpperCase()}</span>
       <span style="font-size:12px;font-weight:500;color:${active?'var(--text)':'var(--text2)'};max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre}</span>
       <span style="font-size:11px;color:${cargados===partidos.length?'var(--accent)':'var(--text3)'}">${cargados}/${partidos.length}</span>
@@ -1125,8 +1116,8 @@ function renderResumen(){
     const pCells=ranked.map(s=>{
       const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
       const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
-      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(95,212,54,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
-      const ptsBadge=pts===3?`<span style="font-size:10px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#a3e87a;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#fca5a5;display:block">0</span>`:'';
+      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(42,122,26,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
+      const ptsBadge=pts===3?`<span style="font-size:10px;color:#1d4ed8;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#166534;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#991b1b;display:block">0</span>`:'';
       return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${ptsBadge}</td>`;
     }).join('');
     return `<tr>
@@ -1149,7 +1140,7 @@ function renderResumen(){
   </div>
   <div style="display:flex;gap:12px;margin-top:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
     <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(95,212,54,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(42,122,26,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
     <span><span style="display:inline-block;width:12px;height:12px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
   </div>`;
 }
@@ -1311,7 +1302,7 @@ function renderPozoPublico(){
             +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
             +'</div>';
         }).join('')
-        + '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">'
+        + '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">'
           +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
           +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
           +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
@@ -1376,7 +1367,7 @@ function renderPozoPublico(){
         +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
         +'</div>';
     });
-    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">'
+    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">'
       +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
       +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
       +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
@@ -1416,7 +1407,7 @@ function renderPozoPublico(){
       +'</div>';
     return fechaHeader;
   }).join('');
-  box.innerHTML = boxesHtml + `<div class="pozo-pub-compact" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">
+  box.innerHTML = boxesHtml + `<div class="pozo-pub-compact" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">
     <div class="pozo-pub-label">Súper Pozo acumulado (todas las fechas)</div>
     <div class="pozo-pub-row" style="margin-top:4px"><div class="pozo-pub-num" style="font-size:28px">$${spTotal.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">Gana el líder al final del torneo</div></div>
   </div>`;
@@ -1435,13 +1426,13 @@ function buildMatchCard(p, participantesVisibles){
     const chips = participantesVisibles.map(function(part){
       const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
       const has = pr && !isNaN(pr.gl);
-      if(!has) return '<span class="pron-chip"><span style="color:var(--text3);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--text3)">—</span></span>';
+      if(!has) return ''; // ocultar quien no pronosticó
       const pts = calcPuntos(pr, r);
-      const color = pts===3?'#4ade80':pts===1?'#86efac':pts===0&&hasR?'#fca5a5':'var(--text2)';
+      const color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0&&hasR?'#991b1b':'var(--text2)';
       const medal = pts===3?'🎯':pts===1?'✓':'';
       return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'+(medal?'<span style="font-size:11px">'+medal+'</span>':'')+'</span>';
-    }).join('');
-    pronsHtml = '<div class="match-prons">'+chips+'</div>';
+    }).filter(Boolean).join('');
+    if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
   } else if(!cerrada && participantesVisibles.length){
     // Partidos abiertos: mostrar solo quien YA tiene pronóstico cargado
     const chipsAbiertos = participantesVisibles.map(function(part){
@@ -1659,13 +1650,13 @@ function renderResumenPub(){
   const rows=ps.map(p=>{
     const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
     const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
-    const pCells=ranked.map(s=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre]; const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r); const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(95,212,54,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':''; const badge=pts===3?`<span style="font-size:9px;color:#93c5fd;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#a3e87a;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#fca5a5;display:block">0</span>`:''; return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`; }).join('');
+    const pCells=ranked.map(s=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre]; const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r); const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(42,122,26,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':''; const badge=pts===3?`<span style="font-size:9px;color:#1d4ed8;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#166534;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#991b1b;display:block">0</span>`:''; return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`; }).join('');
     return `<tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>${pCells}</tr>`;
   }).join('');
   cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--bg2)"><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th><th style="${th}">Real</th>${hCells}</tr></thead><tbody style="background:var(--bg)">${rows}</tbody></table></div>
   <div style="display:flex;gap:10px;margin-top:.75rem;flex-wrap:wrap;font-size:11px;color:var(--text2)">
     <span><span style="display:inline-block;width:10px;height:10px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:3px"></span>Exacto +3</span>
-    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(95,212,54,.15);border-radius:2px;margin-right:3px"></span>Acierto +1</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:rgba(42,122,26,.15);border-radius:2px;margin-right:3px"></span>Acierto +1</span>
     <span><span style="display:inline-block;width:10px;height:10px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:3px"></span>Sin puntos</span>
     <span style="color:var(--text3)">Pasá el cursor por las iniciales para ver el nombre.</span>
   </div>`;
