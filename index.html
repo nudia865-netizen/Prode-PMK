@@ -1347,6 +1347,29 @@ function renderPozoPublico(){
         +distHtml
         +'</div>';
     }).join('');
+    // Agregar pozos cerrados recientemente
+    recientes.forEach(function(e){
+      var f=e[0], h=e[1];
+      var dias = Math.floor((Date.now()-new Date(h.fechaCierre).getTime())/(1000*60*60*24));
+      var cuandoLabel = dias===0 ? 'Hoy' : dias===1 ? 'Ayer' : 'Hace '+dias+' d&iacute;as';
+      var ganHtml = (h.dist||[]).map(function(d,i){
+        var medal = ['&#x1F947;','&#x1F948;','&#x1F949;'][i] || '&middot;';
+        var ganNombre = d.ganador || (d.ganadores||[]).join(', ') || '&mdash;';
+        var monto = typeof d.monto==='number' ? '$'+d.monto.toLocaleString('es-AR') : '&mdash;';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+          +'<div style="display:flex;align-items:center;gap:7px">'
+          +'<span style="font-size:18px">'+medal+'</span>'
+          +'<div style="font-size:12px;color:var(--text);font-weight:600">'+ganNombre+'</div>'
+          +'</div>'
+          +'<span style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:var(--accent)">'+monto+'</span>'
+          +'</div>';
+      }).join('');
+      cardsHtml += '<div class="pozo-top-card" style="border-color:rgba(45,122,31,.3)">'
+        +'<div class="ptp-label">&#x2705; Pozo cerrado &mdash; '+cuandoLabel+'</div>'
+        +'<div class="ptp-fecha">'+esc(f)+'</div>'
+        +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
+        +'</div>';
+    });
     cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(45,122,31,.07),rgba(37,99,235,.04));border-color:rgba(45,122,31,.2)">'
       +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
       +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
@@ -1692,4 +1715,4 @@ async function init(){
 init();
 </script>
 </body>
-        </html>
+  </html>
