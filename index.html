@@ -6,7 +6,7 @@
 <title>Prode PMK — Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0d1208;--bg2:#131a0e;--bg3:#1a2412;--border:rgba(255,255,255,0.09);--text:#e8f0e0;--text2:#8ba07a;--text3:#556650;--accent:#5fd436;--accent2:#4bbf27;--red:#f87171;--blue:#60a5fa;--radius:10px;--radius-sm:6px}
+:root{--bg:#faf8f4;--bg2:#ffffff;--bg3:#f2efe9;--border:rgba(0,0,0,0.10);--text:#1a2e12;--text2:#4a6e38;--text3:#8aab76;--accent:#2d7a1f;--accent2:#246518;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
@@ -79,7 +79,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .mrow:last-child{border-bottom:none}
 .chevron{transition:transform .2s;color:var(--text3);font-size:14px;flex-shrink:0}
 .chevron.open{transform:rotate(90deg)}
-.pozo-box{background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.pozo-box{background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border:1px solid rgba(45,122,31,.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
 .pozo-amount{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--accent);margin:4px 0}
 .dist-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
 .dist-item:last-child{border-bottom:none}
@@ -124,7 +124,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .pozo-pub-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
 /* Pozos pendientes top */
 .pozos-top-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.75rem}
-.pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius);padding:.75rem 1rem}
+.pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(45,122,31,.2);border-radius:var(--radius);padding:.75rem 1rem}
 .pozo-top-card .ptp-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
 .pozo-top-card .ptp-fecha{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
 .pozo-top-card .ptp-amount{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--accent);line-height:1}
@@ -145,7 +145,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 #chat-widget{position:fixed;bottom:1.25rem;right:1.25rem;z-index:150;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #chat-toggle{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(95,212,54,.3);transition:transform .15s}
 #chat-toggle:hover{transform:scale(1.08)}
-#chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden}
+#chat-bubble{width:340px;max-width:calc(100vw - 2.5rem);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.15);overflow:hidden}
 #chat-bubble.open{display:flex}
 #chat-head{background:var(--bg3);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 #chat-head-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
@@ -366,6 +366,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
         </select>
       </div>
       <button class="btn btn-primary" onclick="addPartido()">+ Agregar partido</button>
+      <button class="btn btn-ghost" onclick="importarPartidosHoy()" style="margin-left:8px">⬇ Importar hoy (Mundial 2026)</button>
     </div>
     <div id="lista-partidos"><p class="empty">No hay partidos cargados aún.</p></div>
   </div>
@@ -418,7 +419,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
-      <div style="background:rgba(95,212,54,.08);border:1px solid rgba(95,212,54,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#a3e87a">
+      <div style="background:rgba(95,212,54,.08);border:1px solid rgba(45,122,31,.2);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:1rem;font-size:12px;color:#a3e87a">
         ✓ Chat funcionando con Firebase Realtime Database.<br>
         URL: <code style="font-size:11px">https://prode-pmk-f55d7-default-rtdb.firebaseio.com</code>
       </div>
@@ -633,6 +634,55 @@ function distPorCantidad(n, ppal){
   if(n<10)  return [{pos:'1°',pct:'100%',monto:ppal}];
   if(n<=20) return [{pos:'1°',pct:'75%',monto:Math.round(ppal*.75)},{pos:'2°',pct:'25%',monto:Math.round(ppal*.25)}];
   return [{pos:'1°',pct:'70%',monto:Math.round(ppal*.7)},{pos:'2°',pct:'20%',monto:Math.round(ppal*.2)},{pos:'3°',pct:'10%',monto:Math.round(ppal*.1)}];
+}
+
+// Distribución con empates: combina premios entre los que empatan en el mismo puesto
+// ranked = [{nombre, pts, exactos, rank}, ...], dist = distPorCantidad(...)
+function distConEmpates(ranked, dist, ppal){
+  // ranked ya tiene .rank asignado por addRanks
+  // Agrupar puestos por rank
+  var grupos = {}; // rank -> [nombres]
+  ranked.forEach(function(r){
+    if(!r.rank) return;
+    if(!grupos[r.rank]) grupos[r.rank] = [];
+    grupos[r.rank].push(r.nombre);
+  });
+  var result = [];
+  var usados = {}; // índices de dist ya consumidos
+  var i = 0;
+  while(i < dist.length){
+    var d = dist[i];
+    var rankNum = i+1;
+    // Buscar cuántos empataron en este rank
+    var empatados = grupos[rankNum] || [];
+    var cantEmp = empatados.length;
+    if(cantEmp <= 1){
+      result.push({pos:d.pos, pct:d.pct, monto:d.monto, ganadores:empatados});
+      i++;
+    } else {
+      // Acumular montos de los puestos que ocupan estos empatados
+      var montosAcum = 0;
+      var pctsAcum = [];
+      for(var j=0; j<cantEmp && i+j < dist.length; j++){
+        var dd = dist[i+j];
+        if(typeof dd.monto === 'number') montosAcum += dd.monto;
+        pctsAcum.push(dd.pct);
+        usados[i+j] = true;
+      }
+      var montoC = Math.round(montosAcum / cantEmp);
+      var posLabel = (cantEmp > 1 ? empatados.length+'x ' : '') + dist[i].pos;
+      result.push({
+        pos: posLabel,
+        pct: pctsAcum.join('+') + ' ÷' + cantEmp,
+        monto: montoC,
+        montoTotal: montosAcum,
+        empate: cantEmp > 1,
+        ganadores: empatados
+      });
+      i += cantEmp;
+    }
+  }
+  return result;
 }
 function superPozoTotal(){ return getFechas().reduce((acc,f)=> acc + pagantesFecha(f).length*1000, 0); }
 function fechaPozoActual(){ const fechas=getFechas(); if(!fechas.length) return null; return fechas.find(f=>!pozosHistorial[f]) || fechas[fechas.length-1]; }
@@ -1140,11 +1190,12 @@ function confirmarPozo(fecha){
   const conC = pagantesFecha(fecha).length;
   const total=conC*5000, sp=conC*1000, ppal=total-sp;
   const dist = distPorCantidad(conC, ppal);
-  const ganadores = dist.map((d,i)=>{
-    const sel = document.getElementById(`pozo-ganador-${i}`);
+  const distEmpConf = distConEmpates(ranked, dist, ppal);
+  const ganadores = distEmpConf.map((d,i)=>{
+    const sel = document.getElementById('pozo-ganador-'+i);
     let val = sel ? sel.value : '';
-    if(!val){ const cand = ranked.filter(r=>r.rank===i+1); val = cand.map(c=>c.nombre).join(', '); }
-    return {pos:d.pos, pct:d.pct, monto:d.monto, ganador:val};
+    if(!val){ val = (d.ganadores||[]).join(', '); }
+    return {pos:d.pos, pct:d.pct, monto:d.monto, ganador:val, empate:d.empate||false, montoTotal:d.montoTotal||d.monto, ganadores:d.ganadores||[]};
   });
   if(!confirm(`¿Confirmar y cerrar el pozo de "${fecha}"?`)) return;
   pozosHistorial[fecha] = {recaudado:total, principal:ppal, superPozoAporte:sp, dist:ganadores, fechaCierre:new Date().toISOString()};
@@ -1172,17 +1223,20 @@ function renderPozo(){
   const cerrado = pozosHistorial[f];
   const spTotal = superPozoTotal();
   const selHtml = `<div class="frow"><label>Fecha</label><select onchange="setPozoFecha(this.value)">${fechas.map(ff=>`<option value="${esc(ff)}" ${ff===f?'selected':''}>${ff}${pozosHistorial[ff]?' ✓':''}</option>`).join('')}</select></div>`;
-  const distHtml = dist.map((d,i)=>{
-    const cand = ranked.filter(r=>r.rank===i+1).map(r=>r.nombre);
-    const guardado = cerrado?.dist?.[i]?.ganador;
-    const valorActual = guardado!==undefined ? guardado : cand.join(', ');
-    const monto = typeof d.monto==='number' ? `$${d.monto.toLocaleString('es-AR')}` : d.monto;
-    return `<div class="dist-item" style="align-items:center">
-      <span>${d.pos} puesto</span><span style="color:var(--text2)">${d.pct}</span>
-      <span style="font-weight:600;color:var(--accent)">${monto}</span>
-      ${cerrado?`<span style="margin-left:8px">🏆 ${valorActual||'—'}</span>`
-        :`<input id="pozo-ganador-${i}" type="text" value="${esc(valorActual)}" placeholder="Ganador/es" style="margin-left:8px;width:160px;font-size:12px">`}
-    </div>`;
+  const distEmp = cerrado ? cerrado.dist : distConEmpates(ranked, dist, ppal);
+  const distHtml = distEmp.map((d,i)=>{
+    const ganadores = d.ganadores || [];
+    const guardado = cerrado ? (d.ganador||ganadores.join(', ')) : ganadores.join(', ');
+    const monto = typeof d.monto==='number' ? '$'+d.monto.toLocaleString('es-AR') : (d.monto||'—');
+    const empLabel = d.empate ? '<span style="font-size:10px;color:var(--text3);display:block">c/u ('+monto+')</span>' : '';
+    return '<div class="dist-item" style="align-items:center">'
+      +'<span>'+d.pos+' puesto'+empLabel+'</span>'
+      +'<span style="color:var(--text2)">'+d.pct+'</span>'
+      +'<span style="font-weight:600;color:var(--accent)">'+monto+'</span>'
+      +(cerrado
+        ? '<span style="margin-left:8px">&#x1F3C6; '+(guardado||'—')+'</span>'
+        : '<input id="pozo-ganador-'+i+'" type="text" value="'+esc(guardado)+'" placeholder="Ganador/es" style="margin-left:8px;width:160px;font-size:12px">')
+      +'</div>';
   }).join('');
   cont.innerHTML=`${selHtml}
   <div class="metrics">
@@ -1255,7 +1309,7 @@ function renderPozoPublico(){
         +distHtml
         +'</div>';
     }).join('');
-    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">'
+    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(45,122,31,.07),rgba(37,99,235,.04));border-color:rgba(45,122,31,.2)">'
       +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
       +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
       +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
@@ -1295,7 +1349,7 @@ function renderPozoPublico(){
       +'</div>';
     return fechaHeader;
   }).join('');
-  box.innerHTML = boxesHtml + `<div class="pozo-pub-compact" style="background:linear-gradient(135deg,rgba(95,212,54,.08),rgba(96,165,250,.04));border-color:rgba(95,212,54,.2)">
+  box.innerHTML = boxesHtml + `<div class="pozo-pub-compact" style="background:linear-gradient(135deg,rgba(45,122,31,.07),rgba(37,99,235,.04));border-color:rgba(45,122,31,.2)">
     <div class="pozo-pub-label">Súper Pozo acumulado (todas las fechas)</div>
     <div class="pozo-pub-row" style="margin-top:4px"><div class="pozo-pub-num" style="font-size:28px">$${spTotal.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">Gana el líder al final del torneo</div></div>
   </div>`;
@@ -1556,6 +1610,37 @@ function showChatAdminStatus(){ const el=document.getElementById('chat-admin-sta
 
 function initChat(){ document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; showChatAdminStatus(); startChatPolling(); loadChatMsgs(); }
 
+// ── Importar partidos del día (Mundial 2026 — 17 jun 2026) ─────────────────
+const PARTIDOS_HOY_2026 = [
+  {fecha:'Fecha 1',grupo:'K',local:'Portugal',visitante:'R.D. Congo',dt:'2026-06-17T14:00',estado:'cerrada'},
+  {fecha:'Fecha 1',grupo:'L',local:'Inglaterra',visitante:'Croacia',dt:'2026-06-17T17:00',estado:'cerrada'},
+  {fecha:'Fecha 1',grupo:'L',local:'Ghana',visitante:'Panamá',dt:'2026-06-17T19:00',estado:'cerrada'},
+  {fecha:'Fecha 1',grupo:'K',local:'Uzbekistán',visitante:'Colombia',dt:'2026-06-17T21:00',estado:'cerrada'},
+];
+
+function importarPartidosHoy(){
+  const nuevos = PARTIDOS_HOY_2026.filter(np =>
+    !partidos.some(p => p.local===np.local && p.visitante===np.visitante)
+  );
+  if(!nuevos.length){ toast('Esos partidos ya están cargados','warn'); return; }
+  nuevos.forEach(np => {
+    partidos.push({id:Date.now()+Math.random(),fecha:np.fecha,local:np.local,visitante:np.visitante,grupo:np.grupo,dt:np.dt,estado:np.estado});
+  });
+  persist(); renderPartidos();
+  toast(nuevos.length+' partido'+(nuevos.length!==1?'s':'')+' importado'+(nuevos.length!==1?'s':''));
+}
+
+// ── Auto-refresh de resultados (vista pública) ────────────────────────────
+let autoRefreshTimer = null;
+function startAutoRefresh(){
+  if(autoRefreshTimer) return;
+  autoRefreshTimer = setInterval(async function(){
+    if(document.hidden || adminMode) return;
+    const ok = await loadFromCloud();
+    if(ok){ refreshAll(); }
+  }, 120000); // cada 2 minutos
+}
+
 async function init(){
   loadLocal(); applyRole(); refreshAll();
   const ok=await loadFromCloud();
@@ -1563,6 +1648,7 @@ async function init(){
   initChat();
   setInterval(async()=>{ if(document.hidden) return; if(syncTimer) return; const ok2=await loadFromCloud(); if(ok2) refreshAll(); },60000);
   document.addEventListener('visibilitychange',async()=>{ if(!document.hidden&&!syncTimer){ const ok3=await loadFromCloud(); if(ok3) refreshAll(); } });
+  startAutoRefresh();
 }
 
 init();
