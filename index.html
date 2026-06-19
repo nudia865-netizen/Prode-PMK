@@ -2134,8 +2134,6 @@ function gruposTeamRowHtml(eq, pos){
     +'<td style="text-align:center">'+(st?v(st.g):'—')+'</td>'
     +'<td style="text-align:center">'+(st?v(st.e):'—')+'</td>'
     +'<td style="text-align:center">'+(st?v(st.p):'—')+'</td>'
-    +'<td style="text-align:center">'+(st?v(st.gf):'—')+'</td>'
-    +'<td style="text-align:center">'+(st?v(st.gc):'—')+'</td>'
     +'<td style="text-align:center">'+(st?v(st.dif):'—')+'</td>'
     +'<td style="text-align:center;font-weight:700">'+(st?v(st.pts):'—')+'</td>'
     +'</tr>';
@@ -2157,7 +2155,7 @@ function buildGroupCard(grupo){
   var filas = equipos.map(function(eq,i){ return gruposTeamRowHtml(eq, i+1); }).join('');
   return '<div class="card">'
     +'<div class="card-title">Grupo '+grupo.letra+'</div>'
-    +'<table><thead><tr><th></th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DIF</th><th>Pts</th></tr></thead>'
+    +'<table><thead><tr><th></th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DIF</th><th>Pts</th></tr></thead>'
     +'<tbody>'+filas+'</tbody></table>'
     +'</div>';
 }
