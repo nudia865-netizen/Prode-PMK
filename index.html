@@ -134,7 +134,10 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 .fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(42,122,26,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
 .fecha2-banner a:hover{background:rgba(95,212,54,.25);border-color:var(--accent)}
 @media(max-width:640px){
-  header{padding:0 .75rem}
+  header{flex-wrap:wrap;height:auto;min-height:56px;padding:.55rem .75rem;row-gap:8px}
+  .logo{order:1}
+  .hright{order:2}
+  .hnav{order:3;width:100%;flex-wrap:wrap;overflow-x:visible}
   .page{padding:.75rem}
   .pron-grid{grid-template-columns:1fr}
   .match-card{padding:.75rem}
@@ -1871,7 +1874,7 @@ async function renderPartidosHoy(){
         var rProde = resultados[matchProde.id];
         var hasRProde = rProde && !isNaN(rProde.gl);
         // Resultado provisorio: si el admin todavía no cargó el oficial pero ESPN ya tiene marcador (en vivo o recién terminado)
-        var liveR = (!hasRProde && hasScore) ? {gl:score1, gv:score2} : null;
+        var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
         var rParaPuntos = hasRProde ? rProde : liveR;
         var esProvisorio = !hasRProde && !!liveR;
         var chips = participantes.map(function(part){
