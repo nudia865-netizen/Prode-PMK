@@ -317,6 +317,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <nav class="hnav" id="main-nav">
     <a id="nav-admin" onclick="showPage('admin',this)" style="display:none">⚙️ Admin</a>
     <a id="nav-pub" class="active" onclick="showPage('partidos-pub',this)">🏆 Prode</a>
+    <a id="nav-grupos" onclick="showPage('grupos',this)">🌍 Grupos</a>
   </nav>
   <div class="hright">
     <button class="btn btn-rule btn-sm" onclick="openModal('modal-rules')">📋 Reglas</button>
@@ -524,6 +525,19 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
+</div>
+
+<!-- PÁGINA GRUPOS — informativa, independiente del Prode -->
+<div id="page-grupos" class="page" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+    <div>
+      <div style="font-size:20px;font-weight:700;font-family:'Barlow Condensed',sans-serif">🌍 Grupos — Mundial 2026</div>
+      <div style="font-size:12px;color:var(--text2)" id="grupos-updated">Cargando posiciones…</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="renderGrupos(true)">🔄 Actualizar</button>
+  </div>
+  <div class="info-box">Esta tabla es solo informativa y <strong>no afecta al Prode</strong> (no toca pronósticos ni puntajes). 🟢 1°-2°: clasifican directo a 32avos · 🟡 3°: avanza el mejor de los 8 terceros · 🔴 4°: eliminado.</div>
+  <div id="grupos-content"><p class="empty">Cargando grupos…</p></div>
 </div>
 
 <div id="page-personas" class="page" style="display:none"></div>
@@ -789,6 +803,7 @@ function showPage(p,el){
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
   if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
+  if(p==='grupos'){ renderGrupos(); }
 }
 
 function showTab(t){
@@ -1953,6 +1968,225 @@ function startAutoRefresh(){
   }, 120000); // cada 2 minutos
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// ── GRUPOS — Mundial 2026 (pestaña informativa, independiente del Prode) ──
+// ════════════════════════════════════════════════════════════════════════
+
+// Composición oficial de los 12 grupos (orden inicial = posición actual según ESPN al cargar esta función)
+const GRUPOS_MUNDIAL_2026 = [
+  {letra:'A', equipos:[{codigo:'MEX',nombre:'México',iso:'MX'},{codigo:'KOR',nombre:'Corea del Sur',iso:'KR'},{codigo:'CZE',nombre:'República Checa',iso:'CZ'},{codigo:'RSA',nombre:'Sudáfrica',iso:'ZA'}]},
+  {letra:'B', equipos:[{codigo:'SUI',nombre:'Suiza',iso:'CH'},{codigo:'CAN',nombre:'Canadá',iso:'CA'},{codigo:'QAT',nombre:'Qatar',iso:'QA'},{codigo:'BIH',nombre:'Bosnia y Herzegovina',iso:'BA'}]},
+  {letra:'C', equipos:[{codigo:'SCO',nombre:'Escocia',iso:'SCT'},{codigo:'MAR',nombre:'Marruecos',iso:'MA'},{codigo:'BRA',nombre:'Brasil',iso:'BR'},{codigo:'HAI',nombre:'Haití',iso:'HT'}]},
+  {letra:'D', equipos:[{codigo:'USA',nombre:'Estados Unidos',iso:'US'},{codigo:'AUS',nombre:'Australia',iso:'AU'},{codigo:'TUR',nombre:'Turquía',iso:'TR'},{codigo:'PAR',nombre:'Paraguay',iso:'PY'}]},
+  {letra:'E', equipos:[{codigo:'GER',nombre:'Alemania',iso:'DE'},{codigo:'CIV',nombre:'Costa de Marfil',iso:'CI'},{codigo:'ECU',nombre:'Ecuador',iso:'EC'},{codigo:'CUR',nombre:'Curazao',iso:'CW'}]},
+  {letra:'F', equipos:[{codigo:'SWE',nombre:'Suecia',iso:'SE'},{codigo:'JPN',nombre:'Japón',iso:'JP'},{codigo:'NED',nombre:'Países Bajos',iso:'NL'},{codigo:'TUN',nombre:'Túnez',iso:'TN'}]},
+  {letra:'G', equipos:[{codigo:'NZL',nombre:'Nueva Zelanda',iso:'NZ'},{codigo:'IRN',nombre:'Irán',iso:'IR'},{codigo:'BEL',nombre:'Bélgica',iso:'BE'},{codigo:'EGY',nombre:'Egipto',iso:'EG'}]},
+  {letra:'H', equipos:[{codigo:'URU',nombre:'Uruguay',iso:'UY'},{codigo:'KSA',nombre:'Arabia Saudita',iso:'SA'},{codigo:'ESP',nombre:'España',iso:'ES'},{codigo:'CPV',nombre:'Cabo Verde',iso:'CV'}]},
+  {letra:'I', equipos:[{codigo:'NOR',nombre:'Noruega',iso:'NO'},{codigo:'FRA',nombre:'Francia',iso:'FR'},{codigo:'SEN',nombre:'Senegal',iso:'SN'},{codigo:'IRQ',nombre:'Irak',iso:'IQ'}]},
+  {letra:'J', equipos:[{codigo:'ARG',nombre:'Argentina',iso:'AR'},{codigo:'AUT',nombre:'Austria',iso:'AT'},{codigo:'JOR',nombre:'Jordania',iso:'JO'},{codigo:'ALG',nombre:'Argelia',iso:'DZ'}]},
+  {letra:'K', equipos:[{codigo:'POR',nombre:'Portugal',iso:'PT'},{codigo:'COD',nombre:'R.D. Congo',iso:'CD'},{codigo:'UZB',nombre:'Uzbekistán',iso:'UZ'},{codigo:'COL',nombre:'Colombia',iso:'CO'}]},
+  {letra:'L', equipos:[{codigo:'ENG',nombre:'Inglaterra',iso:'ENG'},{codigo:'CRO',nombre:'Croacia',iso:'HR'},{codigo:'GHA',nombre:'Ghana',iso:'GH'},{codigo:'PAN',nombre:'Panamá',iso:'PA'}]},
+];
+
+// Bandera a partir de código ISO-2 (o ENG/SCT para los casos especiales del Reino Unido)
+function isoFlag(iso){
+  if(iso==='SCT') return '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}';
+  if(iso==='ENG') return '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
+  return iso.toUpperCase().replace(/./g,function(c){ return String.fromCodePoint(127397+c.charCodeAt(0)); });
+}
+
+// Normalización de nombres ESPN (inglés) para matchear contra nuestros códigos de equipo
+function normTeamG(s){
+  s = (s||'').toLowerCase().trim();
+  s = s.replace(/[áàâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[íìîï]/g,'i')
+       .replace(/[óòôö]/g,'o').replace(/[úùûü]/g,'u').replace(/ñ/g,'n').replace(/ç/g,'c');
+  return s.replace(/[^a-z]/g,'');
+}
+
+const ESPN_ALIAS_GRUPOS = {
+  'mexico':'MEX',
+  'southkorea':'KOR','korearepublic':'KOR','korea':'KOR','republicofkorea':'KOR',
+  'czechrepublic':'CZE','czechia':'CZE',
+  'southafrica':'RSA',
+  'switzerland':'SUI',
+  'canada':'CAN',
+  'qatar':'QAT',
+  'bosniaandherzegovina':'BIH','bosniaherzegovina':'BIH','bosnia':'BIH',
+  'scotland':'SCO',
+  'morocco':'MAR',
+  'brazil':'BRA',
+  'haiti':'HAI',
+  'unitedstates':'USA','usa':'USA',
+  'australia':'AUS',
+  'turkey':'TUR','turkiye':'TUR',
+  'paraguay':'PAR',
+  'germany':'GER',
+  'ivorycoast':'CIV','cotedivoire':'CIV',
+  'ecuador':'ECU',
+  'curacao':'CUR',
+  'sweden':'SWE',
+  'japan':'JPN',
+  'netherlands':'NED','holland':'NED',
+  'tunisia':'TUN',
+  'newzealand':'NZL',
+  'iran':'IRN','irislamicrepublic':'IRN',
+  'belgium':'BEL',
+  'egypt':'EGY',
+  'uruguay':'URU',
+  'saudiarabia':'KSA',
+  'spain':'ESP',
+  'capeverde':'CPV',
+  'norway':'NOR',
+  'france':'FRA',
+  'senegal':'SEN',
+  'iraq':'IRQ',
+  'argentina':'ARG',
+  'austria':'AUT',
+  'jordan':'JOR',
+  'algeria':'ALG',
+  'portugal':'POR',
+  'drcongo':'COD','congodr':'COD','democraticrepublicofcongo':'COD','congo':'COD',
+  'uzbekistan':'UZB',
+  'colombia':'COL',
+  'england':'ENG',
+  'croatia':'CRO',
+  'ghana':'GHA',
+  'panama':'PAN',
+};
+
+let gruposLiveMap = null;     // codigo -> {pj,g,e,p,gf,gc,dif,pts}
+let gruposLastFetchOk = false;
+let gruposFetchTimer = null;
+const ESPN_STANDINGS_URL = 'https://site.api.espn.com/apis/v2/sports/soccer/fifa.world/standings';
+
+function pickStat(map, names){
+  for(var i=0;i<names.length;i++){ if(map[names[i]]!==undefined && map[names[i]]!==null) return map[names[i]]; }
+  return '—';
+}
+
+// Busca recursivamente cualquier array "entries" (ESPN a veces los anida dentro de children/groups)
+function collectStandingEntries(node, out){
+  if(!node || typeof node!=='object') return;
+  if(Array.isArray(node)){ node.forEach(function(n){ collectStandingEntries(n,out); }); return; }
+  if(Array.isArray(node.entries)){
+    node.entries.forEach(function(e){ if(e && e.team) out.push(e); });
+  }
+  Object.keys(node).forEach(function(k){
+    if(k==='entries') return;
+    var v = node[k];
+    if(v && typeof v==='object') collectStandingEntries(v, out);
+  });
+}
+
+async function fetchGruposLive(){
+  try{
+    var res = await fetch(ESPN_STANDINGS_URL, {cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var data = await res.json();
+    var entries = [];
+    collectStandingEntries(data, entries);
+    if(!entries.length) throw new Error('sin entries');
+    var map = {};
+    entries.forEach(function(e){
+      var t = e.team || {};
+      var candidatos = [t.displayName, t.name, t.shortDisplayName, t.location].filter(Boolean);
+      var codigo = null;
+      for(var i=0;i<candidatos.length && !codigo;i++){
+        var norm = normTeamG(candidatos[i]);
+        if(ESPN_ALIAS_GRUPOS[norm]) codigo = ESPN_ALIAS_GRUPOS[norm];
+      }
+      if(!codigo) return;
+      var sm = {};
+      (e.stats||[]).forEach(function(s){ if(s && s.name) sm[s.name] = (s.value!==undefined?s.value:s.displayValue); });
+      map[codigo] = {
+        pj:  pickStat(sm,['gamesPlayed','GP','played']),
+        g:   pickStat(sm,['wins','W']),
+        e:   pickStat(sm,['ties','draws','D']),
+        p:   pickStat(sm,['losses','L']),
+        gf:  pickStat(sm,['pointsFor','goalsFor','GF']),
+        gc:  pickStat(sm,['pointsAgainst','goalsAgainst','GA']),
+        dif: pickStat(sm,['pointDifferential','goalDifferential','GD']),
+        pts: pickStat(sm,['points','leaguePoints','Pts']),
+      };
+    });
+    gruposLiveMap = map;
+    gruposLastFetchOk = Object.keys(map).length>0;
+    return gruposLastFetchOk;
+  } catch(err){
+    console.warn('Grupos: error al cargar posiciones ESPN', err);
+    gruposLastFetchOk = false;
+    return false;
+  }
+}
+
+function gruposPosClass(pos){ return pos<=2 ? 'b-win' : (pos===3 ? 'b-group' : 'b-zero'); }
+
+function gruposTeamRowHtml(eq, pos){
+  var st = gruposLiveMap ? gruposLiveMap[eq.codigo] : null;
+  var v = function(x){ return (x===undefined||x===null) ? '—' : x; };
+  return '<tr>'
+    +'<td><span class="badge '+gruposPosClass(pos)+'">'+pos+'</span></td>'
+    +'<td style="white-space:nowrap">'+isoFlag(eq.iso)+' '+eq.nombre+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.pj):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.g):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.e):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.p):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.gf):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.gc):'—')+'</td>'
+    +'<td style="text-align:center">'+(st?v(st.dif):'—')+'</td>'
+    +'<td style="text-align:center;font-weight:700">'+(st?v(st.pts):'—')+'</td>'
+    +'</tr>';
+}
+
+function buildGroupCard(grupo){
+  var equipos = grupo.equipos.slice();
+  if(gruposLiveMap){
+    var todosConDatos = equipos.every(function(eq){ return gruposLiveMap[eq.codigo] && gruposLiveMap[eq.codigo].pts!=='—'; });
+    if(todosConDatos){
+      equipos.sort(function(a,b){
+        var sa=gruposLiveMap[a.codigo], sb=gruposLiveMap[b.codigo];
+        if(sb.pts!==sa.pts) return sb.pts-sa.pts;
+        if(sb.dif!==sa.dif) return sb.dif-sa.dif;
+        return sb.gf-sa.gf;
+      });
+    }
+  }
+  var filas = equipos.map(function(eq,i){ return gruposTeamRowHtml(eq, i+1); }).join('');
+  return '<div class="card">'
+    +'<div class="card-title">Grupo '+grupo.letra+'</div>'
+    +'<table><thead><tr><th></th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DIF</th><th>Pts</th></tr></thead>'
+    +'<tbody>'+filas+'</tbody></table>'
+    +'</div>';
+}
+
+async function renderGrupos(forceRefresh){
+  var cont = document.getElementById('grupos-content');
+  var upd = document.getElementById('grupos-updated');
+  if(!cont) return;
+  if(forceRefresh || gruposLiveMap===null){
+    if(upd) upd.textContent = 'Actualizando posiciones…';
+    await fetchGruposLive();
+  }
+  cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">'
+    + GRUPOS_MUNDIAL_2026.map(buildGroupCard).join('')
+    + '</div>';
+  if(upd){
+    var ahora = new Date();
+    var hh = String(ahora.getHours()).padStart(2,'0'), mm = String(ahora.getMinutes()).padStart(2,'0');
+    upd.textContent = gruposLastFetchOk
+      ? ('🟢 Posiciones en vivo (ESPN) · actualizado '+hh+':'+mm)
+      : '🟡 No se pudo conectar con ESPN en este momento — mostrando orden de referencia';
+  }
+}
+
+function startGruposRefresh(){
+  if(gruposFetchTimer) clearInterval(gruposFetchTimer);
+  gruposFetchTimer = setInterval(function(){
+    var pg = document.getElementById('page-grupos');
+    if(pg && pg.classList.contains('active') && !document.hidden){ renderGrupos(true); }
+  }, 180000); // cada 3 minutos, solo si la pestaña está abierta
+}
+
 async function init(){
   loadLocal(); applyRole(); refreshAll();
   const ok=await loadFromCloud();
@@ -1963,6 +2197,7 @@ async function init(){
   startAutoRefresh();
   renderPartidosHoy();
   startHoyRefresh();
+  startGruposRefresh();
 }
 
 init();
