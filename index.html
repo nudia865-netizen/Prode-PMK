@@ -1785,16 +1785,13 @@ async function renderPartidosHoy(){
         // Usar resultado del prode si está cargado, sino usar score de ESPN en vivo
         var rProde = resultados[matchProde.id];
         var hasRProde = rProde && !isNaN(rProde.gl);
-        // Score ESPN: disponible si el partido está en curso o terminado
-        var rEspn = (hasScore && score1!==null) ? {gl:parseInt(score1), gv:parseInt(score2)} : null;
-        var r = hasRProde ? rProde : rEspn;
-        var hasR = r !== null;
-        var esEnVivo = !hasRProde && enCurso && hasR;
+        // Solo usar resultado del prode para calcular puntos (no ESPN)
         var chips = participantes.map(function(part){
           var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
           if(!pr || isNaN(pr.gl)) return '';
-          var pts = hasR ? calcPuntos(pr, r) : -1;
-          var color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0&&hasR?'#991b1b':'var(--text2)';
+          // Puntos solo si el resultado está cargado en el prode
+          var pts = hasRProde ? calcPuntos(pr, rProde) : -1;
+          var color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0?'#991b1b':'var(--text3)';
           var medal = pts===3?'🎯':pts===1?'✓':'';
           return '<span class="pron-chip">'
             +'<span style="color:var(--text2);font-size:11px">'+part.nombre+'</span>'
@@ -1802,10 +1799,7 @@ async function renderPartidosHoy(){
             +(medal?'<span style="font-size:11px">'+medal+'</span>':'')
             +'</span>';
         }).filter(Boolean).join('');
-        if(chips){
-          var notaEnVivo = esEnVivo ? '<div style="font-size:10px;color:var(--text3);margin-bottom:4px">⚡ Resultado provisorio (en vivo)</div>' : '';
-          pronsHtml = '<div class="match-prons">'+notaEnVivo+chips+'</div>';
-        }
+        if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
       }
 
       // Grupo
