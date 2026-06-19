@@ -1772,15 +1772,47 @@ async function renderPartidosHoy(){
         : '<div class="match-score pending" style="font-size:13px">vs</div>';
 
       // Matching con partidos del prode por nombre
-      // Matching flexible: normaliza nombres quitando acentos/espacios, compara primeros chars
-      function normTeam(s){ return s.toLowerCase().replace(/[^a-z]/g,''); }
+      // Diccionario ESPN (inglés) → nombres en español usados en el prode
+      var ESPN_NOMBRES = {
+        'united states':'estados unidos','usa':'estados unidos',
+        'south korea':'corea del sur','korea republic':'corea del sur','korea':'corea del sur',
+        'north korea':'corea del norte',
+        'ivory coast':'costa de marfil',"cote d'ivoire":'costa de marfil',
+        'saudi arabia':'arabia saudita',
+        'iran':'iran','ir iran':'iran',
+        'cape verde':'cabo verde',
+        'democratic republic of congo':'r.d. congo','dr congo':'r.d. congo','congo dr':'r.d. congo',
+        'republic of ireland':'irlanda','ireland':'irlanda',
+        'new zealand':'nueva zelanda',
+        'trinidad & tobago':'trinidad y tobago',
+        'trinidad and tobago':'trinidad y tobago',
+        'central african republic':'rep. centroafricana',
+        'equatorial guinea':'guinea ecuatorial',
+        'guinea bissau':'guinea-bisáu',
+        'burkina faso':'burkina faso',
+        'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
+        'north macedonia':'macedonia del norte',
+        'czech republic':'república checa','czechia':'república checa',
+        'netherlands':'países bajos','holland':'países bajos',
+        'great britain':'gran bretaña',
+        'kyrgyz republic':'kirguistán','kyrgyzstan':'kirguistán',
+        'chinese taipei':'taipei chino',
+        'uae':'emiratos árabes unidos','united arab emirates':'emiratos árabes unidos',
+        'dpr korea':'corea del norte',
+        'trinidad &amp; tobago':'trinidad y tobago',
+      };
+      function normTeam(s){
+        s = s.toLowerCase().trim();
+        if(ESPN_NOMBRES[s]) s = ESPN_NOMBRES[s];
+        return s.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i')
+                .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z]/g,'');
+      }
       var t1n = normTeam(t1), t2n = normTeam(t2);
-      function teamMatch(a, b){ return a.slice(0,4)===b.slice(0,4) || a.includes(b.slice(0,6)) || b.includes(a.slice(0,6)); }
+      function teamMatch(a, b){ return a===b || a.slice(0,5)===b.slice(0,5) || a.includes(b.slice(0,6)) || b.includes(a.slice(0,6)); }
       var matchProde = partidos.find(function(p){
         var l=normTeam(p.local), v=normTeam(p.visitante);
         return teamMatch(l,t1n) && teamMatch(v,t2n);
       }) || partidos.find(function(p){
-        // Fallback: coincidencia de 3 chars
         var l=normTeam(p.local), v=normTeam(p.visitante);
         return l.slice(0,3)===t1n.slice(0,3) && v.slice(0,3)===t2n.slice(0,3);
       });
