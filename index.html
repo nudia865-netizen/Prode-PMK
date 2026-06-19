@@ -6,7 +6,7 @@
 <title>Prode PMK — Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#faf8f4;--bg2:#ffffff;--bg3:#f0ede8;--border:rgba(0,0,0,0.10);--text:#1a2410;--text2:#4a6e38;--text3:#8aab76;--accent:#2a7a1a;--accent2:#1f6012;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
+:root{--bg:#f2ede4;--bg2:#faf7f2;--bg3:#e8e2d8;--border:rgba(0,0,0,0.10);--text:#1a2410;--text2:#4a6e38;--text3:#8aab76;--accent:#2a7a1a;--accent2:#1f6012;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
@@ -125,10 +125,10 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 /* Pozos pendientes top */
 .pozos-top-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.75rem}
 .pozo-top-card{flex:1;min-width:200px;background:var(--bg2);border:1px solid rgba(42,122,26,.2);border-radius:var(--radius);padding:.75rem 1rem}
-.pozo-top-card .ptp-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
-.pozo-top-card .ptp-fecha{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
-.pozo-top-card .ptp-amount{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:var(--accent);line-height:1}
-.pozo-top-card .ptp-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.pozo-top-card .ptp-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.pozo-top-card .ptp-fecha{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.pozo-top-card .ptp-amount{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--accent);line-height:1}
+.pozo-top-card .ptp-sub{font-size:10px;color:var(--text2);margin-top:2px}
 /* Banner fecha 2 */
 .fecha2-banner{background:linear-gradient(135deg,rgba(42,122,26,.12),rgba(95,212,54,.05));border:1px solid rgba(95,212,54,.3);border-radius:var(--radius);padding:.875rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .fecha2-banner a{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;padding:7px 18px;background:rgba(42,122,26,.15);border:1px solid rgba(95,212,54,.35);border-radius:var(--radius-sm);transition:all .15s;white-space:nowrap}
@@ -788,7 +788,7 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
 }
 
 function showTab(t){
@@ -1331,7 +1331,7 @@ function renderPozoPublico(){
               +'<span style="font-size:16px;line-height:1">'+(topMedals[i]||'·')+'</span>'
               +'<div style="font-size:11px;color:var(--text2)">'+d.pos+'<br><span style="color:var(--text3)">'+d.pct+'</span></div>'
               +'</div>'
-              +'<span style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span>'
+              +'<span style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span>'
               +'</div>';
           }).join('')
           +'</div>';
@@ -1465,25 +1465,7 @@ function renderPartidosPublicos(){
   sel.innerHTML = '<option value="todas">Todas las fechas</option>';
   fechas.forEach(function(f){ const o = document.createElement('option'); o.value = f; o.textContent = f; if(f === curVal) o.selected = true; sel.appendChild(o); });
 
-  // ── Partidos de hoy ──────────────────────────────────────────────────────
-  const secHoy = document.getElementById('sec-partidos-hoy');
-  const contHoy = document.getElementById('partidos-hoy-content');
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const manana = new Date(hoy); manana.setDate(manana.getDate()+1);
-  const partHoy = partidos.filter(function(p){
-    if(!p.dt) return false;
-    const d = new Date(p.dt); d.setHours(0,0,0,0);
-    return d.getTime() === hoy.getTime();
-  });
-  if(secHoy && contHoy){
-    if(partHoy.length){
-      secHoy.style.display = '';
-      // En partidos de hoy mostrar todos los participantes
-      contHoy.innerHTML = partHoy.map(function(p){ return buildMatchCard(p, participantes); }).join('');
-    } else {
-      secHoy.style.display = 'none';
-    }
-  }
+  // ── Partidos de hoy: manejado por renderPartidosHoy() ───────────────────
 
   // ── Tabla de fechas ──────────────────────────────────────────────────────
   if(!partidos.length){ cont.innerHTML = '<p class="empty">No hay partidos cargados todavía.</p>'; return; }
@@ -1491,7 +1473,14 @@ function renderPartidosPublicos(){
   if(!ps.length){ cont.innerHTML = '<p class="empty">No hay partidos para esta fecha.</p>'; return; }
   const byFecha = {};
   ps.forEach(function(p){ if(!byFecha[p.fecha]) byFecha[p.fecha]=[]; byFecha[p.fecha].push(p); });
-  const fechaKeys = Object.keys(byFecha);
+  // Ordenar: fechas abiertas primero, luego cerradas
+  const fechaKeys = Object.keys(byFecha).sort(function(a,b){
+    var aCerrada = byFecha[a][0] && byFecha[a][0].estado==='cerrada';
+    var bCerrada = byFecha[b][0] && byFecha[b][0].estado==='cerrada';
+    if(aCerrada && !bCerrada) return 1;
+    if(!aCerrada && bCerrada) return -1;
+    return 0;
+  });
   cont.innerHTML = fechaKeys.map(function(fecha, fi){
     const fps = byFecha[fecha];
     const cerrada = fps[0] && fps[0].estado === 'cerrada';
@@ -1587,8 +1576,9 @@ function renderTablaPublica(){
   sel.innerHTML='<option value="general">General — Súper Pozo</option>';
   todasFechas.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f+(cerradasSet.has(f)?'':' (en curso)'); sel.appendChild(o); });
   if(!sel.dataset.init){
-    const abiertas=todasFechas.filter(f=>!pozosHistorial[f]);
-    sel.value = abiertas.length ? abiertas[0] : 'general';
+    // Default: última fecha con partidos cerrados, o la primera abierta
+    const conCerrados=todasFechas.filter(f=>partidos.some(p=>p.fecha===f&&p.estado==='cerrada'));
+    sel.value = conCerrados.length ? conCerrados[conCerrados.length-1] : 'general';
     sel.dataset.init='1';
     document.getElementById('sec-pub-tabla')?.classList.add('open');
     document.getElementById('schev-tabla')?.classList.add('open');
@@ -1599,7 +1589,11 @@ function renderTablaPublica(){
   const ps=esGeneral?partidos.filter(p=>p.estado==='cerrada'):partidos.filter(p=>p.fecha===fechaSel&&p.estado==='cerrada');
   if(esGeneral && !ps.length){ cont.innerHTML='<p class="empty">Todavía no hay fechas cerradas.</p>'; return; }
   const _npPub=esGeneral?new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre)):noPrizeSetFecha(fechaSel);
-  const ranked=addRanks(participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_npPub);
+  // Filtrar participantes que no tienen ningún pronóstico en los partidos seleccionados
+  const partsConPron=esGeneral
+    ? participantes
+    : participantes.filter(part=>ps.some(p=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][part.nombre]; return pr&&!isNaN(pr.gl); }));
+  const ranked=addRanks(partsConPron.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre)})).sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),_npPub);
   let extra='';
   if(esGeneral){ const sp=superPozoTotal(); extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
   else if(!ps.length){ extra='<p class="empty">Esta fecha todavía no tiene resultados cerrados.</p>'; }
@@ -1712,6 +1706,132 @@ function showChatAdminStatus(){ const el=document.getElementById('chat-admin-sta
 
 function initChat(){ document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; showChatAdminStatus(); startChatPolling(); loadChatMsgs(); }
 
+// ── Partidos de hoy — ESPN API interna (sin API key, casi tiempo real) ────────
+const ESPN_WC_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
+
+async function renderPartidosHoy(){
+  const sec = document.getElementById('sec-partidos-hoy');
+  const cont = document.getElementById('partidos-hoy-content');
+  if(!sec || !cont) return;
+
+  // Fecha de hoy en formato YYYYMMDD para ESPN
+  var hoy = new Date();
+  var pad = function(n){ return n<10?'0'+n:String(n); };
+  var fechaEspn = String(hoy.getFullYear())+pad(hoy.getMonth()+1)+pad(hoy.getDate());
+
+  try {
+    var res = await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50', {cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var data = await res.json();
+    var events = data.events || [];
+
+    if(!events.length){ sec.style.display='none'; return; }
+    sec.style.display = '';
+
+    cont.innerHTML = events.map(function(ev){
+      var comp = ev.competitions && ev.competitions[0];
+      if(!comp) return '';
+
+      var comps = comp.competitors || [];
+      // ESPN: index 0 = home, index 1 = away (campo homeAway)
+      var home = comps.find(function(c){ return c.homeAway==='home'; }) || comps[0] || {};
+      var away = comps.find(function(c){ return c.homeAway==='away'; }) || comps[1] || {};
+
+      var t1 = home.team ? home.team.displayName||home.team.shortDisplayName||home.team.name : '?';
+      var t2 = away.team ? away.team.displayName||away.team.shortDisplayName||away.team.name : '?';
+      var flag1 = home.team && home.team.logo ? '<img src="'+home.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">' : '';
+      var flag2 = away.team && away.team.logo ? '<img src="'+away.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">' : '';
+
+      var status = comp.status && comp.status.type ? comp.status.type : {};
+      var completado = status.completed || false;
+      var enCurso = !completado && status.state==='in';
+      var score1 = home.score !== undefined ? home.score : null;
+      var score2 = away.score !== undefined ? away.score : null;
+      var hasScore = score1!==null && score2!==null && (completado||enCurso);
+
+      // Hora local argentina (UTC-3)
+      var horaHtml = '';
+      if(comp.date){
+        var d = new Date(comp.date);
+        var hh = d.getUTCHours()-3; if(hh<0)hh+=24;
+        var mm = pad(d.getUTCMinutes());
+        horaHtml = '<div style="font-size:11px;color:var(--text3);margin-top:3px">🕐 '+hh+':'+mm+' (ARG)</div>';
+      }
+
+      // Badge de estado
+      var estadoBadge = '';
+      if(enCurso){
+        var clock = comp.status && comp.status.displayClock ? comp.status.displayClock : '';
+        estadoBadge = '<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">EN VIVO '+clock+'</span>';
+      } else if(completado){
+        estadoBadge = '<span style="background:#166534;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">FINAL</span>';
+      }
+
+      var scoreHtml = hasScore
+        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
+        : '<div class="match-score pending" style="font-size:13px">vs</div>';
+
+      // Matching con partidos del prode por nombre
+      var matchProde = partidos.find(function(p){
+        var l = p.local.toLowerCase().slice(0,5);
+        var v = p.visitante.toLowerCase().slice(0,5);
+        var t1l = t1.toLowerCase().slice(0,5);
+        var t2l = t2.toLowerCase().slice(0,5);
+        return (l===t1l || t1l===l) && (v===t2l || t2l===v);
+      });
+
+      var pronsHtml = '';
+      if(matchProde){
+        var r = resultados[matchProde.id];
+        var hasR = r && !isNaN(r.gl);
+        var chips = participantes.map(function(part){
+          var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+          if(!pr || isNaN(pr.gl)) return '';
+          var pts = hasR ? calcPuntos(pr, r) : -1;
+          var color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0&&hasR?'#991b1b':'var(--text2)';
+          var medal = pts===3?'🎯':pts===1?'✓':'';
+          return '<span class="pron-chip">'
+            +'<span style="color:var(--text2);font-size:11px">'+part.nombre+'</span>'
+            +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
+            +(medal?'<span style="font-size:11px">'+medal+'</span>':'')
+            +'</span>';
+        }).filter(Boolean).join('');
+        if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
+      }
+
+      // Grupo
+      var notas = comp.notes || [];
+      var grupoTexto = '';
+      notas.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
+      var grupoHtml = grupoTexto ? '<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>' : '';
+
+      return '<div class="match-card">'
+        +'<div class="match-teams">'+grupoHtml
+        +'<div style="flex:1">'
+        +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<span>'+flag1+t1+'</span>'+scoreHtml+'<span>'+flag2+t2+'</span>'+estadoBadge
+        +'</div>'
+        +horaHtml
+        +'</div></div>'
+        +pronsHtml
+        +'</div>';
+    }).join('');
+
+  } catch(e){
+    console.warn('ESPN API error:', e);
+    sec.style.display = 'none';
+  }
+}
+
+// Refresh: cada 60s si hay partido en curso, cada 3min si no
+var hoyRefreshTimer = null;
+function startHoyRefresh(){
+  if(hoyRefreshTimer) clearInterval(hoyRefreshTimer);
+  hoyRefreshTimer = setInterval(function(){
+    if(!document.hidden) renderPartidosHoy();
+  }, 60000); // cada 60 segundos
+}
+
 // ── Importar partidos del día (Mundial 2026 — 17 jun 2026) ─────────────────
 const PARTIDOS_HOY_2026 = [
   {fecha:'Fecha 1',grupo:'K',local:'Portugal',visitante:'R.D. Congo',dt:'2026-06-17T14:00',estado:'cerrada'},
@@ -1751,6 +1871,8 @@ async function init(){
   setInterval(async()=>{ if(document.hidden) return; if(syncTimer) return; const ok2=await loadFromCloud(); if(ok2) refreshAll(); },60000);
   document.addEventListener('visibilitychange',async()=>{ if(!document.hidden&&!syncTimer){ const ok3=await loadFromCloud(); if(ok3) refreshAll(); } });
   startAutoRefresh();
+  renderPartidosHoy();
+  startHoyRefresh();
 }
 
 init();
