@@ -1821,16 +1821,22 @@ async function renderPartidosHoy(){
       if(matchProde){
         var rProde = resultados[matchProde.id];
         var hasRProde = rProde && !isNaN(rProde.gl);
+        // Resultado provisorio: si el admin todavía no cargó el oficial pero ESPN ya tiene marcador (en vivo o recién terminado)
+        var liveR = (!hasRProde && hasScore) ? {gl:score1, gv:score2} : null;
+        var rParaPuntos = hasRProde ? rProde : liveR;
+        var esProvisorio = !hasRProde && !!liveR;
         var chips = participantes.map(function(part){
           var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
           if(!pr || isNaN(pr.gl)) return '';
-          var pts = hasRProde ? calcPuntos(pr, rProde) : -1;
+          var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
           var color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0?'#991b1b':'var(--text3)';
           var medal = pts===3?'🎯':pts===1?'✓':'';
+          var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
           return '<span class="pron-chip">'
             +'<span style="color:var(--text2);font-size:11px">'+part.nombre+'</span>'
             +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
             +(medal?'<span style="font-size:11px">'+medal+'</span>':'')
+            +liveTag
             +'</span>';
         }).filter(Boolean).join('');
         if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
