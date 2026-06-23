@@ -187,6 +187,15 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 #chat-name-input{width:100%;margin-bottom:.75rem}
 #chat-name-err{font-size:12px;color:#fca5a5;margin-top:-4px;margin-bottom:.5rem;display:none}
 @media(max-width:420px){#chat-bubble{width:calc(100vw - 2rem)}}
+
+/* Drag to reorder partidos */
+.drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:2px 6px;user-select:none;flex-shrink:0;line-height:1}
+.drag-handle:active{cursor:grabbing}
+.partido-drag-item.dragging{opacity:.4;outline:2px dashed var(--accent);outline-offset:2px;border-radius:var(--radius)}
+.partido-drag-item.drag-over{border-top:3px solid var(--accent)}
+/* Toggle prons button */
+.btn-prons-toggle{background:rgba(42,122,26,.10);color:var(--text2);border:1px solid rgba(42,122,26,.25);font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s}
+.btn-prons-toggle:hover{background:rgba(42,122,26,.20);color:var(--text)}
 </style>
 </head>
 <body>
@@ -344,6 +353,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <button class="tab" onclick="showTab('tabla')">Tabla</button>
     <button class="tab" onclick="showTab('pozo')">Pozo</button>
     <button class="tab" onclick="showTab('bulk-resultados')">⚡ Carga masiva</button>
+    <button class="tab" onclick="showTab('bulk-pron')">🚀 Carga rápida prode</button>
     <button class="tab" onclick="showTab('chat-admin')">💬 Chat</button>
   </div>
 
@@ -437,6 +447,25 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
+  <div id="tab-bulk-pron" class="tab-sec">
+    <div class="card">
+      <div class="card-title">🚀 Carga rápida de pronósticos</div>
+      <div class="info-box" style="margin-bottom:.75rem">Cargá todos los pronósticos de una fecha para un participante. Solo ves el nombre del partido y el marcador.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div class="frow" style="margin-bottom:0"><label>Fecha</label>
+          <select id="bpron-fecha-sel" onchange="renderBulkPron()" style="width:150px"></select>
+        </div>
+        <div class="frow" style="margin-bottom:0"><label>Participante</label>
+          <select id="bpron-part-sel" onchange="renderBulkPron()" style="width:170px"></select>
+        </div>
+      </div>
+    </div>
+    <div id="bulk-pron-content"><p class="empty">Seleccioná fecha y participante.</p></div>
+    <div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="guardarBulkPron()">💾 Guardar pronósticos</button>
+      <button class="btn btn-ghost btn-sm" onclick="limpiarBulkPron()">🗑 Limpiar todos</button>
+    </div>
+  </div>
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
@@ -882,6 +911,7 @@ function showTab(t){
   if(t==='pozo')        renderPozo();
   if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
   if(t==='bulk-resultados'){ renderBulkResultados(); }
+  if(t==='bulk-pron'){ renderBulkPron(); }
 }
 
 function setTablaView(v,btn){ tablaView=v; document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTabla(); }
@@ -939,17 +969,27 @@ function renderPartidos(){
     const ps=partidos.filter(p=>p.fecha===f);
     const cerrada=ps[0]?.estado==='cerrada';
     return `<div class="fhdr">${f}<span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+      ${!cerrada?'<span style="font-size:11px;color:var(--text3);margin-left:6px;opacity:.7">⠿ arrastrá para reordenar</span>':''}
       <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="toggleFecha('${esc(f)}')">${cerrada?'🔓 Abrir':'🔒 Cerrar'}</button></div>`+
-    ps.map(p=>`<div class="card" style="padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
-      <div style="flex:1">
+    ps.map(p=>`<div class="card partido-drag-item" data-pid="${p.id}" style="padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap"
+        ${!cerrada?`draggable="true" ondragstart="dragStart(event,${p.id})" ondragover="dragOver(event)" ondrop="dragDrop(event,'${esc(f)}')" ondragend="dragEnd(event)" ondragleave="dragLeave(event)"`:''}>`+
+      `${!cerrada?'<span class="drag-handle" title="Arrastrar para reordenar">⠿</span>':''}`+
+      `${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}`+
+      `<div style="flex:1">
         <div style="font-size:14px;font-weight:500">${p.local} <span style="color:var(--text3);font-size:12px">vs</span> ${p.visitante}</div>
         ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:2px">📅 ${fmtDt(p.dt)}</div>`:''}
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="delPartido(${p.id})">✕</button>
+      </div>`+
+      `<button class="btn btn-danger btn-sm" onclick="delPartido(${p.id})">✕</button>
     </div>`).join('');
   }).join('');
 }
+
+var _dragId=null;
+function dragStart(e,pid){ _dragId=pid; setTimeout(()=>e.target.closest('.partido-drag-item')?.classList.add('dragging'),0); }
+function dragEnd(e){ e.target.closest('.partido-drag-item')?.classList.remove('dragging'); document.querySelectorAll('.partido-drag-item.drag-over').forEach(el=>el.classList.remove('drag-over')); }
+function dragOver(e){ e.preventDefault(); const el=e.target.closest('.partido-drag-item'); if(el&&el.dataset.pid!=_dragId) el.classList.add('drag-over'); }
+function dragLeave(e){ e.target.closest('.partido-drag-item')?.classList.remove('drag-over'); }
+function dragDrop(e,fecha){ e.preventDefault(); const target=e.target.closest('.partido-drag-item'); if(!target||!_dragId) return; target.classList.remove('drag-over'); const targetId=parseInt(target.dataset.pid); if(targetId===_dragId) return; const fi=partidos.findIndex(p=>p.id===_dragId); const ti=partidos.findIndex(p=>p.id===targetId); if(fi<0||ti<0) return; const [m]=partidos.splice(fi,1); partidos.splice(ti,0,m); persist(); renderPartidos(); toast('✓ Orden actualizado'); }
 
 function addParticipante(){
   const n=document.getElementById('part-nombre').value.trim();
@@ -2017,6 +2057,14 @@ async function renderPartidosHoy(){
       notas.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
       var grupoHtml = grupoTexto ? '<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>' : '';
 
+      var evId = ev.id || String(Math.random()).slice(2);
+      var hasProns = !!matchProde && participantes.some(function(part){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre]; return pr&&!isNaN(pr.gl); });
+      var pronsBtnHtml = hasProns
+        ? '<button class="btn-prons-toggle" onclick="togglePronView(\'pron-'+evId+'\')" style="margin-top:8px">👁 Ver pronósticos</button>'
+        : '';
+      var pronsWrapHtml = hasProns
+        ? '<div id="pron-'+evId+'" style="display:none">'+pronsHtml+'</div>'
+        : '';
       return '<div class="match-card">'
         +'<div class="match-teams">'+grupoHtml
         +'<div style="flex:1">'
@@ -2025,8 +2073,9 @@ async function renderPartidosHoy(){
         +'</div>'
         +horaHtml
         +goleadoresHtml
+        +pronsBtnHtml
         +'</div></div>'
-        +pronsHtml
+        +pronsWrapHtml
         +'</div>';
     }).join('');
 
@@ -2392,9 +2441,28 @@ async function renderPartidosManana(){
         var mm=pad(d.getUTCMinutes());
         horaHtml='<span style="font-size:11px;color:var(--text3);margin-left:8px">🕐 '+hh+':'+mm+' (ARG)</span>';
       }
-      return '<div class="match-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:.75rem 1rem">'
+      // Match con partidos del prode
+      var ESPN_NOMBRES_M={'united states':'estados unidos','usa':'estados unidos','south korea':'corea del sur','korea republic':'corea del sur','ivory coast':'costa de marfil','saudi arabia':'arabia saudita','spain':'espana','england':'inglaterra','netherlands':'paises bajos','holland':'paises bajos','new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega','denmark':'dinamarca','czech republic':'república checa','czechia':'república checa','north macedonia':'macedonia del norte','trinidad and tobago':'trinidad y tobago','democratic republic of congo':'r.d. congo','dr congo':'r.d. congo','cape verde':'cabo verde','ireland':'irlanda'};
+      function normTM(s){ s=s.toLowerCase().trim(); if(ESPN_NOMBRES_M[s]) s=ESPN_NOMBRES_M[s]; return s.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z]/g,''); }
+      var t1nm=normTM(t1),t2nm=normTM(t2);
+      function tmatch(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||a.includes(b.slice(0,6))||b.includes(a.slice(0,6)); }
+      var mpM=partidos.find(function(p){ var l=normTM(p.local),v=normTM(p.visitante); return tmatch(l,t1nm)&&tmatch(v,t2nm); });
+      var chipsM='';
+      if(mpM){
+        chipsM=participantes.map(function(part){ var pr=pronosticos[mpM.id]&&pronosticos[mpM.id][part.nombre]; if(!pr||isNaN(pr.gl)) return ''; return '<span class="pron-chip" style="background:var(--bg3);border:1px solid transparent;padding:5px 9px"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="margin-left:8px;color:var(--text)">'+pr.gl+'-'+pr.gv+'</span></span>'; }).filter(Boolean).join('');
+      }
+      var manEvId='man-'+(ev.id||String(Math.random()).slice(2));
+      var hasPronsM=chipsM.length>0;
+      var pronsBtnM=hasPronsM?'<button class="btn-prons-toggle" onclick="togglePronView(\''+manEvId+'\')" style="margin-top:8px;margin-left:0">👁 Ver pronósticos</button>':'';
+      var pronsWrapM=hasPronsM?'<div id="'+manEvId+'" style="display:none"><div class="match-prons">'+chipsM+'</div></div>':'';
+      return '<div class="match-card" style="padding:.75rem 1rem">'
+        +'<div class="match-teams" style="flex-wrap:wrap;gap:8px">'
         +'<div style="flex:1;font-size:14px;font-weight:500">'+flag1+t1+' <span style="color:var(--text3)">vs</span> '+flag2+t2+'</div>'
-        +horaHtml+'</div>';
+        +horaHtml
+        +'</div>'
+        +pronsBtnM
+        +pronsWrapM
+        +'</div>';
     }).join('');
   }catch(e){ sec.style.display='none'; }
 }
@@ -2605,6 +2673,77 @@ function buildFixtureHTML(events){
       +'</div>';
   }).join('');
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// ── BULK PRONÓSTICOS (carga rápida por fecha/participante) ────────────
+// ══════════════════════════════════════════════════════════════════════
+function renderBulkPron(){
+  var fSel=document.getElementById('bpron-fecha-sel');
+  var pSel=document.getElementById('bpron-part-sel');
+  var cont=document.getElementById('bulk-pron-content');
+  if(!fSel||!pSel||!cont) return;
+  var fechas=getFechas().filter(function(f){ return partidos.some(function(p){ return p.fecha===f && p.estado!=='cerrada'; }); });
+  var curF=fSel.value, curP=pSel.value;
+  fSel.innerHTML=fechas.map(function(f){ return '<option value="'+esc(f)+'"'+(f===curF?' selected':'')+'>'+f+'</option>'; }).join('');
+  if(!fSel.value && fechas.length) fSel.value=fechas[0];
+  pSel.innerHTML=participantes.map(function(p){ return '<option value="'+esc(p.nombre)+'"'+(p.nombre===curP?' selected':'')+'>'+p.nombre+'</option>'; }).join('');
+  var f=fSel.value, nombre=pSel.value;
+  if(!f||!nombre){ cont.innerHTML='<p class="empty">Sin fechas abiertas o participantes.</p>'; return; }
+  var ps=partidos.filter(function(p){ return p.fecha===f && p.estado!=='cerrada'; });
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos abiertos en esta fecha.</p>'; return; }
+  var total=ps.length;
+  var cargados=ps.filter(function(p){ var pr=pronosticos[p.id]&&pronosticos[p.id][nombre]; return pr&&!isNaN(pr.gl); }).length;
+  cont.innerHTML='<div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">'+cargados+'/'+total+' pronósticos cargados para <strong style="color:var(--text)">'+nombre+'</strong></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">'
+    +ps.map(function(p){
+      var pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+      var has=pr&&!isNaN(pr.gl);
+      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+        +'<div style="font-size:13px;font-weight:600;flex:1">'
+        +(p.grupo?'<span class="badge b-group" style="margin-right:4px;font-size:11px">G-'+p.grupo+'</span>':'')
+        +p.local+' <span style="color:var(--text3);font-weight:400">vs</span> '+p.visitante
+        +(has?'<span class="badge b-exact" style="margin-left:6px;font-size:10px">✓ '+pr.gl+'-'+pr.gv+'</span>':'')
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+        +'<input type="number" id="bpgl_'+p.id+'" min="0" max="20" value="'+(has?pr.gl:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
+        +'<span style="font-size:18px;color:var(--text3)">-</span>'
+        +'<input type="number" id="bpgv_'+p.id+'" min="0" max="20" value="'+(has?pr.gv:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+
+function guardarBulkPron(){
+  var f=document.getElementById('bpron-fecha-sel')?.value;
+  var nombre=document.getElementById('bpron-part-sel')?.value;
+  if(!f||!nombre) return;
+  var ps=partidos.filter(function(p){ return p.fecha===f && p.estado!=='cerrada'; });
+  var n=0;
+  ps.forEach(function(p){
+    var gl=parseInt(document.getElementById('bpgl_'+p.id)?.value);
+    var gv=parseInt(document.getElementById('bpgv_'+p.id)?.value);
+    if(!isNaN(gl)&&!isNaN(gv)){ if(!pronosticos[p.id]) pronosticos[p.id]={}; pronosticos[p.id][nombre]={gl,gv}; n++; }
+  });
+  if(n){ persist(); renderBulkPron(); refreshAll(); toast('✓ '+n+' pronóstico'+(n!==1?'s':'')+' guardados para '+nombre); }
+  else toast('No hay pronósticos para guardar','error');
+}
+
+function limpiarBulkPron(){
+  var f=document.getElementById('bpron-fecha-sel')?.value;
+  var nombre=document.getElementById('bpron-part-sel')?.value;
+  if(!f||!nombre||!confirm('¿Limpiar todos los pronósticos de '+nombre+' en '+f+'?')) return;
+  partidos.filter(function(p){ return p.fecha===f; }).forEach(function(p){ if(pronosticos[p.id]) delete pronosticos[p.id][nombre]; });
+  persist(); renderBulkPron(); toast('Pronósticos borrados');
+}
+
+
+function togglePronView(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var btn=el.previousElementSibling;
+  if(el.style.display==='none'){ el.style.display=''; if(btn) btn.textContent='🙈 Ocultar pronósticos'; }
+  else { el.style.display='none'; if(btn) btn.textContent='👁 Ver pronósticos'; }
+}
+
 
 async function init(){
   loadLocal(); applyRole(); refreshAll();
