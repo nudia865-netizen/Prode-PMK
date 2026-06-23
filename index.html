@@ -2060,7 +2060,7 @@ async function renderPartidosHoy(){
       var evId = ev.id || String(Math.random()).slice(2);
       var hasProns = !!matchProde && participantes.some(function(part){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre]; return pr&&!isNaN(pr.gl); });
       var pronsBtnHtml = hasProns
-        ? '<button class="btn-prons-toggle" onclick="togglePronView(\'pron-'+evId+'\')" style="margin-top:8px">👁 Ver pronósticos</button>'
+        ? '<button class="btn-prons-toggle" onclick="togglePronView(\'pron-'+evId+'\',this)" style="margin-top:8px">👁 Ver pronósticos</button>'
         : '';
       var pronsWrapHtml = hasProns
         ? '<div id="pron-'+evId+'" style="display:none">'+pronsHtml+'</div>'
@@ -2453,7 +2453,7 @@ async function renderPartidosManana(){
       }
       var manEvId='man-'+(ev.id||String(Math.random()).slice(2));
       var hasPronsM=chipsM.length>0;
-      var pronsBtnM=hasPronsM?'<button class="btn-prons-toggle" onclick="togglePronView(\''+manEvId+'\')" style="margin-top:8px;margin-left:0">👁 Ver pronósticos</button>':'';
+      var pronsBtnM=hasPronsM?'<button class="btn-prons-toggle" onclick="togglePronView(\''+manEvId+'\',this)" style="margin-top:8px;margin-left:0">👁 Ver pronósticos</button>':'';
       var pronsWrapM=hasPronsM?'<div id="'+manEvId+'" style="display:none"><div class="match-prons">'+chipsM+'</div></div>':'';
       return '<div class="match-card" style="padding:.75rem 1rem">'
         +'<div class="match-teams" style="flex-wrap:wrap;gap:8px">'
@@ -2736,10 +2736,10 @@ function limpiarBulkPron(){
 }
 
 
-function togglePronView(id){
+function togglePronView(id,btn){
   var el=document.getElementById(id);
   if(!el) return;
-  var btn=el.previousElementSibling;
+  if(!btn){ btn=document.querySelector('[onclick*="togglePronView(\''+id+'\'"]'); }
   if(el.style.display==='none'){ el.style.display=''; if(btn) btn.textContent='🙈 Ocultar pronósticos'; }
   else { el.style.display='none'; if(btn) btn.textContent='👁 Ver pronósticos'; }
 }
