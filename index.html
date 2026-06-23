@@ -1535,9 +1535,9 @@ function renderPartidosPublicos(){
       +'<span>'+fecha+'</span>'
       +'<span style="font-size:12px;color:var(--text3);font-weight:400">'+fps.length+' partido'+(fps.length!==1?'s':'')+'</span>'
       +'</div>'
-      +'<span class="fh-chev'+(isFirst?' open':'')+'" id="'+chevId+'">&#9658;</span>'
+      +'<span class="fh-chev'+(!cerrada?' open':'')+'" id="'+chevId+'">&#9658;</span>'
       +'</div>'
-      +'<div class="fecha-body'+(isFirst?' open':'')+'" id="'+bodyId+'">'+cards+'</div>'
+      +'<div class="fecha-body'+(!cerrada?' open':'')+'" id="'+bodyId+'">'+cards+'</div>'
       +'</div>';
   }).join('');
 }
@@ -1807,6 +1807,7 @@ async function renderPartidosHoy(){
         'north korea':'corea del norte',
         'ivory coast':'costa de marfil',"cote d'ivoire":'costa de marfil',
         'saudi arabia':'arabia saudita','spain':'espana',
+        'england':'inglaterra','ghana':'ghana',
         'iran':'iran','ir iran':'iran',
         'cape verde':'cabo verde',
         'democratic republic of congo':'r.d. congo','dr congo':'r.d. congo','congo dr':'r.d. congo',
