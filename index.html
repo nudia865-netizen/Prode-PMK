@@ -320,6 +320,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <nav class="hnav" id="main-nav">
     <a id="nav-admin" onclick="showPage('admin',this)" style="display:none">⚙️ Admin</a>
     <a id="nav-pub" class="active" onclick="showPage('partidos-pub',this)">🏆 Prode</a>
+    <a id="nav-fixture" onclick="showPage('fixture',this)">📅 Fixture</a>
     <a id="nav-grupos" onclick="showPage('grupos',this)">🌍 Grupos</a>
   </nav>
   <div class="hright">
@@ -342,6 +343,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <button class="tab" onclick="showTab('resumen')">📋 Resumen</button>
     <button class="tab" onclick="showTab('tabla')">Tabla</button>
     <button class="tab" onclick="showTab('pozo')">Pozo</button>
+    <button class="tab" onclick="showTab('bulk-resultados')">⚡ Carga masiva</button>
     <button class="tab" onclick="showTab('chat-admin')">💬 Chat</button>
   </div>
 
@@ -420,6 +422,21 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="pozo-content"></div>
   </div>
 
+
+  <div id="tab-bulk-resultados" class="tab-sec">
+    <div class="card">
+      <div class="card-title">⚡ Carga masiva de resultados</div>
+      <div class="info-box">Cargá todos los resultados de una fecha de una sola vez. Solo se actualizan los campos que completes.</div>
+      <div class="frow"><label>Fecha</label>
+        <select id="bulk-fecha-sel" onchange="renderBulkResultados()" style="width:160px"></select>
+      </div>
+    </div>
+    <div id="bulk-resultados-content"><p class="empty">Seleccioná una fecha arriba.</p></div>
+    <div style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="guardarBulkResultados()">💾 Guardar todos los resultados</button>
+    </div>
+  </div>
+
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
@@ -443,6 +460,9 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <!-- POZOS PENDIENTES — fila superior -->
   <div id="pozos-top-row" class="pozos-top-row"></div>
 
+  <!-- HIGHLIGHTS — racha y mejor de fecha -->
+  <div id="highlights-row" style="display:none;margin-bottom:.75rem"></div>
+
   <!-- BANNER FECHA 3 -->
   <div class="fecha2-banner" style="margin-bottom:.75rem">
     <div style="font-size:28px">⚽</div>
@@ -457,6 +477,12 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
     <div id="partidos-hoy-content"></div>
+  </div>
+
+  <!-- PARTIDOS DE MAÑANA -->
+  <div id="sec-partidos-manana" style="margin-bottom:.75rem;display:none">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de mañana</div>
+    <div id="partidos-manana-content"></div>
   </div>
 
   <!-- TABLA -->
@@ -524,6 +550,11 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div class="fecha-body" id="sec-pub-pozo">
       <div id="pozo-pub-partidos"></div>
       <div id="pozo-pub" style="display:none"></div>
+      <!-- Mini top-3 Súper Pozo -->
+      <div id="mini-top3-wrap" style="margin-top:.5rem">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">🏆 Líderes Súper Pozo</div>
+        <div id="mini-top3-content" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem"></div>
+      </div>
     </div>
   </div>
 
@@ -551,6 +582,27 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   </div>
   <div class="info-box">Esta tabla es solo informativa y <strong>no afecta al Prode</strong> (no toca pronósticos ni puntajes). 🟢 1°-2°: clasifican directo a 32avos · 🟡 3°: avanza el mejor de los 8 terceros · 🔴 4°: eliminado.</div>
   <div id="grupos-content"><p class="empty">Cargando grupos…</p></div>
+</div>
+
+
+<!-- PÁGINA FIXTURE — Mundial 2026 completo -->
+<div id="page-fixture" class="page" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+    <div>
+      <div style="font-size:20px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif">📅 Fixture — Mundial 2026</div>
+      <div style="font-size:12px;color:var(--text2)" id="fixture-updated">Cargando…</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select id="fixture-fase-sel" onchange="renderFixture()" style="font-size:13px">
+        <option value="todas">Todas las fases</option>
+        <option value="grupos">Fase de Grupos</option>
+        <option value="eliminacion">Eliminación Directa</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="renderFixture(true)">🔄 Actualizar</button>
+    </div>
+  </div>
+  <div class="info-box">Fixture completo del Mundial 2026 con resultados en tiempo real vía ESPN. Los horarios están en hora argentina (UTC-3).</div>
+  <div id="fixture-content"><p class="empty">Cargando fixture…</p></div>
 </div>
 
 <div id="page-personas" class="page" style="display:none"></div>
@@ -817,13 +869,15 @@ function showPage(p,el){
   if(el) el.classList.add('active');
   if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
   if(p==='grupos'){ renderGrupos(); }
+  if(p==='fixture'){ renderFixture(); }
+  if(p==='partidos-pub'){ renderHighlights(); renderMiniTop3(); renderPartidosManana(); }
 }
 
 function showTab(t){
   document.querySelectorAll('#admin-tabs .tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','chat-admin'];
+  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','bulk-resultados','chat-admin'];
   const idx=tabs.indexOf(t); if(idx>=0) document.querySelectorAll('#admin-tabs .tab')[idx].classList.add('active');
   if(t==='pronosticos') renderPronosticos();
   if(t==='resultados')  renderResultados();
@@ -831,6 +885,7 @@ function showTab(t){
   if(t==='tabla')       renderTabla();
   if(t==='pozo')        renderPozo();
   if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
+  if(t==='bulk-resultados'){ renderBulkResultados(); }
 }
 
 function setTablaView(v,btn){ tablaView=v; document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTabla(); }
@@ -850,6 +905,7 @@ function refreshAll(){
   if(at==='tabla')       renderTabla();
   if(document.getElementById('page-partidos-pub').classList.contains('active')){
     renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub();
+    renderHighlights(); renderMiniTop3();
   }
 }
 
@@ -2199,6 +2255,319 @@ function startGruposRefresh(){
   }, 180000); // cada 3 minutos, solo si la pestaña está abierta
 }
 
+
+// ══════════════════════════════════════════════════════════════════════
+// ── HIGHLIGHTS — racha y mejor de la última fecha cerrada ─────────────
+// ══════════════════════════════════════════════════════════════════════
+function calcRachaActual(nombre){
+  // todos los partidos cerrados ordenados por fecha/id
+  const cerrados = partidos.filter(p=>p.estado==='cerrada').sort((a,b)=>a.id-b.id);
+  let racha=0;
+  for(let i=cerrados.length-1;i>=0;i--){
+    const p=cerrados[i];
+    const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+    if(!r||r.gl===undefined||isNaN(r.gl)) continue;
+    if(!pr||isNaN(pr.gl)) break;
+    const pts=calcPuntos(pr,r);
+    if(pts>0) racha++;
+    else break;
+  }
+  return racha;
+}
+
+function renderHighlights(){
+  const row=document.getElementById('highlights-row');
+  if(!row) return;
+  if(!participantes.length){ row.style.display='none'; return; }
+
+  // Racha máxima actual
+  const rachas = participantes.map(p=>({nombre:p.nombre,racha:calcRachaActual(p.nombre)})).filter(r=>r.racha>0);
+  rachas.sort((a,b)=>b.racha-a.racha);
+  const topRacha = rachas[0]||null;
+
+  // Mejor de la última fecha cerrada
+  const fechasCerradas = [...new Set(partidos.filter(p=>p.estado==='cerrada').map(p=>p.fecha))];
+  const ultimaFecha = fechasCerradas[fechasCerradas.length-1]||null;
+  let mejorFecha = null;
+  if(ultimaFecha){
+    const ps=partidos.filter(p=>p.fecha===ultimaFecha&&p.estado==='cerrada');
+    const scores=participantes.map(p=>({nombre:p.nombre,...getScores(ps,p.nombre)})).filter(s=>s.jugados>0);
+    scores.sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos);
+    if(scores[0]) mejorFecha={nombre:scores[0].nombre,pts:scores[0].pts,exactos:scores[0].exactos,fecha:ultimaFecha};
+  }
+
+  if(!topRacha&&!mejorFecha){ row.style.display='none'; return; }
+  row.style.display='';
+
+  let html='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+  if(topRacha&&topRacha.racha>=2){
+    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(251,191,36,.04));border:1px solid rgba(251,191,36,.3);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
+      +'<div style="font-size:28px">🔥</div>'
+      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Racha activa</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+topRacha.nombre+'</div>'
+      +'<div style="font-size:12px;color:#fbbf24;font-weight:600">'+topRacha.racha+' aciertos seguidos</div>'
+      +'</div></div>';
+  }
+  if(mejorFecha){
+    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.04));border:1px solid rgba(96,165,250,.25);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
+      +'<div style="font-size:28px">⭐</div>'
+      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Mejor de '+esc(mejorFecha.fecha)+'</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+mejorFecha.nombre+'</div>'
+      +'<div style="font-size:12px;color:#93c5fd;font-weight:600">'+mejorFecha.pts+' pts · '+mejorFecha.exactos+' exacto'+(mejorFecha.exactos!==1?'s':'')+'</div>'
+      +'</div></div>';
+  }
+  html+='</div>';
+  row.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── PARTIDOS DE MAÑANA ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+async function renderPartidosManana(){
+  const sec=document.getElementById('sec-partidos-manana');
+  const cont=document.getElementById('partidos-manana-content');
+  if(!sec||!cont) return;
+  var pad=function(n){ return n<10?'0'+n:String(n); };
+  var man=new Date(); man.setDate(man.getDate()+1);
+  var fechaEspn=String(man.getFullYear())+pad(man.getMonth()+1)+pad(man.getDate());
+  try{
+    var res=await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50',{cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var data=await res.json();
+    var events=data.events||[];
+    if(!events.length){ sec.style.display='none'; return; }
+    sec.style.display='';
+    cont.innerHTML=events.map(function(ev){
+      var comp=ev.competitions&&ev.competitions[0];
+      if(!comp) return '';
+      var comps=comp.competitors||[];
+      var home=comps.find(function(c){ return c.homeAway==='home'; })||comps[0]||{};
+      var away=comps.find(function(c){ return c.homeAway==='away'; })||comps[1]||{};
+      var t1=home.team?(home.team.displayName||home.team.shortDisplayName||home.team.name):'?';
+      var t2=away.team?(away.team.displayName||away.team.shortDisplayName||away.team.name):'?';
+      var flag1=home.team&&home.team.logo?'<img src="'+home.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
+      var flag2=away.team&&away.team.logo?'<img src="'+away.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
+      var horaHtml='';
+      if(comp.date){
+        var d=new Date(comp.date);
+        var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
+        var mm=pad(d.getUTCMinutes());
+        horaHtml='<span style="font-size:11px;color:var(--text3);margin-left:8px">🕐 '+hh+':'+mm+' (ARG)</span>';
+      }
+      return '<div class="match-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:.75rem 1rem">'
+        +'<div style="flex:1;font-size:14px;font-weight:500">'+flag1+t1+' <span style="color:var(--text3)">vs</span> '+flag2+t2+'</div>'
+        +horaHtml+'</div>';
+    }).join('');
+  }catch(e){ sec.style.display='none'; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── MINI TOP-3 SUPERPOZO (en sección pozos públicos) ──────────────────
+// ══════════════════════════════════════════════════════════════════════
+function renderMiniTop3(){
+  var cont=document.getElementById('mini-top3-content');
+  if(!cont) return;
+  if(!participantes.length){ cont.innerHTML=''; return; }
+  var ps=partidos.filter(function(p){ return p.estado==='cerrada'; });
+  if(!ps.length){ cont.innerHTML=''; return; }
+  var scores=participantes.map(function(p){ return {nombre:p.nombre,pts:getScores(ps,p.nombre).pts,exactos:getScores(ps,p.nombre).exactos}; });
+  scores.sort(function(a,b){ return b.pts-a.pts||b.exactos-a.exactos; });
+  var top3=scores.slice(0,3);
+  var medals=['🥇','🥈','🥉'];
+  cont.innerHTML=top3.map(function(s,i){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:7px">'
+      +'<span style="font-size:16px">'+medals[i]+'</span>'
+      +'<span style="font-size:13px;font-weight:600;color:var(--text)">'+s.nombre+'</span>'
+      +'</div>'
+      +'<span style="font-family:Barlow Condensed,sans-serif;font-size:18px;font-weight:700;color:var(--accent)">'+s.pts+' pts</span>'
+      +'</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── BULK RESULTADOS (carga masiva admin) ──────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+function renderBulkResultados(){
+  var cont=document.getElementById('bulk-resultados-content');
+  var sel=document.getElementById('bulk-fecha-sel');
+  if(!cont||!sel) return;
+  var fechas=getFechas();
+  var curVal=sel.value;
+  sel.innerHTML=fechas.map(function(f){ return '<option value="'+esc(f)+'"'+(f===curVal?' selected':'')+'>'+f+'</option>'; }).join('');
+  if(!sel.value&&fechas.length){ sel.value=fechas[fechas.length-1]; }
+  var f=sel.value;
+  var ps=partidos.filter(function(p){ return p.fecha===f; });
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos en esta fecha.</p>'; return; }
+  cont.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-top:.5rem">'
+    +ps.map(function(p){
+      var r=resultados[p.id]; var has=r&&!isNaN(r.gl);
+      return '<div class="card" style="padding:.875rem 1rem">'
+        +'<div style="font-size:13px;font-weight:600;margin-bottom:.5rem">'
+        +(p.grupo?'<span class="badge b-group" style="margin-right:4px">G-'+p.grupo+'</span>':'')
+        +p.local+' <span style="color:var(--text3)">vs</span> '+p.visitante+'</div>'
+        +(p.dt?'<div style="font-size:11px;color:var(--text3);margin-bottom:.5rem">📅 '+fmtDt(p.dt)+'</div>':'')
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<input type="number" id="bulk_gl_'+p.id+'" min="0" max="20" value="'+(has?r.gl:'')+'" placeholder="—" style="width:56px;font-size:18px;font-family:Barlow Condensed,sans-serif;font-weight:600;text-align:center">'
+        +'<span style="font-size:20px;color:var(--text3)">-</span>'
+        +'<input type="number" id="bulk_gv_'+p.id+'" min="0" max="20" value="'+(has?r.gv:'')+'" placeholder="—" style="width:56px;font-size:18px;font-family:Barlow Condensed,sans-serif;font-weight:600;text-align:center">'
+        +(has?'<span class="badge b-win" style="margin-left:4px">✓ '+r.gl+'-'+r.gv+'</span>':'')
+        +'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+}
+
+function guardarBulkResultados(){
+  var sel=document.getElementById('bulk-fecha-sel');
+  var f=sel&&sel.value;
+  if(!f) return;
+  var ps=partidos.filter(function(p){ return p.fecha===f; });
+  var guardados=0;
+  ps.forEach(function(p){
+    var glEl=document.getElementById('bulk_gl_'+p.id);
+    var gvEl=document.getElementById('bulk_gv_'+p.id);
+    if(!glEl||!gvEl) return;
+    var gl=parseInt(glEl.value), gv=parseInt(gvEl.value);
+    if(!isNaN(gl)&&!isNaN(gv)){ resultados[p.id]={gl,gv}; guardados++; }
+  });
+  if(guardados){ persist(); renderBulkResultados(); renderResultados(); refreshAll(); toast('✓ '+guardados+' resultado'+(guardados!==1?'s':'')+' guardados'); }
+  else toast('No hay resultados para guardar','error');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── FIXTURE COMPLETO ESPN ─────────────────────────════════════════════
+// ══════════════════════════════════════════════════════════════════════
+const ESPN_WC_SCHEDULE_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
+var fixtureCache = null;
+var fixtureLastFetch = 0;
+
+async function fetchFixtureRange(){
+  // Fetch 3 date ranges to cover the whole tournament
+  var pad=function(n){ return n<10?'0'+n:String(n); };
+  var ranges=['20260611-20260625','20260625-20260710','20260710-20260720'];
+  var allEvents=[];
+  for(var i=0;i<ranges.length;i++){
+    try{
+      var res=await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates='+ranges[i]+'&limit=100',{cache:'no-cache'});
+      if(!res.ok) continue;
+      var data=await res.json();
+      var ev=data.events||[];
+      ev.forEach(function(e){ if(!allEvents.find(function(x){ return x.id===e.id; })) allEvents.push(e); });
+    }catch(e){}
+  }
+  return allEvents;
+}
+
+async function renderFixture(force){
+  var cont=document.getElementById('fixture-content');
+  var upd=document.getElementById('fixture-updated');
+  if(!cont) return;
+  if(upd) upd.textContent='Cargando…';
+  cont.innerHTML='<p class="empty" style="padding:2rem">Buscando partidos…</p>';
+  var now=Date.now();
+  if(!force && fixtureCache && (now-fixtureLastFetch)<180000){
+    buildFixtureHTML(fixtureCache);
+    return;
+  }
+  var events=await fetchFixtureRange();
+  if(!events.length){ cont.innerHTML='<p class="empty">No se pudieron cargar los partidos. Intentá de nuevo.</p>'; if(upd) upd.textContent='Error al cargar'; return; }
+  fixtureCache=events; fixtureLastFetch=now;
+  buildFixtureHTML(events);
+  if(upd){ var d=new Date(); upd.textContent='🟢 Actualizado '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  function pad2(n){ return n<10?'0'+n:String(n); }
+}
+
+function buildFixtureHTML(events){
+  var cont=document.getElementById('fixture-content');
+  var faseSel=document.getElementById('fixture-fase-sel'); var fase=faseSel?faseSel.value:'todas';
+  var pad=function(n){ return n<10?'0'+n:String(n); };
+
+  // Group by date
+  var byDate={};
+  events.forEach(function(ev){
+    var comp=ev.competitions&&ev.competitions[0];
+    if(!comp) return;
+    var dateStr=comp.date?comp.date.split('T')[0]:'sin-fecha';
+    // Filter by phase if needed
+    var name=(ev.name||'').toLowerCase();
+    var notes=(comp.notes||[]).map(function(n){ return (n.headline||n.text||'').toLowerCase(); }).join(' ');
+    var isGrupos=name.includes('group')||notes.includes('group')||notes.includes('fase de grupos')||(ev.competitions&&ev.competitions[0]&&ev.competitions[0].groups&&ev.competitions[0].groups.length);
+    var isElim=!isGrupos&&(name.includes('round')||name.includes('final')||notes.includes('eliminat')||notes.includes('knockout'));
+    if(fase==='grupos'&&isElim) return;
+    if(fase==='eliminacion'&&!isElim&&!name.includes('final')&&!name.includes('semi')) return;
+    if(!byDate[dateStr]) byDate[dateStr]=[];
+    byDate[dateStr].push(ev);
+  });
+
+  var dates=Object.keys(byDate).sort();
+  if(!dates.length){ cont.innerHTML='<p class="empty">No hay partidos para este filtro.</p>'; return; }
+
+  cont.innerHTML=dates.map(function(dateStr){
+    var evs=byDate[dateStr];
+    var label='';
+    if(dateStr!=='sin-fecha'){
+      var d=new Date(dateStr+'T12:00:00Z');
+      label=d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+      label=label.charAt(0).toUpperCase()+label.slice(1);
+    } else { label='Sin fecha'; }
+
+    // Check if any event today
+    var todayStr=new Date().toISOString().split('T')[0];
+    var isHoy=dateStr===todayStr;
+
+    var evHtml=evs.map(function(ev){
+      var comp=ev.competitions&&ev.competitions[0];
+      if(!comp) return '';
+      var comps=comp.competitors||[];
+      var home=comps.find(function(c){ return c.homeAway==='home'; })||comps[0]||{};
+      var away=comps.find(function(c){ return c.homeAway==='away'; })||comps[1]||{};
+      var t1=home.team?(home.team.displayName||home.team.shortDisplayName||'?'):'?';
+      var t2=away.team?(away.team.displayName||away.team.shortDisplayName||'?'):'?';
+      var logo1=home.team&&home.team.logo?'<img src="'+home.team.logo+'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0">':'<span style="font-size:18px">🏳</span>';
+      var logo2=away.team&&away.team.logo?'<img src="'+away.team.logo+'" style="width:22px;height:22px;object-fit:contain;flex-shrink:0">':'<span style="font-size:18px">🏳</span>';
+      var status=comp.status&&comp.status.type?comp.status.type:{};
+      var completado=status.completed||false;
+      var enCurso=!completado&&status.state==='in';
+      var score1=home.score!==undefined?home.score:null;
+      var score2=away.score!==undefined?away.score:null;
+      var hasScore=score1!==null&&score2!==null&&(completado||enCurso);
+      var horaHtml='';
+      if(comp.date){
+        var d=new Date(comp.date);
+        var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
+        var mm=pad(d.getUTCMinutes());
+        horaHtml='<span style="font-size:11px;color:var(--text3);min-width:40px">'+hh+':'+mm+'</span>';
+      }
+      var scoreHtml=hasScore
+        ?('<span style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:700;color:'+(enCurso?'#fbbf24':'var(--accent)')+'">'+score1+' - '+score2+'</span>')
+        :'<span style="font-size:13px;color:var(--text3)">vs</span>';
+      var badge='';
+      if(enCurso){ var clk=comp.status&&comp.status.displayClock?comp.status.displayClock:''; badge='<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">🔴 '+clk+'</span>'; }
+      else if(completado) badge='<span style="background:#166534;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">FINAL</span>';
+      // Round/group label
+      var ronda='';
+      var notes2=(comp.notes||[]).map(function(n){ return n.headline||n.text||''; }).filter(Boolean).join(' · ');
+      if(notes2) ronda='<span style="font-size:10px;color:var(--text3);margin-left:6px">'+notes2+'</span>';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">'
+        +horaHtml
+        +'<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:200px;flex-wrap:wrap">'
+        +logo1+'<span style="font-size:13px;font-weight:600">'+t1+'</span>'
+        +scoreHtml
+        +'<span style="font-size:13px;font-weight:600">'+t2+'</span>'+logo2
+        +'</div>'
+        +badge+ronda
+        +'</div>';
+    }).join('');
+
+    return '<div style="margin-bottom:.75rem">'
+      +'<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:'+(isHoy?'var(--accent)':'var(--text2)')+';padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:4px;display:flex;align-items:center;gap:8px">'
+      +(isHoy?'<span style="background:var(--accent);color:#071200;font-size:10px;padding:1px 6px;border-radius:3px">HOY</span>':'')
+      +label+'</div>'
+      +'<div style="padding:0 4px">'+evHtml+'</div>'
+      +'</div>';
+  }).join('');
+}
+
 async function init(){
   loadLocal(); applyRole(); refreshAll();
   const ok=await loadFromCloud();
@@ -2208,6 +2577,9 @@ async function init(){
   document.addEventListener('visibilitychange',async()=>{ if(!document.hidden&&!syncTimer){ const ok3=await loadFromCloud(); if(ok3) refreshAll(); } });
   startAutoRefresh();
   renderPartidosHoy();
+  renderPartidosManana();
+  renderHighlights();
+  renderMiniTop3();
   startHoyRefresh();
   startGruposRefresh();
 }
