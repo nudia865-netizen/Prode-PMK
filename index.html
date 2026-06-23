@@ -550,11 +550,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div class="fecha-body" id="sec-pub-pozo">
       <div id="pozo-pub-partidos"></div>
       <div id="pozo-pub" style="display:none"></div>
-      <!-- Mini top-3 Súper Pozo -->
-      <div id="mini-top3-wrap" style="margin-top:.5rem">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px">🏆 Líderes Súper Pozo</div>
-        <div id="mini-top3-content" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem"></div>
-      </div>
+
     </div>
   </div>
 
@@ -1341,6 +1337,56 @@ function renderPozo(){
   </div>`;
 }
 
+
+// ── Helper: tarjeta Súper Pozo + líderes generales + líderes por fecha ─────
+function buildTop3Rows(scores3, medals){
+  if(!scores3.length) return '<div style="font-size:11px;color:var(--text3);padding:6px 0">Sin datos aún</div>';
+  return scores3.map(function(s,i){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:16px;line-height:1">'+(medals[i]||'&middot;')+'</span>'
+      +'<span style="font-size:12px;font-weight:600;color:var(--text)">'+s.nombre+'</span>'
+      +'</div>'
+      +'<span style="font-family:Barlow Condensed,sans-serif;font-size:17px;font-weight:700;color:var(--accent)">'+s.pts+' pts</span>'
+      +'</div>';
+  }).join('');
+}
+
+function buildSpTopCard(spTotal){
+  var medals=['&#x1F947;','&#x1F948;','&#x1F949;'];
+  var ps=partidos.filter(function(p){ return p.estado==='cerrada'; });
+  var scores=participantes.map(function(p){ var s=getScores(ps,p.nombre); return {nombre:p.nombre,pts:s.pts,exactos:s.exactos}; });
+  scores.sort(function(a,b){ return b.pts-a.pts||b.exactos-a.exactos; });
+  var top3=scores.filter(function(s){ return s.pts>0; }).slice(0,3);
+  var lidHtml=top3.length
+    ? '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+buildTop3Rows(top3,medals)+'</div>'
+    : '';
+  return '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">'
+    +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
+    +'<div class="ptp-amount" style="margin-top:4px">$'+spTotal.toLocaleString('es-AR')+'</div>'
+    +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
+    +lidHtml
+    +'</div>';
+}
+
+function buildFechaTop3Cards(){
+  var medals=['&#x1F947;','&#x1F948;','&#x1F949;'];
+  var fechasCerradas=[...new Set(partidos.filter(function(p){ return p.estado==='cerrada'; }).map(function(p){ return p.fecha; }))];
+  if(!fechasCerradas.length) return '';
+  return fechasCerradas.map(function(f){
+    var ps=partidos.filter(function(p){ return p.fecha===f&&p.estado==='cerrada'; });
+    var scores=participantes.map(function(p){ var s=getScores(ps,p.nombre); return {nombre:p.nombre,pts:s.pts,exactos:s.exactos}; });
+    scores.sort(function(a,b){ return b.pts-a.pts||b.exactos-a.exactos; });
+    var top3=scores.filter(function(s){ return s.pts>0; }).slice(0,3);
+    if(!top3.length) return '';
+    return '<div class="pozo-top-card">'
+      +'<div class="ptp-label">&#x26BD; Líderes</div>'
+      +'<div class="ptp-fecha">'+esc(f)+'</div>'
+      +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+buildTop3Rows(top3,medals)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
 // ── Pozo público — compacto ────────────────────────────────────────────────
 function renderPozoPublico(){
   const box=document.getElementById('pozo-pub-partidos');
@@ -1364,7 +1410,7 @@ function renderPozoPublico(){
       +'</div>';
     if(topRow){
       if(recientes.length){
-        topRow.innerHTML = recientes.map(function(e){
+        topRow.innerHTML = buildFechaTop3Cards() + recientes.map(function(e){
           var f=e[0], h=e[1];
           var dias = Math.floor((Date.now()-new Date(h.fechaCierre).getTime())/(1000*60*60*24));
           var cuandoLabel = dias===0 ? 'Hoy' : dias===1 ? 'Ayer' : 'Hace '+dias+' d&iacute;as';
@@ -1386,11 +1432,7 @@ function renderPozoPublico(){
             +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
             +'</div>';
         }).join('')
-        + '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">'
-          +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
-          +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
-          +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
-          +'</div>';
+        + buildSpTopCard(spTotal);
       } else {
         topRow.innerHTML='';
       }
@@ -1400,7 +1442,7 @@ function renderPozoPublico(){
   // Llenar fila superior con los pozos sin resultados
   if(topRow){
     var topMedals=['🥇','🥈','🥉'];
-    var cardsHtml = abiertas.map(function(f){
+    var cardsHtml = buildFechaTop3Cards() + abiertas.map(function(f){
       var conC=pagantesFecha(f).length;
       var total=conC*5000, sp=conC*1000, ppal=total-sp;
       var dist=distPorCantidad(conC,ppal);
@@ -1451,11 +1493,7 @@ function renderPozoPublico(){
         +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
         +'</div>';
     });
-    cardsHtml += '<div class="pozo-top-card" style="background:linear-gradient(135deg,rgba(42,122,26,.08),rgba(96,165,250,.04));border-color:rgba(42,122,26,.2)">'
-      +'<div class="ptp-label">&#x1F3C6; S&uacute;per Pozo acumulado</div>'
-      +'<div class="ptp-amount" style="margin-top:6px">$'+spTotal.toLocaleString('es-AR')+'</div>'
-      +'<div class="ptp-sub">Gana el l&iacute;der al final</div>'
-      +'</div>';
+    cardsHtml += buildSpTopCard(spTotal);
     topRow.innerHTML = cardsHtml;
   }
   const boxesHtml = abiertas.map(f=>{
