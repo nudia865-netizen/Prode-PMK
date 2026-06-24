@@ -406,6 +406,25 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
   <div id="tab-pronosticos" class="tab-sec">
     <div class="info-box">Las fechas <strong>cerradas</strong> no permiten modificar pronósticos.</div>
+
+    <!-- CARGA MASIVA DE PRONÓSTICOS -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-title">&#9889; Carga masiva de pronósticos</div>
+      <div class="frow" style="margin-bottom:10px;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label>Fecha</label>
+          <select id="bulk-pron-fecha-sel" onchange="renderBulkPronosticos()" style="min-width:140px"><option value="">— elegí fecha —</option></select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label>Persona</label>
+          <select id="bulk-pron-persona-sel" onchange="renderBulkPronosticos()" style="min-width:140px"><option value="">— elegí persona —</option></select>
+        </div>
+      </div>
+      <div id="bulk-pron-body"><p class="empty" style="padding:1rem 0">Elegí una fecha y persona.</p></div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="guardarBulkPronosticos()">&#128190; Guardar pronósticos</button>
+    </div>
+
+    <div class="fhdr" style="margin-top:1.5rem">Edición individual por persona</div>
     <div id="pron-sel" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"></div>
     <div id="pronosticos-content"><p class="empty">Primero cargá partidos y participantes.</p></div>
   </div>
@@ -883,7 +902,7 @@ function showTab(t){
   document.getElementById('tab-'+t).classList.add('active');
   const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','chat-admin'];
   const idx=tabs.indexOf(t); if(idx>=0) document.querySelectorAll('#admin-tabs .tab')[idx].classList.add('active');
-  if(t==='pronosticos') renderPronosticos();
+  if(t==='pronosticos'){ renderPronosticos(); initBulkPronosticos(); }
   if(t==='resultados'){
     renderResultados();
     var bSel=document.getElementById('bulk-fecha-sel');
@@ -1909,18 +1928,14 @@ async function renderPartidosHoy(){
         horaHtml = '<div style="font-size:11px;color:var(--text3);margin-top:3px">🕐 '+hh+':'+mm+' (ARG)</div>';
       }
 
-      // Badge de estado
+      // Badge de estado (se actualiza más abajo una vez que conocemos fechaProdeAbierta)
       var estadoBadge = '';
       if(enCurso){
         var clock = comp.status && comp.status.displayClock ? comp.status.displayClock : '';
         estadoBadge = '<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">EN VIVO '+clock+'</span>';
-      } else if(completado){
-        estadoBadge = '<span style="background:#166534;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">FINAL</span>';
       }
-
-      var scoreHtml = hasScore
-        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
-        : '<div class="match-score pending" style="font-size:13px">vs</div>';
+      // fechaProdeAbierta y scoreHtml se asignan definitivamente más abajo,
+      // después de calcular matchProde con normTeam/teamMatch
 
       // Matching con partidos del prode por nombre
       // Diccionario ESPN (inglés) → nombres en español usados en el prode
@@ -2029,6 +2044,18 @@ async function renderPartidosHoy(){
         return l.slice(0,3)===t1n.slice(0,3) && v.slice(0,3)===t2n.slice(0,3);
       });
 
+      // Ahora que tenemos matchProde, determinamos si la fecha está abierta
+      var fechaProdeAbierta = matchProde && matchProde.estado !== 'cerrada';
+      // Mostrar score solo si: partido en vivo, o fecha ya cerrada en el prode
+      var mostrarScore = hasScore && (!fechaProdeAbierta || enCurso);
+      var scoreHtml = mostrarScore
+        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
+        : '<div class="match-score pending" style="font-size:13px">vs</div>';
+      // Completar badge FINAL solo si la fecha está cerrada
+      if(completado && !fechaProdeAbierta){
+        estadoBadge = '<span style="background:#166534;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">FINAL</span>';
+      }
+
       // Goleadores (si ESPN trae el detalle de los goles del partido)
       var goleadoresHtml = '';
       if(hasScore){
@@ -2065,37 +2092,62 @@ async function renderPartidosHoy(){
 
       var pronsHtml = '';
       if(matchProde){
-        var rProde = resultados[matchProde.id];
-        var hasRProde = rProde && !isNaN(rProde.gl);
-        // Resultado provisorio: si el admin todavía no cargó el oficial pero ESPN ya tiene marcador (en vivo o recién terminado)
-        var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
-        var rParaPuntos = hasRProde ? rProde : liveR;
-        var esProvisorio = !hasRProde && !!liveR;
-        var chips = participantes.map(function(part){
-          var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
-          if(!pr || isNaN(pr.gl)) return '';
-          var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
-          var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
-          if(pts===3){
-            chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
-            label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
-          } else if(pts===1){
-            chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
-            label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
-          } else if(pts===0){
-            chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
-            label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
+        var fechaAbierta = matchProde.estado !== 'cerrada';
+        if(fechaAbierta){
+          // Fecha abierta: mostrar botón toggle, pero NO revelar los pronósticos individuales
+          var pronCount = participantes.filter(function(part){
+            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+            return pr && !isNaN(pr.gl);
+          }).length;
+          if(pronCount > 0){
+            var toggleId = 'hoy-prons-'+ev.id;
+            pronsHtml = '<div style="margin-top:8px">'
+              +'<button class="btn-prons-toggle" onclick="(function(btn,id){var el=document.getElementById(id);if(el){var open=el.style.display!==\'none\';el.style.display=open?\'none\':\'\';btn.textContent=open?\'👁 Ver pronósticos (\'+'+pronCount+'+\')\':\'▲ Ocultar pronósticos\'}})(this,\''+toggleId+'\')" style="font-size:12px">👁 Ver pronósticos ('+pronCount+')</button>'
+              +'<div id="'+toggleId+'" style="display:none;margin-top:6px">'
+              +'<div class="match-prons"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>'
+              +'</div></div>';
           }
-          var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
-          return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
-            +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
-              +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
-              +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
-            +'</span>'
-            +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
-            +'</span>';
-        }).filter(Boolean).join('');
-        if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
+        } else {
+          // Fecha cerrada: mostrar pronósticos con puntos
+          var rProde = resultados[matchProde.id];
+          var hasRProde = rProde && !isNaN(rProde.gl);
+          // Resultado provisorio: si el admin todavía no cargó el oficial pero ESPN ya tiene marcador (en vivo o recién terminado)
+          var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
+          var rParaPuntos = hasRProde ? rProde : liveR;
+          var esProvisorio = !hasRProde && !!liveR;
+          var chips = participantes.map(function(part){
+            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+            if(!pr || isNaN(pr.gl)) return '';
+            var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
+            var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
+            if(pts===3){
+              chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
+              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
+            } else if(pts===1){
+              chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
+              label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
+            } else if(pts===0){
+              chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
+              label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
+            }
+            var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
+            return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
+              +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
+                +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
+                +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
+              +'</span>'
+              +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
+              +'</span>';
+          }).filter(Boolean).join('');
+          if(chips){
+            var toggleId2 = 'hoy-prons-'+ev.id;
+            pronsHtml = '<div style="margin-top:8px">'
+              +'<button class="btn-prons-toggle" onclick="(function(btn,id){var el=document.getElementById(id);if(el){var open=el.style.display!==\'none\';el.style.display=open?\'none\':\'\';btn.textContent=open?\'👁 Ver pronósticos\':\'▲ Ocultar pronósticos\'}})(this,\''+toggleId2+'\')" style="font-size:12px">👁 Ver pronósticos</button>'
+              +'<div id="'+toggleId2+'" style="display:none;margin-top:6px">'
+              +'<div class="match-prons">'+chips+'</div>'
+              +'</div></div>';
+          }
+        }
       } else {
         console.log('[Hoy] Sin match para "'+t1+'" vs "'+t2+'" — partidos prode:', partidos.map(function(p){return p.local+' vs '+p.visitante;}).join(' | '));
       }
@@ -2113,7 +2165,7 @@ async function renderPartidosHoy(){
         +'<span>'+flag1+t1+'</span>'+scoreHtml+'<span>'+flag2+t2+'</span>'+estadoBadge
         +'</div>'
         +horaHtml
-        +goleadoresHtml
+        +(fechaProdeAbierta && !enCurso ? '' : goleadoresHtml)
         +'</div></div>'
         +pronsHtml
         +'</div>';
@@ -2510,6 +2562,81 @@ function renderMiniTop3(){
       +'<span style="font-family:Barlow Condensed,sans-serif;font-size:18px;font-weight:700;color:var(--accent)">'+s.pts+' pts</span>'
       +'</div>';
   }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── BULK PRONÓSTICOS (carga masiva admin) ────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+function initBulkPronosticos(){
+  var fSel = document.getElementById('bulk-pron-fecha-sel');
+  var pSel = document.getElementById('bulk-pron-persona-sel');
+  if(!fSel || !pSel) return;
+  var fechas = getFechas();
+  fSel.innerHTML = '<option value="">— elegí fecha —</option>' + fechas.map(function(f){
+    return '<option value="'+esc(f)+'">'+f+'</option>';
+  }).join('');
+  pSel.innerHTML = '<option value="">— elegí persona —</option>' + participantes.map(function(p){
+    return '<option value="'+esc(p.nombre)+'">'+p.nombre+'</option>';
+  }).join('');
+  // default: última fecha, primer participante
+  if(fechas.length){ fSel.value = fechas[fechas.length-1]; }
+  if(participantes.length){ pSel.value = participantes[0].nombre; }
+  renderBulkPronosticos();
+}
+
+function renderBulkPronosticos(){
+  var fSel = document.getElementById('bulk-pron-fecha-sel');
+  var pSel = document.getElementById('bulk-pron-persona-sel');
+  var cont = document.getElementById('bulk-pron-body');
+  if(!fSel || !pSel || !cont) return;
+  var f = fSel.value;
+  var nombre = pSel.value;
+  if(!f || !nombre){ cont.innerHTML='<p class="empty" style="padding:1rem 0">Elegí una fecha y persona.</p>'; return; }
+  var ps = partidos.filter(function(p){ return p.fecha === f; });
+  if(!ps.length){ cont.innerHTML='<p class="empty" style="padding:1rem 0">No hay partidos en esta fecha.</p>'; return; }
+  var cerrada = ps[0] && ps[0].estado === 'cerrada';
+  if(cerrada){ cont.innerHTML='<div class="warn-box">Esta fecha está cerrada — no se pueden modificar pronósticos.</div>'; return; }
+  cont.innerHTML = ps.map(function(p){
+    var pr = pronosticos[p.id] && pronosticos[p.id][nombre];
+    var gl = (pr && !isNaN(pr.gl)) ? pr.gl : '';
+    var gv = (pr && !isNaN(pr.gv)) ? pr.gv : '';
+    return '<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:.75rem 1rem">'
+      + (p.grupo ? '<span class="badge b-group">G-'+p.grupo+'</span>' : '')
+      + '<div style="flex:1;min-width:160px;font-size:14px;font-weight:500">'+p.local+' <span style="color:var(--text3);font-size:12px">vs</span> '+p.visitante+'</div>'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+      + '<input type="number" id="bpron_gl_'+p.id+'" value="'+gl+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
+      + '<span style="color:var(--text3)">-</span>'
+      + '<input type="number" id="bpron_gv_'+p.id+'" value="'+gv+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function guardarBulkPronosticos(){
+  var fSel = document.getElementById('bulk-pron-fecha-sel');
+  var pSel = document.getElementById('bulk-pron-persona-sel');
+  if(!fSel || !pSel) return;
+  var f = fSel.value;
+  var nombre = pSel.value;
+  if(!f || !nombre){ toast('Elegí una fecha y persona','error'); return; }
+  var ps = partidos.filter(function(p){ return p.fecha === f; });
+  var cerrada = ps[0] && ps[0].estado === 'cerrada';
+  if(cerrada){ toast('La fecha está cerrada','error'); return; }
+  var guardados = 0;
+  ps.forEach(function(p){
+    var glEl = document.getElementById('bpron_gl_'+p.id);
+    var gvEl = document.getElementById('bpron_gv_'+p.id);
+    if(!glEl || !gvEl) return;
+    var gl = parseInt(glEl.value), gv = parseInt(gvEl.value);
+    if(!isNaN(gl) && !isNaN(gv)){
+      if(!pronosticos[p.id]) pronosticos[p.id] = {};
+      pronosticos[p.id][nombre] = {gl, gv};
+      guardados++;
+    }
+  });
+  if(guardados){ persist(); renderPronosticos(); toast('✓ '+guardados+' pronóstico'+(guardados!==1?'s':'')+' guardados'); }
+  else toast('No hay pronósticos para guardar — completá al menos un marcador','error');
 }
 
 // ══════════════════════════════════════════════════════════════════════
