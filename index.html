@@ -411,6 +411,15 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   </div>
 
   <div id="tab-resultados" class="tab-sec">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">⚡ Carga masiva de resultados</div>
+      <div class="frow" style="margin-bottom:10px">
+        <label>Fecha</label>
+        <select id="bulk-fecha-sel" onchange="renderBulkResultados()" style="min-width:140px"><option value="">— elegí fecha —</option></select>
+      </div>
+      <div id="bulk-resultados-body"></div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="guardarBulkResultados()">💾 Guardar resultados</button>
+    </div>
     <div id="resultados-content"><p class="empty">No hay partidos cargados.</p></div>
   </div>
 
@@ -875,12 +884,19 @@ function showTab(t){
   const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','chat-admin'];
   const idx=tabs.indexOf(t); if(idx>=0) document.querySelectorAll('#admin-tabs .tab')[idx].classList.add('active');
   if(t==='pronosticos') renderPronosticos();
-  if(t==='resultados')  renderResultados();
+  if(t==='resultados'){
+    renderResultados();
+    var bSel=document.getElementById('bulk-fecha-sel');
+    if(bSel){
+      var fechas=getFechas();
+      bSel.innerHTML='<option value="">— elegí fecha —</option>'+fechas.map(function(f){ return '<option value="'+esc(f)+'">'+f+'</option>'; }).join('');
+      if(fechas.length){ bSel.value=fechas[fechas.length-1]; renderBulkResultados(); }
+    }
+  }
   if(t==='resumen')     renderResumen();
   if(t==='tabla')       renderTabla();
   if(t==='pozo')        renderPozo();
   if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
-  if(t===){ renderBulkResultados(); }
 }
 
 function setTablaView(v,btn){ tablaView=v; document.querySelectorAll('#sub-tabs .tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTabla(); }
@@ -2499,6 +2515,29 @@ function renderMiniTop3(){
 // ══════════════════════════════════════════════════════════════════════
 // ── BULK RESULTADOS (carga masiva admin) ──────────────────────────────
 // ══════════════════════════════════════════════════════════════════════
+
+function renderBulkResultados(){
+  var sel=document.getElementById('bulk-fecha-sel');
+  if(!sel) return;
+  var f=sel.value;
+  var cont=document.getElementById('bulk-resultados-body');
+  if(!cont) return;
+  var ps=partidos.filter(function(p){ return p.fecha===f; });
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos en esta fecha.</p>'; return; }
+  cont.innerHTML=ps.map(function(p){
+    var r=resultados[p.id]||{};
+    var gl=r.gl!==undefined?r.gl:'';
+    var gv=r.gv!==undefined?r.gv:'';
+    return '<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:.75rem 1rem">'
+      +'<div style="flex:1;min-width:160px;font-size:14px;font-weight:500">'+p.local+' <span style="color:var(--text3);font-size:12px">vs</span> '+p.visitante+'</div>'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<input type="number" id="bulk_gl_'+p.id+'" value="'+gl+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
+      +'<span style="color:var(--text3)">-</span>'
+      +'<input type="number" id="bulk_gv_'+p.id+'" value="'+gv+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
 
 function guardarBulkResultados(){
   var sel=document.getElementById('bulk-fecha-sel');
