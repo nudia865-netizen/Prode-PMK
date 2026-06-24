@@ -2509,6 +2509,10 @@ async function renderPartidosManana(){
   var pad=function(n){ return n<10?'0'+n:String(n); };
   var man=new Date(); man.setDate(man.getDate()+1);
   var fechaEspn=String(man.getFullYear())+pad(man.getMonth()+1)+pad(man.getDate());
+  // Diccionario ESPN→español (mismo que en renderPartidosHoy)
+  var ESPN_NOM_M={'united states':'estados unidos','usa':'estados unidos','south korea':'corea del sur','korea republic':'corea del sur','korea':'corea del sur','north korea':'corea del norte','dpr korea':'corea del norte','ivory coast':'costa de marfil',"cote d'ivoire":'costa de marfil','saudi arabia':'arabia saudita','spain':'espana','england':'inglaterra','iran':'iran','ir iran':'iran','cape verde':'cabo verde','democratic republic of congo':'rd congo','dr congo':'rd congo','congo dr':'rd congo','republic of ireland':'irlanda','ireland':'irlanda','new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega','denmark':'dinamarca','trinidad & tobago':'trinidad y tobago','trinidad and tobago':'trinidad y tobago','central african republic':'rep centroafricana','equatorial guinea':'guinea ecuatorial','guinea bissau':'guinea bisau','bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia','north macedonia':'macedonia del norte','czech republic':'republica checa','czechia':'republica checa','netherlands':'paises bajos','holland':'paises bajos','turkey':'turquia','turkiye':'turquia','germany':'alemania','brazil':'brasil','cameroon':'camerun','japan':'japon','france':'francia','italy':'italia','belgium':'belgica','croatia':'croacia','egypt':'egipto','morocco':'marruecos','scotland':'escocia','curacao':'curazao','switzerland':'suiza','portugal':'portugal','ghana':'ghana','ecuador':'ecuador','colombia':'colombia','argentina':'argentina','uruguay':'uruguay','mexico':'mexico','panama':'panama'};
+  function normM(s){ s=(s||'').toLowerCase().trim(); if(ESPN_NOM_M[s]) s=ESPN_NOM_M[s]; var r=s.replace(/\u00e7/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e').replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u').replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim(); if(ESPN_NOM_M[r]) r=ESPN_NOM_M[r]; return r.replace(/ /g,''); }
+  function tmM(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||a.includes(b.slice(0,6))||b.includes(a.slice(0,6)); }
   try{
     var res=await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50',{cache:'no-cache'});
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -2531,11 +2535,41 @@ async function renderPartidosManana(){
         var d=new Date(comp.date);
         var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
         var mm=pad(d.getUTCMinutes());
-        horaHtml='<span style="font-size:11px;color:var(--text3);margin-left:8px">🕐 '+hh+':'+mm+' (ARG)</span>';
+        horaHtml='<div style="font-size:11px;color:var(--text3);margin-top:3px">🕐 '+hh+':'+mm+' (ARG)</div>';
       }
-      return '<div class="match-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:.75rem 1rem">'
-        +'<div style="flex:1;font-size:14px;font-weight:500">'+flag1+t1+' <span style="color:var(--text3)">vs</span> '+flag2+t2+'</div>'
-        +horaHtml+'</div>';
+      // Grupo
+      var notas=comp.notes||[]; var grupoTexto='';
+      notas.forEach(function(n){ if(n.text&&n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
+      var grupoHtml=grupoTexto?'<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>':'';
+      // Matching con prode
+      var t1n=normM(t1), t2n=normM(t2);
+      var matchProde=partidos.find(function(p){ var l=normM(p.local),v=normM(p.visitante); return tmM(l,t1n)&&tmM(v,t2n); })||partidos.find(function(p){ var l=normM(p.local),v=normM(p.visitante); return l.slice(0,3)===t1n.slice(0,3)&&v.slice(0,3)===t2n.slice(0,3); });
+      // Pronósticos toggle
+      var pronsHtml='';
+      if(matchProde){
+        var fechaAbierta=matchProde.estado!=='cerrada';
+        var pronCount=participantes.filter(function(part){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre]; return pr&&!isNaN(pr.gl); }).length;
+        if(pronCount>0){
+          var toggleId='man-prons-'+ev.id;
+          if(fechaAbierta){
+            pronsHtml='<div style="margin-top:8px">'
+              +'<button class="btn-prons-toggle" onclick="(function(btn,id){var el=document.getElementById(id);if(el){var open=el.style.display!==\'none\';el.style.display=open?\'none\':\'\';btn.textContent=open?\'👁 Ver pronósticos (\'+'+pronCount+'+\')\':\'▲ Ocultar pronósticos\'}})(this,\''+toggleId+'\')" style="font-size:12px">👁 Ver pronósticos ('+pronCount+')</button>'
+              +'<div id="'+toggleId+'" style="display:none;margin-top:6px">'
+              +'<div class="match-prons"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>'
+              +'</div></div>';
+          } else {
+            var rProde=resultados[matchProde.id]; var hasRProde=rProde&&!isNaN(rProde.gl);
+            var chips=participantes.map(function(part){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre]; if(!pr||isNaN(pr.gl)) return ''; var pts=hasRProde?calcPuntos(pr,rProde):-1; var chipBg='background:var(--bg3)',chipBorder='1px solid transparent',color='var(--text3)',label=''; if(pts===3){chipBg='background:rgba(37,99,235,.16)';chipBorder='1px solid rgba(37,99,235,.45)';color='#1d4ed8';label='<span style="font-size:9px;font-weight:700;color:#1d4ed8">🎯 EXACTO</span>';}else if(pts===1){chipBg='background:rgba(22,101,52,.10)';chipBorder='1px solid rgba(22,101,52,.3)';color='#166534';label='<span style="font-size:9px;font-weight:700;color:#166534">✓ GANADOR</span>';}else if(pts===0){chipBg='background:rgba(153,27,27,.10)';chipBorder='1px solid rgba(153,27,27,.3)';color='#991b1b';label='<span style="font-size:9px;font-weight:700;color:#991b1b">✗ FALLÓ</span>';} return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px"><span style="display:flex;align-items:center;gap:6px;width:100%"><span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span></span>'+(label?'<span>'+label+'</span>':'')+'</span>'; }).filter(Boolean).join('');
+            if(chips) pronsHtml='<div style="margin-top:8px"><button class="btn-prons-toggle" onclick="(function(btn,id){var el=document.getElementById(id);if(el){var open=el.style.display!==\'none\';el.style.display=open?\'none\':\'\';btn.textContent=open?\'👁 Ver pronósticos\':\'▲ Ocultar pronósticos\'}})(this,\''+toggleId+'\')" style="font-size:12px">👁 Ver pronósticos</button><div id="'+toggleId+'" style="display:none;margin-top:6px"><div class="match-prons">'+chips+'</div></div></div>';
+          }
+        }
+      }
+      return '<div class="match-card">'
+        +'<div class="match-teams">'+grupoHtml
+        +'<div style="flex:1">'
+        +'<div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<span>'+flag1+t1+'</span><span style="color:var(--text3);font-size:13px">vs</span><span>'+flag2+t2+'</span>'
+        +'</div>'+horaHtml+'</div></div>'+pronsHtml+'</div>';
     }).join('');
   }catch(e){ sec.style.display='none'; }
 }
