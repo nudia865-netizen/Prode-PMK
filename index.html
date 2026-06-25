@@ -356,6 +356,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <button class="tab" onclick="showTab('resumen')">📋 Resumen</button>
     <button class="tab" onclick="showTab('tabla')">Tabla</button>
     <button class="tab" onclick="showTab('pozo')">Pozo</button>
+    <button class="tab" onclick="showTab('bulk-pron')">🚀 Carga rápida prode</button>
     <button class="tab" onclick="showTab('chat-admin')">💬 Chat</button>
   </div>
 
@@ -406,53 +407,11 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
   <div id="tab-pronosticos" class="tab-sec">
     <div class="info-box">Las fechas <strong>cerradas</strong> no permiten modificar pronósticos.</div>
-
-    <!-- CARGA MASIVA DE PRONÓSTICOS -->
-    <div class="card" style="margin-bottom:1.25rem">
-      <div class="card-title">&#9889; Carga masiva de pronósticos</div>
-      <div class="frow" style="margin-bottom:10px;gap:10px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:8px">
-          <label>Fecha</label>
-          <select id="bulk-pron-fecha-sel" onchange="renderBulkPronosticos()" style="min-width:140px"><option value="">— elegí fecha —</option></select>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <label>Persona</label>
-          <select id="bulk-pron-persona-sel" onchange="renderBulkPronosticos()" style="min-width:140px"><option value="">— elegí persona —</option></select>
-        </div>
-      </div>
-      <div id="bulk-pron-body"><p class="empty" style="padding:1rem 0">Elegí una fecha y persona.</p></div>
-      <button class="btn btn-primary" style="margin-top:10px" onclick="guardarBulkPronosticos()">&#128190; Guardar pronósticos</button>
-    </div>
-
-    <div class="fhdr" style="margin-top:1.5rem">Edición individual por persona</div>
     <div id="pron-sel" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem"></div>
     <div id="pronosticos-content"><p class="empty">Primero cargá partidos y participantes.</p></div>
   </div>
 
   <div id="tab-resultados" class="tab-sec">
-
-    <!-- RESULTADOS ESPN — sugeridos automáticos -->
-    <div class="card" style="margin-bottom:1rem;border-color:rgba(251,191,36,.3)">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:.75rem">
-        <div class="card-title" style="margin:0">📡 Resultados ESPN <span style="font-size:11px;font-weight:400;color:var(--text3)">(auto)</span></div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="fetchEspnResultados()">🔄 Actualizar</button>
-          <button class="btn btn-primary btn-sm" onclick="confirmarTodosEspn()">✅ Confirmar todos</button>
-        </div>
-      </div>
-      <div id="espn-resultados-body"><p class="empty" style="padding:.5rem 0">Cargando desde ESPN…</p></div>
-    </div>
-
-    <!-- CARGA MANUAL -->
-    <div class="card" style="margin-bottom:1rem">
-      <div class="card-title">✏️ Carga manual</div>
-      <div class="frow" style="margin-bottom:10px">
-        <label>Fecha</label>
-        <select id="bulk-fecha-sel" onchange="renderBulkResultados()" style="min-width:140px"><option value="">— elegí fecha —</option></select>
-      </div>
-      <div id="bulk-resultados-body"></div>
-      <button class="btn btn-primary" style="margin-top:10px" onclick="guardarBulkResultados()">💾 Guardar resultados</button>
-    </div>
     <div id="resultados-content"><p class="empty">No hay partidos cargados.</p></div>
   </div>
 
@@ -478,6 +437,25 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 
 
+  <div id="tab-bulk-pron" class="tab-sec">
+    <div class="card">
+      <div class="card-title">🚀 Carga rápida de pronósticos</div>
+      <div class="info-box" style="margin-bottom:.75rem">Cargá todos los pronósticos de una fecha para un participante. Solo ves el nombre del partido y el marcador.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div class="frow" style="margin-bottom:0"><label>Fecha</label>
+          <select id="bpron-fecha-sel" onchange="renderBulkPron()" style="width:150px"></select>
+        </div>
+        <div class="frow" style="margin-bottom:0"><label>Participante</label>
+          <select id="bpron-part-sel" onchange="renderBulkPron()" style="width:170px"></select>
+        </div>
+      </div>
+    </div>
+    <div id="bulk-pron-content"><p class="empty">Seleccioná fecha y participante.</p></div>
+    <div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="guardarBulkPron()">💾 Guardar pronósticos</button>
+      <button class="btn btn-ghost btn-sm" onclick="limpiarBulkPron()">🗑 Limpiar todos</button>
+    </div>
+  </div>
   <div id="tab-chat-admin" class="tab-sec">
     <div class="card">
       <div class="card-title">💬 Gestión del Chat (Firebase)</div>
@@ -498,10 +476,23 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
 
-  <!-- HIGHLIGHTS — racha y mejor (chips compactos) -->
-  <div id="highlights-row" style="display:none;margin-bottom:.5rem"></div>
+  <!-- POZOS PENDIENTES — fila superior -->
+  <div id="pozos-top-row" class="pozos-top-row"></div>
 
-  <!-- PARTIDOS DE HOY -->
+  <!-- HIGHLIGHTS — racha y mejor de fecha -->
+  <div id="highlights-row" style="display:none;margin-bottom:.75rem"></div>
+
+  <!-- BANNER FECHA 3 -->
+  <div class="fecha2-banner" style="margin-bottom:.75rem">
+    <div style="font-size:28px">⚽</div>
+    <div style="flex:1">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:3px">¡Ya podés cargar tus pronósticos!</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--text);line-height:1.2">Fecha 3 — Mundial 2026</div>
+    </div>
+    <a href="https://nudia865-netizen.github.io/Fecha-3/" target="_blank" rel="noopener">📝 Cargar Prode Fecha 3</a>
+  </div>
+
+  <!-- PARTIDOS DE HOY — reemplaza banner fecha 2 -->
   <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
     <div id="partidos-hoy-content"></div>
@@ -517,10 +508,9 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-tabla','schev-tabla')">
       <div class="fh-left" style="font-size:14px;font-weight:700">🏆 Tabla</div>
-      <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
-        <select id="tp-fecha-sel" onchange="renderTablaPublicaConEspn()" style="font-size:12px"><option value="general">General — Súper Pozo</option></select>
-        <button id="btn-actualizar-tabla" onclick="actualizarTabla()" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap">🔄 Actualizar</button>
-        <span class="fh-chev" id="schev-tabla" onclick="event.stopPropagation();toggleSecPub('sec-pub-tabla','schev-tabla')">&#9658;</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
+        <span class="fh-chev" id="schev-tabla">&#9658;</span>
       </div>
     </div>
     <div class="fecha-body" id="sec-pub-tabla">
@@ -528,8 +518,19 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
-  <!-- SÚPER POZO + POZOS — debajo de la tabla -->
-  <div id="pozos-top-row" class="pozos-top-row" style="margin-bottom:.5rem"></div>
+  <!-- RESUMEN CON INICIALES -->
+  <div style="margin-bottom:.5rem">
+    <div class="fecha-header" onclick="toggleSecPub('sec-pub-resumen','schev-resumen')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">📋 Resumen</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="pub-res-sel" onchange="renderResumenPub()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
+        <span class="fh-chev" id="schev-resumen">&#9658;</span>
+      </div>
+    </div>
+    <div class="fecha-body" id="sec-pub-resumen">
+      <div id="resumen-pub-content"><p class="empty">Sin datos aún.</p></div>
+    </div>
+  </div>
 
   <!-- PARTIDOS -->
   <div style="margin-bottom:.5rem">
@@ -559,7 +560,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
-  <!-- POZOS detalle — compactos -->
+  <!-- POZOS — compactos, al final de personas -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-pozo','schev-pozo')">
       <div class="fh-left" style="font-size:14px;font-weight:700">💰 Pozos</div>
@@ -568,6 +569,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div class="fecha-body" id="sec-pub-pozo">
       <div id="pozo-pub-partidos"></div>
       <div id="pozo-pub" style="display:none"></div>
+
     </div>
   </div>
 
@@ -681,8 +683,8 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 
 <script>
 const JSONBIN    = 'https://api.jsonbin.io/v3';
-const BIN_ID     = '6a28cfa3f5f4af5e29d5a0e8';
-const ACCESS_KEY = '$2a$10$qIj3VcMBEmCCIyt3mDbVsexqUDXfdj9bFjgYjLjaioS6RW9J/O/d2';
+const BIN_ID     = '6a3c97eada38895dfefad913';
+const ACCESS_KEY = '$2a$10$wHS79O41He/cDjUyzXlIeOkjdrB4Vxku17F4j0ZqOahl2OVsyr4yy';
 const ADMIN_PW_HASH = '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5';
 
 async function sha256(str){
@@ -702,7 +704,7 @@ function clearLock(){ localStorage.removeItem(LOCK_KEY); }
 function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
-let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={}, resultadosPendientes={};
+let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 let pronFechasOpen={}; // estado colapso por fecha en pestaña pronósticos
 
@@ -880,7 +882,7 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublicaConEspn(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
   if(p==='grupos'){ renderGrupos(); }
   if(p==='fixture'){ renderFixture(); }
   if(p==='partidos-pub'){ renderHighlights(); renderMiniTop3(); renderPartidosManana(); }
@@ -890,21 +892,14 @@ function showTab(t){
   document.querySelectorAll('#admin-tabs .tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','chat-admin'];
+  const tabs=['partidos','participantes','pronosticos','resultados','resumen','tabla','pozo','bulk-pron','chat-admin'];
   const idx=tabs.indexOf(t); if(idx>=0) document.querySelectorAll('#admin-tabs .tab')[idx].classList.add('active');
-  if(t==='pronosticos'){ renderPronosticos(); initBulkPronosticos(); }
-  if(t==='resultados'){
-    renderResultados();
-    var bSel=document.getElementById('bulk-fecha-sel');
-    if(bSel){
-      var fechas=getFechas();
-      bSel.innerHTML='<option value="">— elegí fecha —</option>'+fechas.map(function(f){ return '<option value="'+esc(f)+'">'+f+'</option>'; }).join('');
-      if(fechas.length){ bSel.value=fechas[fechas.length-1]; renderBulkResultados(); }
-    }
-  }
+  if(t==='pronosticos') renderPronosticos();
+  if(t==='resultados')  renderResultados();
   if(t==='resumen')     renderResumen();
   if(t==='tabla')       renderTabla();
   if(t==='pozo')        renderPozo();
+  if(t==='bulk-pron')   { renderBulkPron(); }
   if(t==='chat-admin')  { showChatAdminStatus(); adminVerMsgs(); }
 }
 
@@ -1188,12 +1183,10 @@ function calcPuntos(pr,r){
   return rG===pG?1:0;
 }
 
-function getScores(ps,nombre,useEspn){
+function getScores(ps,nombre){
   let pts=0,exactos=0,aciertan=0,jugados=0;
   ps.forEach(p=>{
-    var rEfectivo = useEspn ? getResultadoEfectivo(p.id) : (resultados[p.id]&&!isNaN(resultados[p.id].gl)?{r:resultados[p.id]}:null);
-    const r = rEfectivo ? rEfectivo.r : null;
-    const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+    const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
     const pts2=calcPuntos(pr,r); if(pts2===null) return;
     jugados++; pts+=pts2; if(pts2===3) exactos++; if(pts2===1) aciertan++;
   });
@@ -1490,18 +1483,62 @@ function renderPozoPublico(){
     }
     return;
   }
-  // Llenar fila superior: solo fecha en curso (primera abierta) + pozo pendiente
+  // Llenar fila superior con los pozos sin resultados
   if(topRow){
-    var fechaActual = abiertas[0]; // solo la primera fecha abierta (en curso)
-    var conC = pagantesFecha(fechaActual).length;
-    var total = conC*5000, sp = conC*1000, ppal = total-sp;
-    var cardFecha = '<div class="pozo-top-card">'
-      +'<div class="ptp-label">&#x1F4B0; Pozo pendiente &mdash; Fecha en curso</div>'
-      +'<div class="ptp-fecha">'+esc(fechaActual)+'</div>'
-      +'<div class="ptp-amount">$'+ppal.toLocaleString('es-AR')+'</div>'
-      +'<div class="ptp-sub">'+conC+(conC!==1?' pagantes':' pagante')+'</div>'
-      +'</div>';
-    topRow.innerHTML = buildFechaTop3Cards() + cardFecha + buildSpTopCard(spTotal);
+    var topMedals=['🥇','🥈','🥉'];
+    var cardsHtml = buildFechaTop3Cards() + abiertas.map(function(f){
+      var conC=pagantesFecha(f).length;
+      var total=conC*5000, sp=conC*1000, ppal=total-sp;
+      var dist=distPorCantidad(conC,ppal);
+      var distHtml='';
+      if(conC===0){
+        distHtml='<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Nadie pagó aún</div>';
+      } else {
+        distHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'
+          +dist.map(function(d,i){
+            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">'
+              +'<div style="display:flex;align-items:center;gap:6px">'
+              +'<span style="font-size:16px;line-height:1">'+(topMedals[i]||'·')+'</span>'
+              +'<div style="font-size:11px;color:var(--text2)">'+d.pos+'<br><span style="color:var(--text3)">'+d.pct+'</span></div>'
+              +'</div>'
+              +'<span style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span>'
+              +'</div>';
+          }).join('')
+          +'</div>';
+      }
+      return '<div class="pozo-top-card">'
+        +'<div class="ptp-label">&#x1F4B0; Pozo pendiente</div>'
+        +'<div class="ptp-fecha">'+esc(f)+'</div>'
+        +'<div class="ptp-amount">$'+ppal.toLocaleString('es-AR')+'</div>'
+        +'<div class="ptp-sub">'+conC+(conC!==1?' pagantes':' pagante')+' &middot; Sin resultados a&uacute;n</div>'
+        +distHtml
+        +'</div>';
+    }).join('');
+    // Agregar pozos cerrados recientemente
+    recientes.forEach(function(e){
+      var f=e[0], h=e[1];
+      var dias = Math.floor((Date.now()-new Date(h.fechaCierre).getTime())/(1000*60*60*24));
+      var cuandoLabel = dias===0 ? 'Hoy' : dias===1 ? 'Ayer' : 'Hace '+dias+' d&iacute;as';
+      var ganHtml = (h.dist||[]).map(function(d,i){
+        var medal = ['&#x1F947;','&#x1F948;','&#x1F949;'][i] || '&middot;';
+        var ganNombre = d.ganador || (d.ganadores||[]).join(', ') || '&mdash;';
+        var monto = typeof d.monto==='number' ? '$'+d.monto.toLocaleString('es-AR') : '&mdash;';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+          +'<div style="display:flex;align-items:center;gap:7px">'
+          +'<span style="font-size:18px">'+medal+'</span>'
+          +'<div style="font-size:12px;color:var(--text);font-weight:600">'+ganNombre+'</div>'
+          +'</div>'
+          +'<span style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:var(--accent)">'+monto+'</span>'
+          +'</div>';
+      }).join('');
+      cardsHtml += '<div class="pozo-top-card" style="border-color:rgba(45,122,31,.3)">'
+        +'<div class="ptp-label">&#x2705; Pozo cerrado &mdash; '+cuandoLabel+'</div>'
+        +'<div class="ptp-fecha">'+esc(f)+'</div>'
+        +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
+        +'</div>';
+    });
+    cardsHtml += buildSpTopCard(spTotal);
+    topRow.innerHTML = cardsHtml;
   }
   const boxesHtml = abiertas.map(f=>{
     const conC=pagantesFecha(f).length;
@@ -1685,127 +1722,6 @@ function renderPersonas(){
 
 function togglePerson(idx){ document.getElementById('pbody_'+idx)?.classList.toggle('open'); document.getElementById('chev_'+idx)?.classList.toggle('open'); }
 
-// ── Resultados ESPN en memoria (nunca se persisten solos) ─────────────
-// resultadosEspn = { [partido_id]: {gl, gv, estado} }
-// estado: 'live' | 'final'
-var resultadosEspn = {};
-
-// Devuelve el resultado a usar para calcular puntos de un partido:
-// - Si admin cargó: {r: {...}, fuente: 'admin'}
-// - Si solo ESPN:   {r: {...}, fuente: 'espn', estado}
-// - Si ambos:       {r: adminR, fuente: 'admin', espn: espnR, conflicto: true}
-// - Si ninguno:     null
-function getResultadoEfectivo(pid){
-  var adminR = resultados[pid];
-  var espnR  = resultadosEspn[pid];
-  var hasAdmin = adminR && !isNaN(adminR.gl);
-  var hasEspn  = espnR  && !isNaN(espnR.gl);
-  if(hasAdmin && hasEspn){
-    var igual = adminR.gl === espnR.gl && adminR.gv === espnR.gv;
-    return {r: adminR, fuente: 'admin', espn: espnR, conflicto: !igual};
-  }
-  if(hasAdmin) return {r: adminR, fuente: 'admin'};
-  if(hasEspn)  return {r: espnR,  fuente: 'espn', estado: espnR.estado};
-  return null;
-}
-
-// Normaliza nombre de equipo para cruzar ESPN ↔ prode
-var ESPN_NORM = {
-  'united states':'estados unidos','usa':'estados unidos',
-  'south korea':'corea del sur','korea republic':'corea del sur',
-  'north korea':'corea del norte','dpr korea':'corea del norte',
-  "cote d'ivoire":'costa de marfil','ivory coast':'costa de marfil',
-  'saudi arabia':'arabia saudita','spain':'espana','england':'inglaterra',
-  'iran':'iran','ir iran':'iran','cape verde':'cabo verde',
-  'democratic republic of congo':'rd congo','dr congo':'rd congo',
-  'republic of ireland':'irlanda','ireland':'irlanda',
-  'new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega',
-  'denmark':'dinamarca','trinidad & tobago':'trinidad y tobago',
-  'trinidad and tobago':'trinidad y tobago',
-  'central african republic':'rep centroafricana',
-  'equatorial guinea':'guinea ecuatorial','guinea bissau':'guinea bisau',
-  'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
-  'north macedonia':'macedonia del norte',
-  'czech republic':'republica checa','czechia':'republica checa',
-  'netherlands':'paises bajos','holland':'paises bajos',
-  'uae':'emiratos arabes unidos','united arab emirates':'emiratos arabes unidos',
-  'switzerland':'suiza','morocco':'marruecos','scotland':'escocia',
-  'curacao':'curazao','japan':'japon','tunisia':'tunez',
-  'turkey':'turquia','turkiye':'turquia','germany':'alemania',
-  'brazil':'brasil','cameroon':'camerun','france':'francia',
-  'italy':'italia','belgium':'belgica','croatia':'croacia',
-  'netherlands antilles':'antillas neerlandesas'
-};
-function normEspn(s){
-  s = s.toLowerCase().trim();
-  if(ESPN_NORM[s]) s = ESPN_NORM[s];
-  s = s.replace(/ç/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
-       .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u')
-       .replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim();
-  if(ESPN_NORM[s]) s = ESPN_NORM[s];
-  return s.replace(/ /g,'');
-}
-function teamMatch(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||a.includes(b.slice(0,6))||b.includes(a.slice(0,6)); }
-
-async function fetchEspnParaTabla(){
-  // Pide los últimos 7 días + hoy para capturar partidos recientes
-  var pad = function(n){ return n<10?'0'+n:String(n); };
-  var hoy = new Date();
-  var fechas = [];
-  for(var i=6; i>=0; i--){
-    var d = new Date(hoy); d.setDate(d.getDate()-i);
-    fechas.push(String(d.getFullYear())+pad(d.getMonth()+1)+pad(d.getDate()));
-  }
-  var nuevos = {};
-  for(var fi=0; fi<fechas.length; fi++){
-    try{
-      var res = await fetch(ESPN_WC_URL+'?dates='+fechas[fi]+'&limit=50',{cache:'no-cache'});
-      if(!res.ok) continue;
-      var data = await res.json();
-      (data.events||[]).forEach(function(ev){
-        var comp = ev.competitions && ev.competitions[0]; if(!comp) return;
-        var status = (comp.status && comp.status.type) || {};
-        var completado = status.completed || false;
-        var enCurso   = !completado && status.state==='in';
-        if(!completado && !enCurso) return; // no empezó
-        var comps = comp.competitors || [];
-        var home = comps.find(function(c){return c.homeAway==='home';})||comps[0]||{};
-        var away = comps.find(function(c){return c.homeAway==='away';})||comps[1]||{};
-        var t1 = home.team?(home.team.displayName||home.team.name):'?';
-        var t2 = away.team?(away.team.displayName||away.team.name):'?';
-        var s1 = home.score!==undefined?Number(home.score):null;
-        var s2 = away.score!==undefined?Number(away.score):null;
-        if(s1===null||s2===null||isNaN(s1)||isNaN(s2)) return;
-        var t1n = normEspn(t1), t2n = normEspn(t2);
-        var match = partidos.find(function(p){
-          var l=normEspn(p.local),v=normEspn(p.visitante);
-          return teamMatch(l,t1n)&&teamMatch(v,t2n);
-        });
-        if(match) nuevos[match.id] = {gl:s1, gv:s2, estado: completado?'final':'live'};
-      });
-    }catch(e){}
-  }
-  return nuevos;
-}
-
-async function actualizarTabla(){
-  var btn = document.getElementById('btn-actualizar-tabla');
-  if(btn){ btn.textContent='⏳ ESPN…'; btn.disabled=true; }
-  // Primero cargar datos frescos desde JSONBin (pronósticos, partidos, etc.)
-  await loadFromCloud();
-  // Luego fetchear ESPN
-  var espn = await fetchEspnParaTabla();
-  var encontrados = Object.keys(espn).length;
-  resultadosEspn = espn;
-  // Re-render
-  renderTablaPublicaConEspn();
-  if(btn){
-    btn.textContent = encontrados ? '✓ '+encontrados+' resultado'+(encontrados!==1?'s':'') : '✓ Sin partidos';
-    btn.disabled=false;
-    setTimeout(function(){ if(btn) btn.textContent='🔄 Actualizar'; }, 3000);
-  }
-}
-
 function renderTablaPublica(){
   const cont=document.getElementById('tabla-pub-content');
   const sel=document.getElementById('tp-fecha-sel');
@@ -1837,86 +1753,6 @@ function renderTablaPublica(){
   if(esGeneral){ const sp=superPozoTotal(); extra=`<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$${sp.toLocaleString('es-AR')}</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>`; }
   else if(!ps.length){ extra='<p class="empty">Esta fecha todavía no tiene resultados cerrados.</p>'; }
   cont.innerHTML=extra+(ps.length||esGeneral?tableHTML(ranked,_npPub):'');
-}
-
-// Renderiza la tabla pública usando resultados ESPN + admin combinados
-function renderTablaPublicaConEspn(){
-  const cont = document.getElementById('tabla-pub-content');
-  const sel  = document.getElementById('tp-fecha-sel');
-  if(!cont||!sel) return;
-
-  const todasFechas = getFechas();
-  const cerradasSet = new Set(partidos.filter(p=>p.estado==='cerrada').map(p=>p.fecha));
-  // Fechas con resultado ESPN (en vivo o final)
-  const conEspnSet  = new Set(partidos.filter(p=>resultadosEspn[p.id]).map(p=>p.fecha));
-
-  const curVal = sel.dataset.init ? sel.value : '';
-  sel.innerHTML = '<option value="general">General — Súper Pozo</option>';
-  todasFechas.forEach(f=>{
-    const o = document.createElement('option');
-    o.value = f;
-    var label = f;
-    if(cerradasSet.has(f)) label += ' ✓';
-    else if(conEspnSet.has(f)) label += ' 📡';
-    else label += ' (en curso)';
-    o.textContent = label;
-    sel.appendChild(o);
-  });
-  if(!sel.dataset.init){
-    // Default: última fecha con datos (ESPN o cerrada)
-    const conDatos = todasFechas.filter(f=>partidos.some(p=>p.fecha===f&&(p.estado==='cerrada'||resultadosEspn[p.id])));
-    sel.value = conDatos.length ? conDatos[conDatos.length-1] : 'general';
-    sel.dataset.init = '1';
-    document.getElementById('sec-pub-tabla')?.classList.add('open');
-    document.getElementById('schev-tabla')?.classList.add('open');
-  } else if(curVal){ sel.value = curVal; }
-
-  if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
-
-  const esGeneral = sel.value === 'general';
-  const fechaSel  = sel.value;
-
-  // Partidos a incluir: cerrados + los que tienen resultado ESPN
-  const ps = esGeneral
-    ? partidos.filter(p=>p.estado==='cerrada'||resultadosEspn[p.id])
-    : partidos.filter(p=>p.fecha===fechaSel&&(p.estado==='cerrada'||resultadosEspn[p.id]));
-
-  if(!ps.length){
-    cont.innerHTML='<p class="empty">Todavía no hay resultados para esta fecha.</p>';
-    return;
-  }
-
-  const _npPub = esGeneral
-    ? new Set(participantes.filter(p=>!Object.values(p.pagos||{}).includes('si')).map(p=>p.nombre))
-    : noPrizeSetFecha(fechaSel);
-
-  const ranked = addRanks(
-    participantes.map(part=>({nombre:part.nombre,...getScores(ps,part.nombre,true)}))
-      .sort((a,b)=>b.pts-a.pts||b.exactos-a.exactos),
-    _npPub
-  );
-
-  // Badge de fuente de datos
-  var hayEspn   = ps.some(p=>resultadosEspn[p.id]);
-  var hayLive   = ps.some(p=>resultadosEspn[p.id]&&resultadosEspn[p.id].estado==='live');
-  var hayConflicto = ps.some(p=>{ var e=getResultadoEfectivo(p.id); return e&&e.conflicto; });
-
-  var fuenteBadge = '';
-  if(hayConflicto){
-    fuenteBadge = '<div style="margin-bottom:.75rem;padding:.5rem .75rem;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);border-radius:8px;font-size:12px;color:#92400e">⚠️ Hay partidos con resultado ESPN que difiere del admin. El admin tiene prioridad.</div>';
-  } else if(hayLive){
-    fuenteBadge = '<div style="margin-bottom:.75rem;padding:.4rem .75rem;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);border-radius:8px;font-size:12px;color:#991b1b;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc2626;animation:pulse 1s infinite"></span>Tabla con resultados en vivo desde ESPN — puede cambiar</div>';
-  } else if(hayEspn){
-    fuenteBadge = '<div style="margin-bottom:.75rem;padding:.4rem .75rem;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);border-radius:8px;font-size:12px;color:#1d4ed8">📡 Tabla calculada con resultados ESPN (pendientes de confirmar por admin)</div>';
-  }
-
-  let extra = '';
-  if(esGeneral){
-    const sp = superPozoTotal();
-    extra = '<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$'+sp.toLocaleString('es-AR')+'</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>';
-  }
-
-  cont.innerHTML = fuenteBadge + extra + tableHTML(ranked, _npPub);
 }
 
 function renderHistorialPub(){
@@ -2016,7 +1852,7 @@ async function deleteChatMsg(fbKey){ if(!adminMode) return; if(!confirm('¿Borra
 
 function toggleChat(){ chatOpen=!chatOpen; const bubble=document.getElementById('chat-bubble'); bubble.classList.toggle('open',chatOpen); if(chatOpen){ chatUnread=0; const badge=document.getElementById('chat-unread'); badge.style.display='none'; document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; if(!chatUser){ setTimeout(()=>openChatNameModal(),300); } loadChatMsgs().then(function(){ var box=document.getElementById('chat-msgs'); if(box) box.scrollTop=box.scrollHeight; }); startChatPolling(); setTimeout(()=>{ document.getElementById('chat-input').focus(); },200); } }
 
-(function(){ const s=document.createElement('style'); s.textContent='@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}'; document.head.appendChild(s); })();
+(function(){ const s=document.createElement('style'); s.textContent='@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}'; document.head.appendChild(s); })();
 
 async function adminActivarChat(){ const statusEl=document.getElementById('chat-admin-status'); statusEl.innerHTML=`<span style="color:var(--accent)">✓ Chat activo con Firebase.</span>`; toast('Chat Firebase ya está activo.'); }
 async function adminVerMsgs(){ const el=document.getElementById('chat-admin-msgs'); el.textContent='Cargando…'; const msgs=await chatBinGet(); if(!msgs.length){ el.textContent='No hay mensajes aún.'; return; } el.innerHTML=msgs.slice(-20).reverse().map(m=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline"><span style="color:var(--accent);min-width:100px">${escHtml(m.author)}</span><span style="flex:1">${escHtml(m.text)}</span><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px" onclick="deleteChatMsg('${m._fbKey||m.id}')">✕</button></div>`).join(''); }
@@ -2233,47 +2069,39 @@ async function renderPartidosHoy(){
 
       var pronsHtml = '';
       if(matchProde){
-        var rProde = resultados[matchProde.id];
-        var hasRProde = rProde && !isNaN(rProde.gl);
-        var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
-        var rParaPuntos = hasRProde ? rProde : liveR;
-        var esProvisorio = !hasRProde && !!liveR;
-        var chips = participantes.map(function(part){
-          var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
-          if(!pr || isNaN(pr.gl)) return '';
-          var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
-          var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
-          if(pts===3){
-            chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
-            label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
-          } else if(pts===1){
-            chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
-            label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
-          } else if(pts===0){
-            chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
-            label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
-          }
-          var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
-          return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
-            +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
-              +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
-              +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
-            +'</span>'
-            +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
-            +'</span>';
-        }).filter(Boolean).join('');
-        if(chips){
-          // Si el partido ya terminó: ocultar pronósticos por defecto con botón toggle
-          var pid = 'prons-'+matchProde.id;
-          if(completado){
-            pronsHtml = '<div style="margin-top:4px">'
-              +'<button onclick="var d=document.getElementById(\''+pid+'\');var b=this;if(d.style.display===\'none\'){d.style.display=\'\';b.textContent='+"'👁 Ocultar pronósticos'"+';}else{d.style.display=\'none\';b.textContent='+"'👁 Ver pronósticos'"+';}" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;padding:2px 0;margin-bottom:4px">👁 Ver pronósticos</button>'
-              +'<div id="'+pid+'" class="match-prons" style="display:none">'+chips+'</div>'
-              +'</div>';
-          } else {
-            pronsHtml = '<div class="match-prons">'+chips+'</div>';
-          }
+        if(matchProde.estado === 'cerrada'){
+          var rProde = resultados[matchProde.id];
+          var hasRProde = rProde && !isNaN(rProde.gl);
+          var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
+          var rParaPuntos = hasRProde ? rProde : liveR;
+          var esProvisorio = !hasRProde && !!liveR;
+          var chips = participantes.map(function(part){
+            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+            if(!pr || isNaN(pr.gl)) return '';
+            var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
+            var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
+            if(pts===3){
+              chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
+              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
+            } else if(pts===1){
+              chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
+              label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
+            } else if(pts===0){
+              chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
+              label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
+            }
+            var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
+            return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
+              +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
+                +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
+                +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
+              +'</span>'
+              +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
+              +'</span>';
+          }).filter(Boolean).join('');
+          if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
         }
+        // fecha abierta: no mostrar pronósticos
       } else {
         console.log('[Hoy] Sin match para "'+t1+'" vs "'+t2+'" — partidos prode:', partidos.map(function(p){return p.local+' vs '+p.visitante;}).join(' | '));
       }
@@ -2284,6 +2112,10 @@ async function renderPartidosHoy(){
       notas.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
       var grupoHtml = grupoTexto ? '<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>' : '';
 
+      var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
+      var hasProns = pronsHtml.length > 0;
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(''+evId+'')">👁 Ver pronósticos</button>' : '';
+      var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
       return '<div class="match-card">'
         +'<div class="match-teams">'+grupoHtml
         +'<div style="flex:1">'
@@ -2292,8 +2124,9 @@ async function renderPartidosHoy(){
         +'</div>'
         +horaHtml
         +goleadoresHtml
+        +pronBtn
         +'</div></div>'
-        +pronsHtml
+        +pronWrap
         +'</div>';
     }).join('');
 
@@ -2604,21 +2437,21 @@ function renderHighlights(){
   if(!topRacha&&!mejorFecha){ row.style.display='none'; return; }
   row.style.display='';
 
-  let html='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.25rem">';
+  let html='<div style="display:flex;gap:10px;flex-wrap:wrap">';
   if(topRacha&&topRacha.racha>=2){
-    html+='<div style="display:flex;align-items:center;gap:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:var(--radius);padding:.35rem .7rem">'
-      +'<span style="font-size:16px">🔥</span>'
-      +'<div><span style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Racha activa · </span>'
-      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+topRacha.nombre+'</span>'
-      +'<span style="font-size:11px;color:#fbbf24;font-weight:600;margin-left:5px">'+topRacha.racha+' seguidos</span>'
+    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(251,191,36,.04));border:1px solid rgba(251,191,36,.3);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
+      +'<div style="font-size:28px">🔥</div>'
+      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Racha activa</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+topRacha.nombre+'</div>'
+      +'<div style="font-size:12px;color:#fbbf24;font-weight:600">'+topRacha.racha+' aciertos seguidos</div>'
       +'</div></div>';
   }
   if(mejorFecha){
-    html+='<div style="display:flex;align-items:center;gap:6px;background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:var(--radius);padding:.35rem .7rem">'
-      +'<span style="font-size:16px">⭐</span>'
-      +'<div><span style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Mejor '+esc(mejorFecha.fecha)+' · </span>'
-      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+mejorFecha.nombre+'</span>'
-      +'<span style="font-size:11px;color:#93c5fd;font-weight:600;margin-left:5px">'+mejorFecha.pts+' pts · '+mejorFecha.exactos+' exacto'+(mejorFecha.exactos!==1?'s':'')+'</span>'
+    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.04));border:1px solid rgba(96,165,250,.25);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
+      +'<div style="font-size:28px">⭐</div>'
+      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Mejor de '+esc(mejorFecha.fecha)+'</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+mejorFecha.nombre+'</div>'
+      +'<div style="font-size:12px;color:#93c5fd;font-weight:600">'+mejorFecha.pts+' pts · '+mejorFecha.exactos+' exacto'+(mejorFecha.exactos!==1?'s':'')+'</div>'
       +'</div></div>';
   }
   html+='</div>';
@@ -2691,106 +2524,8 @@ function renderMiniTop3(){
 }
 
 // ══════════════════════════════════════════════════════════════════════
-// ── BULK PRONÓSTICOS (carga masiva admin) ────────────────────────────
-// ══════════════════════════════════════════════════════════════════════
-
-function initBulkPronosticos(){
-  var fSel = document.getElementById('bulk-pron-fecha-sel');
-  var pSel = document.getElementById('bulk-pron-persona-sel');
-  if(!fSel || !pSel) return;
-  var fechas = getFechas();
-  fSel.innerHTML = '<option value="">— elegí fecha —</option>' + fechas.map(function(f){
-    return '<option value="'+esc(f)+'">'+f+'</option>';
-  }).join('');
-  pSel.innerHTML = '<option value="">— elegí persona —</option>' + participantes.map(function(p){
-    return '<option value="'+esc(p.nombre)+'">'+p.nombre+'</option>';
-  }).join('');
-  // default: última fecha, primer participante
-  if(fechas.length){ fSel.value = fechas[fechas.length-1]; }
-  if(participantes.length){ pSel.value = participantes[0].nombre; }
-  renderBulkPronosticos();
-}
-
-function renderBulkPronosticos(){
-  var fSel = document.getElementById('bulk-pron-fecha-sel');
-  var pSel = document.getElementById('bulk-pron-persona-sel');
-  var cont = document.getElementById('bulk-pron-body');
-  if(!fSel || !pSel || !cont) return;
-  var f = fSel.value;
-  var nombre = pSel.value;
-  if(!f || !nombre){ cont.innerHTML='<p class="empty" style="padding:1rem 0">Elegí una fecha y persona.</p>'; return; }
-  var ps = partidos.filter(function(p){ return p.fecha === f; });
-  if(!ps.length){ cont.innerHTML='<p class="empty" style="padding:1rem 0">No hay partidos en esta fecha.</p>'; return; }
-  var cerrada = ps[0] && ps[0].estado === 'cerrada';
-  if(cerrada){ cont.innerHTML='<div class="warn-box">Esta fecha está cerrada — no se pueden modificar pronósticos.</div>'; return; }
-  cont.innerHTML = ps.map(function(p){
-    var pr = pronosticos[p.id] && pronosticos[p.id][nombre];
-    var gl = (pr && !isNaN(pr.gl)) ? pr.gl : '';
-    var gv = (pr && !isNaN(pr.gv)) ? pr.gv : '';
-    return '<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:.75rem 1rem">'
-      + (p.grupo ? '<span class="badge b-group">G-'+p.grupo+'</span>' : '')
-      + '<div style="flex:1;min-width:160px;font-size:14px;font-weight:500">'+p.local+' <span style="color:var(--text3);font-size:12px">vs</span> '+p.visitante+'</div>'
-      + '<div style="display:flex;align-items:center;gap:6px">'
-      + '<input type="number" id="bpron_gl_'+p.id+'" value="'+gl+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
-      + '<span style="color:var(--text3)">-</span>'
-      + '<input type="number" id="bpron_gv_'+p.id+'" value="'+gv+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function guardarBulkPronosticos(){
-  var fSel = document.getElementById('bulk-pron-fecha-sel');
-  var pSel = document.getElementById('bulk-pron-persona-sel');
-  if(!fSel || !pSel) return;
-  var f = fSel.value;
-  var nombre = pSel.value;
-  if(!f || !nombre){ toast('Elegí una fecha y persona','error'); return; }
-  var ps = partidos.filter(function(p){ return p.fecha === f; });
-  var cerrada = ps[0] && ps[0].estado === 'cerrada';
-  if(cerrada){ toast('La fecha está cerrada','error'); return; }
-  var guardados = 0;
-  ps.forEach(function(p){
-    var glEl = document.getElementById('bpron_gl_'+p.id);
-    var gvEl = document.getElementById('bpron_gv_'+p.id);
-    if(!glEl || !gvEl) return;
-    var gl = parseInt(glEl.value), gv = parseInt(gvEl.value);
-    if(!isNaN(gl) && !isNaN(gv)){
-      if(!pronosticos[p.id]) pronosticos[p.id] = {};
-      pronosticos[p.id][nombre] = {gl, gv};
-      guardados++;
-    }
-  });
-  if(guardados){ persist(); renderPronosticos(); toast('✓ '+guardados+' pronóstico'+(guardados!==1?'s':'')+' guardados'); }
-  else toast('No hay pronósticos para guardar — completá al menos un marcador','error');
-}
-
-// ══════════════════════════════════════════════════════════════════════
 // ── BULK RESULTADOS (carga masiva admin) ──────────────────────────────
 // ══════════════════════════════════════════════════════════════════════
-
-function renderBulkResultados(){
-  var sel=document.getElementById('bulk-fecha-sel');
-  if(!sel) return;
-  var f=sel.value;
-  var cont=document.getElementById('bulk-resultados-body');
-  if(!cont) return;
-  var ps=partidos.filter(function(p){ return p.fecha===f; });
-  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos en esta fecha.</p>'; return; }
-  cont.innerHTML=ps.map(function(p){
-    var r=resultados[p.id]||{};
-    var gl=r.gl!==undefined?r.gl:'';
-    var gv=r.gv!==undefined?r.gv:'';
-    return '<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:.75rem 1rem">'
-      +'<div style="flex:1;min-width:160px;font-size:14px;font-weight:500">'+p.local+' <span style="color:var(--text3);font-size:12px">vs</span> '+p.visitante+'</div>'
-      +'<div style="display:flex;align-items:center;gap:6px">'
-      +'<input type="number" id="bulk_gl_'+p.id+'" value="'+gl+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
-      +'<span style="color:var(--text3)">-</span>'
-      +'<input type="number" id="bulk_gv_'+p.id+'" value="'+gv+'" min="0" max="99" placeholder="—" style="width:52px;text-align:center">'
-      +'</div>'
-      +'</div>';
-  }).join('');
-}
 
 function guardarBulkResultados(){
   var sel=document.getElementById('bulk-fecha-sel');
@@ -2949,6 +2684,80 @@ function partDragEnd(e){ e.target.closest('.pchip')?.classList.remove('dragging'
 function partDragOver(e){ e.preventDefault(); const el=e.target.closest('.pchip'); if(el&&el.dataset.pnombre!==_partDragNombre) el.classList.add('drag-over-part'); }
 function partDragLeave(e){ e.target.closest('.pchip')?.classList.remove('drag-over-part'); }
 function partDragDrop(e,tNombre){ e.preventDefault(); const el=e.target.closest('.pchip'); if(el) el.classList.remove('drag-over-part'); if(!_partDragNombre||tNombre===_partDragNombre) return; const fi=participantes.findIndex(p=>p.nombre===_partDragNombre),ti=participantes.findIndex(p=>p.nombre===tNombre); if(fi<0||ti<0) return; const [m]=participantes.splice(fi,1); participantes.splice(ti,0,m); persist(); renderParticipantes(); toast('✓ Orden actualizado'); }
+
+// ══════════════════════════════════════════════════════════════════════
+// BULK PRONÓSTICOS (carga rápida por fecha/participante)
+// ══════════════════════════════════════════════════════════════════════
+function renderBulkPron(){
+  var fSel=document.getElementById('bpron-fecha-sel');
+  var pSel=document.getElementById('bpron-part-sel');
+  var cont=document.getElementById('bulk-pron-content');
+  if(!fSel||!pSel||!cont) return;
+  var fechas=getFechas().filter(function(f){ return partidos.some(function(p){ return p.fecha===f && p.estado!=='cerrada'; }); });
+  var curF=fSel.value, curP=pSel.value;
+  fSel.innerHTML=fechas.map(function(f){ return '<option value="'+esc(f)+'"'+(f===curF?' selected':'')+'>'+f+'</option>'; }).join('');
+  if(!fSel.value && fechas.length) fSel.value=fechas[0];
+  pSel.innerHTML=participantes.map(function(p){ return '<option value="'+esc(p.nombre)+'"'+(p.nombre===curP?' selected':'')+'>'+p.nombre+'</option>'; }).join('');
+  var f=fSel.value, nombre=pSel.value;
+  if(!f||!nombre){ cont.innerHTML='<p class="empty">Sin fechas abiertas o participantes.</p>'; return; }
+  var ps=partidos.filter(function(p){ return p.fecha===f && p.estado!=='cerrada'; });
+  if(!ps.length){ cont.innerHTML='<p class="empty">No hay partidos abiertos en esta fecha.</p>'; return; }
+  var total=ps.length;
+  var cargados=ps.filter(function(p){ var pr=pronosticos[p.id]&&pronosticos[p.id][nombre]; return pr&&!isNaN(pr.gl); }).length;
+  cont.innerHTML='<div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">'+cargados+'/'+total+' pronósticos cargados para <strong style="color:var(--text)">'+nombre+'</strong></div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px">'
+    +ps.map(function(p){
+      var pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+      var has=pr&&!isNaN(pr.gl);
+      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+        +'<div style="font-size:13px;font-weight:600;flex:1">'
+        +(p.grupo?'<span class="badge b-group" style="margin-right:4px;font-size:11px">G-'+p.grupo+'</span>':'')
+        +p.local+' <span style="color:var(--text3);font-weight:400">vs</span> '+p.visitante
+        +(has?'<span class="badge b-exact" style="margin-left:6px;font-size:10px">✓ '+pr.gl+'-'+pr.gv+'</span>':'')
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+        +'<input type="number" id="bpgl_'+p.id+'" min="0" max="20" value="'+(has?pr.gl:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
+        +'<span style="font-size:18px;color:var(--text3)">-</span>'
+        +'<input type="number" id="bpgv_'+p.id+'" min="0" max="20" value="'+(has?pr.gv:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+function guardarBulkPron(){
+  var f=document.getElementById('bpron-fecha-sel')?.value;
+  var nombre=document.getElementById('bpron-part-sel')?.value;
+  if(!f||!nombre) return;
+  var ps=partidos.filter(function(p){ return p.fecha===f && p.estado!=='cerrada'; });
+  var n=0;
+  ps.forEach(function(p){
+    var gl=parseInt(document.getElementById('bpgl_'+p.id)?.value);
+    var gv=parseInt(document.getElementById('bpgv_'+p.id)?.value);
+    if(!isNaN(gl)&&!isNaN(gv)){ if(!pronosticos[p.id]) pronosticos[p.id]={}; pronosticos[p.id][nombre]={gl,gv}; n++; }
+  });
+  if(n){ persist(); renderBulkPron(); refreshAll(); toast('✓ '+n+' pronóstico'+(n!==1?'s':'')+' guardados para '+nombre); }
+  else toast('No hay pronósticos para guardar','error');
+}
+function limpiarBulkPron(){
+  var f=document.getElementById('bpron-fecha-sel')?.value;
+  var nombre=document.getElementById('bpron-part-sel')?.value;
+  if(!f||!nombre||!confirm('¿Limpiar todos los pronósticos de '+nombre+' en '+f+'?')) return;
+  partidos.filter(function(p){ return p.fecha===f; }).forEach(function(p){ if(pronosticos[p.id]) delete pronosticos[p.id][nombre]; });
+  persist(); renderBulkPron(); toast('Pronósticos borrados');
+}
+
+
+function togglePronView(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var btn=el.previousElementSibling;
+  if(el.style.display==='none'){
+    el.style.display='';
+    if(btn && btn.classList.contains('btn-prons-toggle')) btn.textContent='🙈 Ocultar pronósticos';
+  } else {
+    el.style.display='none';
+    if(btn && btn.classList.contains('btn-prons-toggle')) btn.textContent='👁 Ver pronósticos';
+  }
+}
+
 
 async function init(){
   loadLocal(); applyRole(); refreshAll();
