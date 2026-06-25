@@ -476,23 +476,10 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
 <!-- PÁGINA PÚBLICA UNIFICADA -->
 <div id="page-partidos-pub" class="page active">
 
-  <!-- POZOS PENDIENTES — fila superior -->
-  <div id="pozos-top-row" class="pozos-top-row"></div>
+  <!-- HIGHLIGHTS — racha y mejor (chips compactos) -->
+  <div id="highlights-row" style="display:none;margin-bottom:.5rem"></div>
 
-  <!-- HIGHLIGHTS — racha y mejor de fecha -->
-  <div id="highlights-row" style="display:none;margin-bottom:.75rem"></div>
-
-  <!-- BANNER FECHA 3 -->
-  <div class="fecha2-banner" style="margin-bottom:.75rem">
-    <div style="font-size:28px">⚽</div>
-    <div style="flex:1">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);margin-bottom:3px">¡Ya podés cargar tus pronósticos!</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--text);line-height:1.2">Fecha 3 — Mundial 2026</div>
-    </div>
-    <a href="https://nudia865-netizen.github.io/Fecha-3/" target="_blank" rel="noopener">📝 Cargar Prode Fecha 3</a>
-  </div>
-
-  <!-- PARTIDOS DE HOY — reemplaza banner fecha 2 -->
+  <!-- PARTIDOS DE HOY -->
   <div id="sec-partidos-hoy" style="margin-bottom:.75rem;display:none">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:.5rem">📅 Partidos de hoy</div>
     <div id="partidos-hoy-content"></div>
@@ -504,13 +491,14 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div id="partidos-manana-content"></div>
   </div>
 
-  <!-- TABLA -->
+  <!-- TABLA con botón Actualizar ESPN -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-tabla','schev-tabla')">
       <div class="fh-left" style="font-size:14px;font-weight:700">🏆 Tabla</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <select id="tp-fecha-sel" onchange="renderTablaPublica()" style="font-size:12px" onclick="event.stopPropagation()"><option value="general">General — Súper Pozo</option></select>
-        <span class="fh-chev" id="schev-tabla">&#9658;</span>
+      <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
+        <select id="tp-fecha-sel" onchange="renderTablaConEspn()" style="font-size:12px"><option value="general">General — Súper Pozo</option></select>
+        <button id="btn-actualizar-tabla" onclick="actualizarTablaEspn()" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;white-space:nowrap">🔄 Actualizar</button>
+        <span class="fh-chev" id="schev-tabla" onclick="event.stopPropagation();toggleSecPub('sec-pub-tabla','schev-tabla')">&#9658;</span>
       </div>
     </div>
     <div class="fecha-body" id="sec-pub-tabla">
@@ -518,19 +506,8 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
-  <!-- RESUMEN CON INICIALES -->
-  <div style="margin-bottom:.5rem">
-    <div class="fecha-header" onclick="toggleSecPub('sec-pub-resumen','schev-resumen')">
-      <div class="fh-left" style="font-size:14px;font-weight:700">📋 Resumen</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <select id="pub-res-sel" onchange="renderResumenPub()" style="font-size:12px" onclick="event.stopPropagation()"><option value="todas">Todas las fechas</option></select>
-        <span class="fh-chev" id="schev-resumen">&#9658;</span>
-      </div>
-    </div>
-    <div class="fecha-body" id="sec-pub-resumen">
-      <div id="resumen-pub-content"><p class="empty">Sin datos aún.</p></div>
-    </div>
-  </div>
+  <!-- SÚPER POZO + POZOS debajo de tabla -->
+  <div id="pozos-top-row" class="pozos-top-row" style="margin-bottom:.5rem"></div>
 
   <!-- PARTIDOS -->
   <div style="margin-bottom:.5rem">
@@ -560,7 +537,7 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     </div>
   </div>
 
-  <!-- POZOS — compactos, al final de personas -->
+  <!-- POZOS detalle -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-pozo','schev-pozo')">
       <div class="fh-left" style="font-size:14px;font-weight:700">💰 Pozos</div>
@@ -569,7 +546,6 @@ tr.rank-3 td{background:rgba(205,127,50,.04)}
     <div class="fecha-body" id="sec-pub-pozo">
       <div id="pozo-pub-partidos"></div>
       <div id="pozo-pub" style="display:none"></div>
-
     </div>
   </div>
 
@@ -704,7 +680,7 @@ function clearLock(){ localStorage.removeItem(LOCK_KEY); }
 function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
 
-let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={};
+let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={}, resultadosEspn={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 let pronFechasOpen={}; // estado colapso por fecha en pestaña pronósticos
 
@@ -715,6 +691,8 @@ function setState(d){
     if(!p.pagos){ p.pagos = {}; if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; } delete p.cuota; }
   });
   if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
+  if(d._histBin){ HIST_BIN_ID=d._histBin; localStorage.setItem('pmk_hist_bin',HIST_BIN_ID); }
+  window._lastCloudState = d;
 }
 
 function pagoFecha(p, fecha){ return (p.pagos && p.pagos[fecha]) || 'no'; }
@@ -882,10 +860,9 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub(); renderPartidosHoy(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3(); renderPartidosHoy(); renderPartidosManana(); loadHistorialBin(); }
   if(p==='grupos'){ renderGrupos(); }
   if(p==='fixture'){ renderFixture(); }
-  if(p==='partidos-pub'){ renderHighlights(); renderMiniTop3(); renderPartidosManana(); }
 }
 
 function showTab(t){
@@ -919,8 +896,7 @@ function refreshAll(){
   if(at==='resumen')     renderResumen();
   if(at==='tabla')       renderTabla();
   if(document.getElementById('page-partidos-pub').classList.contains('active')){
-    renderPartidosPublicos(); renderResumenPub(); renderPersonas(); renderTablaPublica(); renderPozoPublico(); renderHistorialPub();
-    renderHighlights(); renderMiniTop3();
+    renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3();
   }
 }
 
@@ -1185,10 +1161,19 @@ function calcPuntos(pr,r){
   return rG===pG?1:0;
 }
 
-function getScores(ps,nombre){
+function getScores(ps,nombre,useEspn){
   let pts=0,exactos=0,aciertan=0,jugados=0;
   ps.forEach(p=>{
-    const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
+    var r;
+    if(useEspn){
+      var espnR=resultadosEspn[p.id];
+      var adminR=resultados[p.id];
+      // Admin tiene prioridad si existe; si no, ESPN
+      r = (adminR&&!isNaN(adminR.gl)) ? adminR : (espnR&&!isNaN(espnR.gl)) ? espnR : null;
+    } else {
+      r = resultados[p.id];
+    }
+    const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
     const pts2=calcPuntos(pr,r); if(pts2===null) return;
     jugados++; pts+=pts2; if(pts2===3) exactos++; if(pts2===1) aciertan++;
   });
@@ -1485,62 +1470,21 @@ function renderPozoPublico(){
     }
     return;
   }
-  // Llenar fila superior con los pozos sin resultados
+  // Fila compacta: líderes actuales + pozo fecha en curso
   if(topRow){
-    var topMedals=['🥇','🥈','🥉'];
-    var cardsHtml = buildFechaTop3Cards() + abiertas.map(function(f){
-      var conC=pagantesFecha(f).length;
-      var total=conC*5000, sp=conC*1000, ppal=total-sp;
-      var dist=distPorCantidad(conC,ppal);
-      var distHtml='';
-      if(conC===0){
-        distHtml='<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Nadie pagó aún</div>';
-      } else {
-        distHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'
-          +dist.map(function(d,i){
-            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">'
-              +'<div style="display:flex;align-items:center;gap:6px">'
-              +'<span style="font-size:16px;line-height:1">'+(topMedals[i]||'·')+'</span>'
-              +'<div style="font-size:11px;color:var(--text2)">'+d.pos+'<br><span style="color:var(--text3)">'+d.pct+'</span></div>'
-              +'</div>'
-              +'<span style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span>'
-              +'</div>';
-          }).join('')
-          +'</div>';
-      }
-      return '<div class="pozo-top-card">'
-        +'<div class="ptp-label">&#x1F4B0; Pozo pendiente</div>'
-        +'<div class="ptp-fecha">'+esc(f)+'</div>'
-        +'<div class="ptp-amount">$'+ppal.toLocaleString('es-AR')+'</div>'
-        +'<div class="ptp-sub">'+conC+(conC!==1?' pagantes':' pagante')+' &middot; Sin resultados a&uacute;n</div>'
-        +distHtml
+    var fechaActual = abiertas[0] || null;
+    var pozoCard = '';
+    if(fechaActual){
+      var conC2 = pagantesFecha(fechaActual).length;
+      var ppal2 = conC2*5000 - conC2*1000;
+      pozoCard = '<div class="pozo-top-card" style="min-width:140px;max-width:200px">'
+        +'<div class="ptp-label" style="font-size:10px">💰 Pozo pendiente</div>'
+        +'<div class="ptp-fecha" style="font-size:12px">'+esc(fechaActual)+'</div>'
+        +'<div class="ptp-amount" style="font-size:22px">$'+ppal2.toLocaleString('es-AR')+'</div>'
+        +'<div class="ptp-sub" style="font-size:11px">'+conC2+(conC2!==1?' pagantes':' pagante')+'</div>'
         +'</div>';
-    }).join('');
-    // Agregar pozos cerrados recientemente
-    recientes.forEach(function(e){
-      var f=e[0], h=e[1];
-      var dias = Math.floor((Date.now()-new Date(h.fechaCierre).getTime())/(1000*60*60*24));
-      var cuandoLabel = dias===0 ? 'Hoy' : dias===1 ? 'Ayer' : 'Hace '+dias+' d&iacute;as';
-      var ganHtml = (h.dist||[]).map(function(d,i){
-        var medal = ['&#x1F947;','&#x1F948;','&#x1F949;'][i] || '&middot;';
-        var ganNombre = d.ganador || (d.ganadores||[]).join(', ') || '&mdash;';
-        var monto = typeof d.monto==='number' ? '$'+d.monto.toLocaleString('es-AR') : '&mdash;';
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
-          +'<div style="display:flex;align-items:center;gap:7px">'
-          +'<span style="font-size:18px">'+medal+'</span>'
-          +'<div style="font-size:12px;color:var(--text);font-weight:600">'+ganNombre+'</div>'
-          +'</div>'
-          +'<span style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:700;color:var(--accent)">'+monto+'</span>'
-          +'</div>';
-      }).join('');
-      cardsHtml += '<div class="pozo-top-card" style="border-color:rgba(45,122,31,.3)">'
-        +'<div class="ptp-label">&#x2705; Pozo cerrado &mdash; '+cuandoLabel+'</div>'
-        +'<div class="ptp-fecha">'+esc(f)+'</div>'
-        +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+ganHtml+'</div>'
-        +'</div>';
-    });
-    cardsHtml += buildSpTopCard(spTotal);
-    topRow.innerHTML = cardsHtml;
+    }
+    topRow.innerHTML = buildFechaTop3Cards() + pozoCard + buildSpTopCard(spTotal);
   }
   const boxesHtml = abiertas.map(f=>{
     const conC=pagantesFecha(f).length;
@@ -1724,6 +1668,232 @@ function renderPersonas(){
 
 function togglePerson(idx){ document.getElementById('pbody_'+idx)?.classList.toggle('open'); document.getElementById('chev_'+idx)?.classList.toggle('open'); }
 
+// ══════════════════════════════════════════════════════════════════════
+// ── HISTORIAL BIN SEPARADO ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+// El historial vive en un bin aparte (guardado en el bin principal como _histBin)
+var HIST_BIN_ID = localStorage.getItem('pmk_hist_bin') || '';
+
+async function loadHistorialBin(){
+  const cont = document.getElementById('historial-pub-content');
+  if(!cont) return;
+  // Intentar leer el ID del historial bin desde el estado principal
+  if(!HIST_BIN_ID){
+    // Buscar en el estado cargado
+    const raw = localStorage.getItem('pmk_state');
+    if(raw){ try{ const d=JSON.parse(raw); if(d._histBin){ HIST_BIN_ID=d._histBin; localStorage.setItem('pmk_hist_bin',HIST_BIN_ID); } }catch(e){} }
+  }
+  if(!HIST_BIN_ID){
+    // Intentar leerlo del bin principal si ya está en memoria
+    if(window._lastCloudState && window._lastCloudState._histBin){
+      HIST_BIN_ID = window._lastCloudState._histBin;
+      localStorage.setItem('pmk_hist_bin', HIST_BIN_ID);
+    }
+  }
+  if(!HIST_BIN_ID){
+    cont.innerHTML='<p class="empty">Historial no configurado (falta ID del bin).</p>';
+    return;
+  }
+  cont.innerHTML='<p class="empty">Cargando historial…</p>';
+  try{
+    const res = await fetch('https://api.jsonbin.io/v3/b/'+HIST_BIN_ID+'/latest',{
+      headers:{'X-Access-Key': ACCESS_KEY}
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    const historial = data.record || {};
+    const fechas = Object.keys(historial);
+    if(!fechas.length){ cont.innerHTML='<p class="empty">Sin fechas cerradas todavía.</p>'; return; }
+    cont.innerHTML = fechas.map(function(f){
+      const h = historial[f];
+      const distRows = (h.dist||[]).map(function(d){
+        return '<div class="pozo-dist-row"><span>'+d.pos+' puesto ('+d.pct+')</span><span style="font-weight:600;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span><span>🏆 '+esc(d.ganador||'—')+'</span></div>';
+      }).join('');
+      return '<div class="card">'
+        +'<div class="card-title">'+esc(f)+'</div>'
+        +'<div class="metrics" style="margin-bottom:.5rem">'
+        +'<div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$'+(h.recaudado||0).toLocaleString('es-AR')+'</div></div>'
+        +'<div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$'+(h.principal||0).toLocaleString('es-AR')+'</div></div>'
+        +'<div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$'+(h.superPozoAporte||0).toLocaleString('es-AR')+'</div></div>'
+        +'</div>'+distRows+'</div>';
+    }).join('');
+  }catch(e){
+    cont.innerHTML='<p class="empty">Error cargando historial: '+e.message+'</p>';
+  }
+}
+
+// Guardar _histBin en el bin principal cuando el admin lo configure
+function setHistBinId(id){
+  HIST_BIN_ID = id;
+  localStorage.setItem('pmk_hist_bin', id);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── TABLA CON ESPN (tiempo real, sin confirmación admin) ──────────────
+// ══════════════════════════════════════════════════════════════════════
+
+var ESPN_NORM = {
+  'united states':'estados unidos','usa':'estados unidos',
+  'south korea':'corea del sur','korea republic':'corea del sur',
+  'north korea':'corea del norte','dpr korea':'corea del norte',
+  "cote d'ivoire":'costa de marfil','ivory coast':'costa de marfil',
+  'saudi arabia':'arabia saudita','spain':'espana','england':'inglaterra',
+  'cape verde':'cabo verde','democratic republic of congo':'rd congo',
+  'dr congo':'rd congo','republic of ireland':'irlanda','ireland':'irlanda',
+  'new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega',
+  'denmark':'dinamarca','trinidad & tobago':'trinidad y tobago',
+  'trinidad and tobago':'trinidad y tobago','north macedonia':'macedonia del norte',
+  'czech republic':'republica checa','czechia':'republica checa',
+  'netherlands':'paises bajos','holland':'paises bajos',
+  'uae':'emiratos arabes unidos','united arab emirates':'emiratos arabes unidos',
+  'switzerland':'suiza','morocco':'marruecos','scotland':'escocia',
+  'curacao':'curazao','japan':'japon','tunisia':'tunez',
+  'turkey':'turquia','turkiye':'turquia','germany':'alemania',
+  'brazil':'brasil','cameroon':'camerun','france':'francia',
+  'italy':'italia','belgium':'belgica','croatia':'croacia',
+  'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
+  'equatorial guinea':'guinea ecuatorial','guinea bissau':'guinea bisau'
+};
+
+function normTeam(s){
+  s = (s||'').toLowerCase().trim();
+  if(ESPN_NORM[s]) s = ESPN_NORM[s];
+  s = s.replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e').replace(/[íìïî]/g,'i')
+       .replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u').replace(/[ñ]/g,'n')
+       .replace(/[^a-z ]/g,'').trim();
+  if(ESPN_NORM[s]) s = ESPN_NORM[s];
+  return s.replace(/ /g,'');
+}
+function teamsMatch(a,b){ return a===b||a.startsWith(b.slice(0,6))||b.startsWith(a.slice(0,6)); }
+
+async function fetchEspnResultados(){
+  var pad = function(n){ return n<10?'0'+n:String(n); };
+  var hoy = new Date();
+  var fechas = [];
+  for(var i=7; i>=0; i--){
+    var d = new Date(hoy); d.setDate(d.getDate()-i);
+    fechas.push(String(d.getFullYear())+pad(d.getMonth()+1)+pad(d.getDate()));
+  }
+  var nuevos = {};
+  for(var fi=0; fi<fechas.length; fi++){
+    try{
+      var res = await fetch(ESPN_WC_URL+'?dates='+fechas[fi]+'&limit=50',{cache:'no-cache'});
+      if(!res.ok) continue;
+      var data = await res.json();
+      (data.events||[]).forEach(function(ev){
+        var comp = (ev.competitions||[])[0]; if(!comp) return;
+        var status = (comp.status&&comp.status.type)||{};
+        var completado = !!status.completed;
+        var enCurso   = !completado && status.state==='in';
+        if(!completado && !enCurso) return;
+        var comps = comp.competitors||[];
+        var home = comps.find(function(c){return c.homeAway==='home';})||comps[0]||{};
+        var away = comps.find(function(c){return c.homeAway==='away';})||comps[1]||{};
+        var s1 = home.score!==undefined ? Number(home.score) : null;
+        var s2 = away.score!==undefined ? Number(away.score) : null;
+        if(s1===null||s2===null||isNaN(s1)||isNaN(s2)) return;
+        var t1n = normTeam(home.team?(home.team.displayName||home.team.name):'');
+        var t2n = normTeam(away.team?(away.team.displayName||away.team.name):'');
+        var match = partidos.find(function(p){
+          return teamsMatch(normTeam(p.local),t1n) && teamsMatch(normTeam(p.visitante),t2n);
+        });
+        if(match) nuevos[match.id] = {gl:s1, gv:s2, estado: completado?'final':'live'};
+      });
+    }catch(e){}
+  }
+  return nuevos;
+}
+
+async function actualizarTablaEspn(){
+  var btn = document.getElementById('btn-actualizar-tabla');
+  if(btn){ btn.textContent='⏳…'; btn.disabled=true; }
+  await loadFromCloud();
+  var espn = await fetchEspnResultados();
+  resultadosEspn = espn;
+  var n = Object.keys(espn).length;
+  renderTablaConEspn();
+  if(btn){
+    btn.textContent = n ? '✓ '+n+' resultado'+(n!==1?'s':'') : '✓ Sin datos';
+    btn.disabled=false;
+    setTimeout(function(){ if(btn) btn.textContent='🔄 Actualizar'; },3000);
+  }
+}
+
+function renderTablaConEspn(){
+  const cont = document.getElementById('tabla-pub-content');
+  const sel  = document.getElementById('tp-fecha-sel');
+  if(!cont||!sel) return;
+
+  const todasFechas = getFechas();
+  const cerradasSet = new Set(partidos.filter(p=>p.estado==='cerrada').map(p=>p.fecha));
+  const conEspnSet  = new Set(partidos.filter(p=>resultadosEspn[p.id]).map(p=>p.fecha));
+
+  const curVal = sel.dataset.init ? sel.value : '';
+  sel.innerHTML = '<option value="general">General — Súper Pozo</option>';
+  todasFechas.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f;
+    o.textContent = f + (cerradasSet.has(f)?' ✓' : conEspnSet.has(f)?' 📡' : ' (en curso)');
+    sel.appendChild(o);
+  });
+  if(!sel.dataset.init){
+    var conDatos = todasFechas.filter(function(f){
+      return partidos.some(function(p){ return p.fecha===f&&(p.estado==='cerrada'||resultadosEspn[p.id]); });
+    });
+    sel.value = conDatos.length ? conDatos[conDatos.length-1] : 'general';
+    sel.dataset.init='1';
+    document.getElementById('sec-pub-tabla')?.classList.add('open');
+    document.getElementById('schev-tabla')?.classList.add('open');
+  } else if(curVal){ sel.value=curVal; }
+
+  if(!participantes.length){ cont.innerHTML='<p class="empty">Sin datos.</p>'; return; }
+
+  const esGeneral = sel.value==='general';
+  const fechaSel  = sel.value;
+
+  // Partidos: cerrados + los que tienen resultado ESPN (en vivo o final)
+  const ps = esGeneral
+    ? partidos.filter(function(p){ return p.estado==='cerrada'||resultadosEspn[p.id]; })
+    : partidos.filter(function(p){ return p.fecha===fechaSel&&(p.estado==='cerrada'||resultadosEspn[p.id]); });
+
+  if(esGeneral && !ps.length){ cont.innerHTML='<p class="empty">Todavía no hay resultados.</p>'; return; }
+  if(!esGeneral && !ps.length){ cont.innerHTML='<p class="empty">Esta fecha no tiene resultados aún. Tocá 🔄 Actualizar.</p>'; return; }
+
+  const _npPub = esGeneral
+    ? new Set(participantes.filter(function(p){ return !Object.values(p.pagos||{}).includes('si'); }).map(function(p){ return p.nombre; }))
+    : noPrizeSetFecha(fechaSel);
+
+  const partsConPron = esGeneral
+    ? participantes
+    : participantes.filter(function(part){ return ps.some(function(p){ var pr=pronosticos[p.id]&&pronosticos[p.id][part.nombre]; return pr&&!isNaN(pr.gl); }); });
+
+  const ranked = addRanks(
+    partsConPron.map(function(part){ return {nombre:part.nombre,...getScores(ps,part.nombre,true)}; })
+      .sort(function(a,b){ return b.pts-a.pts||b.exactos-a.exactos; }),
+    _npPub
+  );
+
+  // Badge de estado
+  var hayLive  = ps.some(function(p){ return resultadosEspn[p.id]&&resultadosEspn[p.id].estado==='live'; });
+  var hayEspn  = ps.some(function(p){ return resultadosEspn[p.id]; });
+  var badge = '';
+  if(hayLive){
+    badge = '<div style="margin-bottom:.6rem;padding:.35rem .75rem;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);border-radius:8px;font-size:12px;color:#991b1b;display:flex;align-items:center;gap:7px">'
+      +'<span style="width:8px;height:8px;border-radius:50%;background:#dc2626;display:inline-block;animation:espnPulse 1s infinite"></span>'
+      +'En vivo — tabla actualizada con marcadores ESPN</div>';
+  } else if(hayEspn){
+    badge = '<div style="margin-bottom:.6rem;padding:.35rem .75rem;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);border-radius:8px;font-size:12px;color:#1d4ed8">📡 Tabla calculada con resultados ESPN</div>';
+  }
+
+  var extra = '';
+  if(esGeneral){
+    var sp = superPozoTotal();
+    extra = '<div class="pozo-box" style="margin-bottom:1.25rem"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Súper Pozo acumulado</div><div class="pozo-amount">$'+sp.toLocaleString('es-AR')+'</div><div style="font-size:12px;color:var(--text2)">El líder al final gana el 100%. En empate se divide.</div></div>';
+  }
+
+  cont.innerHTML = badge + extra + tableHTML(ranked, _npPub);
+}
+
 function renderTablaPublica(){
   const cont=document.getElementById('tabla-pub-content');
   const sel=document.getElementById('tp-fecha-sel');
@@ -1854,7 +2024,7 @@ async function deleteChatMsg(fbKey){ if(!adminMode) return; if(!confirm('¿Borra
 
 function toggleChat(){ chatOpen=!chatOpen; const bubble=document.getElementById('chat-bubble'); bubble.classList.toggle('open',chatOpen); if(chatOpen){ chatUnread=0; const badge=document.getElementById('chat-unread'); badge.style.display='none'; document.getElementById('chat-name-display').textContent=chatUser||'(elegir nombre)'; if(!chatUser){ setTimeout(()=>openChatNameModal(),300); } loadChatMsgs().then(function(){ var box=document.getElementById('chat-msgs'); if(box) box.scrollTop=box.scrollHeight; }); startChatPolling(); setTimeout(()=>{ document.getElementById('chat-input').focus(); },200); } }
 
-(function(){ const s=document.createElement('style'); s.textContent='@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}'; document.head.appendChild(s); })();
+(function(){ const s=document.createElement('style'); s.textContent='@keyframes chatBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}70%{transform:scale(.95)}}@keyframes espnPulse{0%,100%{opacity:1}50%{opacity:.2}}'; document.head.appendChild(s); })();
 
 async function adminActivarChat(){ const statusEl=document.getElementById('chat-admin-status'); statusEl.innerHTML=`<span style="color:var(--accent)">✓ Chat activo con Firebase.</span>`; toast('Chat Firebase ya está activo.'); }
 async function adminVerMsgs(){ const el=document.getElementById('chat-admin-msgs'); el.textContent='Cargando…'; const msgs=await chatBinGet(); if(!msgs.length){ el.textContent='No hay mensajes aún.'; return; } el.innerHTML=msgs.slice(-20).reverse().map(m=>`<div style="padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:baseline"><span style="color:var(--accent);min-width:100px">${escHtml(m.author)}</span><span style="flex:1">${escHtml(m.text)}</span><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px" onclick="deleteChatMsg('${m._fbKey||m.id}')">✕</button></div>`).join(''); }
@@ -2439,22 +2609,22 @@ function renderHighlights(){
   if(!topRacha&&!mejorFecha){ row.style.display='none'; return; }
   row.style.display='';
 
-  let html='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+  let html='<div style="display:flex;gap:7px;flex-wrap:wrap">';
   if(topRacha&&topRacha.racha>=2){
-    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(251,191,36,.04));border:1px solid rgba(251,191,36,.3);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
-      +'<div style="font-size:28px">🔥</div>'
-      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Racha activa</div>'
-      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+topRacha.nombre+'</div>'
-      +'<div style="font-size:12px;color:#fbbf24;font-weight:600">'+topRacha.racha+' aciertos seguidos</div>'
-      +'</div></div>';
+    html+='<div style="display:flex;align-items:center;gap:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:20px;padding:.3rem .75rem">'
+      +'<span style="font-size:15px">🔥</span>'
+      +'<span style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Racha</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+topRacha.nombre+'</span>'
+      +'<span style="font-size:11px;color:#fbbf24;font-weight:700">'+topRacha.racha+'🔥</span>'
+      +'</div>';
   }
   if(mejorFecha){
-    html+='<div style="flex:1;min-width:180px;background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.04));border:1px solid rgba(96,165,250,.25);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:10px">'
-      +'<div style="font-size:28px">⭐</div>'
-      +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:2px">Mejor de '+esc(mejorFecha.fecha)+'</div>'
-      +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+mejorFecha.nombre+'</div>'
-      +'<div style="font-size:12px;color:#93c5fd;font-weight:600">'+mejorFecha.pts+' pts · '+mejorFecha.exactos+' exacto'+(mejorFecha.exactos!==1?'s':'')+'</div>'
-      +'</div></div>';
+    html+='<div style="display:flex;align-items:center;gap:6px;background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);border-radius:20px;padding:.3rem .75rem">'
+      +'<span style="font-size:15px">⭐</span>'
+      +'<span style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Mejor '+esc(mejorFecha.fecha)+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+mejorFecha.nombre+'</span>'
+      +'<span style="font-size:11px;color:#93c5fd;font-weight:700">'+mejorFecha.pts+'pts</span>'
+      +'</div>';
   }
   html+='</div>';
   row.innerHTML=html;
