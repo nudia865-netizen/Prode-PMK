@@ -1042,21 +1042,23 @@ function renderParticipantes(){
       const pronInd = pronTotal>0
         ? `<span class="pron-ind${pronCargados===0?' pron-none':''}" title="${pronCargados}/${pronTotal} pronósticos cargados">${pronCargados===0?'—':pronCargados+'/'+pronTotal+' ✓'}</span>`
         : '';
-      return `<div class="pchip" draggable="true" data-pnombre="${esc(p.nombre)}"
-        ondragstart="partDragStart(event,'${esc(p.nombre)}')"
-        ondragover="partDragOver(event)"
-        ondrop="partDragDrop(event,'${esc(p.nombre)}')"
-        ondragend="partDragEnd(event)"
-        ondragleave="partDragLeave(event)"
-        style="cursor:default;border-left:3px solid ${pronCompleto?'var(--accent)':pronParcial?'#f59e0b':'var(--border)'}">
-        <span class="pchip-drag-handle" title="Arrastrar para reordenar">⠿</span>
-        <span style="font-size:15px;font-weight:600;color:var(--accent)">${p.nombre[0].toUpperCase()}</span>
-        <span>${p.nombre}</span>
-        ${pronInd}
-        ${f?`<span class="badge ${pagado?'b-win':'b-gray'}" style="cursor:pointer" onclick="togglePago('${esc(p.nombre)}','${esc(f)}')">$${pagado?'5k':'—'}</span>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="editParticipante('${esc(p.nombre)}')">✎</button>
-        <button class="btn btn-danger btn-sm" onclick="delParticipante('${esc(p.nombre)}')">✕</button>
-      </div>`;
+      var pagoHtml = f ? '<span class="badge '+(pagado?'b-win':'b-gray')+'" style="cursor:pointer" onclick="togglePago(\''+esc(p.nombre)+'\',\''+esc(f)+'\')">$'+(pagado?'5k':'—')+'</span>' : '';
+      var borderColor = pronCompleto ? 'var(--accent)' : pronParcial ? '#f59e0b' : 'var(--border)';
+      return '<div class="pchip" draggable="true" data-pnombre="'+esc(p.nombre)+'"'
+        +' ondragstart="partDragStart(event,\''+esc(p.nombre)+'\')"'
+        +' ondragover="partDragOver(event)"'
+        +' ondrop="partDragDrop(event,\''+esc(p.nombre)+'\')"'
+        +' ondragend="partDragEnd(event)"'
+        +' ondragleave="partDragLeave(event)"'
+        +' style="cursor:default;border-left:3px solid '+borderColor+'">'
+        +'<span class="pchip-drag-handle" title="Arrastrar para reordenar">\u2B1E</span>'
+        +'<span style="font-size:15px;font-weight:600;color:var(--accent)">'+p.nombre[0].toUpperCase()+'</span>'
+        +'<span>'+p.nombre+'</span>'
+        +pronInd
+        +pagoHtml
+        +'<button class="btn btn-ghost btn-sm" onclick="editParticipante(\''+esc(p.nombre)+'\')">&#9998;</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="delParticipante(\''+esc(p.nombre)+'\')">&#x2715;</button>'
+        +'</div>';
     }).join('')}
   </div>`;
 }
@@ -2114,7 +2116,7 @@ async function renderPartidosHoy(){
 
       var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns = pronsHtml.length > 0;
-      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(''+evId+'')">👁 Ver pronósticos</button>' : '';
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')">👁 Ver pronósticos</button>' : '';
       var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
       return '<div class="match-card">'
         +'<div class="match-teams">'+grupoHtml
