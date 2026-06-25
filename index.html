@@ -433,6 +433,28 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
 
   <div id="tab-pozo" class="tab-sec">
     <div id="pozo-content"></div>
+
+    <!-- IMPORTAR HISTORIAL DESDE BIN VIEJO -->
+    <div class="card" style="margin-top:1.5rem;border-color:rgba(251,191,36,.25)">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">📥 Importar historial de bin anterior <span class="badge b-gray" style="font-size:10px">Merge seguro</span></div>
+      <div class="warn-box" style="margin-bottom:.75rem">Esto lee el bin viejo y <strong>agrega</strong> las fechas de su historial al bin actual sin pisar ninguna fecha existente. Tus datos actuales no se borran.</div>
+      <div class="frow" style="align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ID del bin viejo</label>
+          <input type="text" id="hist-import-bin-id" placeholder="Ej: 66f3c1a5ad19ca34f8d6e123" style="width:100%;font-size:13px;font-family:monospace" oninput="document.getElementById('hist-import-result').textContent=''">
+        </div>
+        <div style="flex:1;min-width:240px">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Access Key del bin viejo <span style="color:var(--text3)">(si tiene)</span></label>
+          <input type="text" id="hist-import-access-key" placeholder="$2a$10$... (dejar vacío si usa la misma)" style="width:100%;font-size:13px;font-family:monospace">
+        </div>
+      </div>
+      <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-ghost" onclick="previewHistorialViejo()">🔍 Vista previa</button>
+        <button class="btn btn-primary" onclick="importarHistorialViejo()">📥 Importar e integrar</button>
+        <span id="hist-import-result" style="font-size:12px;color:var(--text2)"></span>
+      </div>
+      <div id="hist-import-preview" style="margin-top:.75rem"></div>
+    </div>
   </div>
 
 
@@ -2955,6 +2977,85 @@ async function init(){
   renderMiniTop3();
   startHoyRefresh();
   startGruposRefresh();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// IMPORTAR HISTORIAL DESDE BIN VIEJO
+// ══════════════════════════════════════════════════════════════════════
+async function fetchBinViejo(binId, accessKey){
+  const key = (accessKey||'').trim() || ACCESS_KEY;
+  const res = await fetch(`${JSONBIN}/b/${binId}/latest`, {
+    headers: {'X-Access-Key': key}
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status+' — verificá el ID y la Access Key');
+  const data = await res.json();
+  if(!data.record) throw new Error('El bin no devolvió datos válidos');
+  return data.record;
+}
+
+async function previewHistorialViejo(){
+  const binId = document.getElementById('hist-import-bin-id').value.trim();
+  const accessKey = document.getElementById('hist-import-access-key').value.trim();
+  const result = document.getElementById('hist-import-result');
+  const preview = document.getElementById('hist-import-preview');
+  if(!binId){ result.textContent = '⚠ Ingresá el ID del bin viejo'; result.style.color='#fde68a'; return; }
+  result.textContent = '⏳ Cargando…'; result.style.color='var(--text2)'; preview.innerHTML='';
+  try{
+    const old = await fetchBinViejo(binId, accessKey);
+    const histViejo = old.pozosHistorial || {};
+    const fechasViejas = Object.keys(histViejo);
+    if(!fechasViejas.length){ result.textContent = 'Sin fechas cerradas en ese bin'; result.style.color='#fde68a'; return; }
+    const fechasActuales = Object.keys(pozosHistorial);
+    const nuevas = fechasViejas.filter(f => !pozosHistorial[f]);
+    const yaExisten = fechasViejas.filter(f => pozosHistorial[f]);
+    result.textContent = `${fechasViejas.length} fecha(s) encontrada(s) — ${nuevas.length} nueva(s) para importar, ${yaExisten.length} ya existente(s).`;
+    result.style.color = nuevas.length ? 'var(--accent)' : '#fde68a';
+    preview.innerHTML = '<div class="fhdr" style="margin-top:.75rem">Fechas en el bin viejo</div>'
+      + fechasViejas.map(function(f){
+          const h = histViejo[f];
+          const yaExiste = !!pozosHistorial[f];
+          const ganRows = (h.dist||[]).map(function(d){ return '<span style="font-size:11px;color:var(--text2);display:block">'+d.pos+' — '+(d.ganador||'—')+' — $'+(d.monto||0).toLocaleString('es-AR')+'</span>'; }).join('');
+          return '<div style="background:var(--bg3);border-radius:var(--radius-sm);padding:.5rem .75rem;margin-bottom:.35rem;display:flex;align-items:flex-start;gap:10px">'
+            +'<div style="flex:1">'
+            +'<span style="font-size:13px;font-weight:600">'+esc(f)+'</span>'
+            +(yaExiste ? '<span class="badge b-gray" style="margin-left:6px;font-size:10px">ya existe</span>' : '<span class="badge b-win" style="margin-left:6px;font-size:10px">nueva</span>')
+            +'<div style="margin-top:4px">'+ganRows+'</div>'
+            +'</div>'
+            +'<div style="font-size:11px;color:var(--text3);white-space:nowrap">Rec: $'+(h.recaudado||0).toLocaleString('es-AR')+'</div>'
+            +'</div>';
+        }).join('');
+  }catch(e){
+    result.textContent = '✕ '+e.message; result.style.color='#fca5a5';
+  }
+}
+
+async function importarHistorialViejo(){
+  const binId = document.getElementById('hist-import-bin-id').value.trim();
+  const accessKey = document.getElementById('hist-import-access-key').value.trim();
+  const result = document.getElementById('hist-import-result');
+  const preview = document.getElementById('hist-import-preview');
+  if(!binId){ result.textContent = '⚠ Ingresá el ID del bin viejo'; result.style.color='#fde68a'; return; }
+  result.textContent = '⏳ Cargando bin viejo…'; result.style.color='var(--text2)';
+  try{
+    const old = await fetchBinViejo(binId, accessKey);
+    const histViejo = old.pozosHistorial || {};
+    const fechasViejas = Object.keys(histViejo);
+    if(!fechasViejas.length){ result.textContent = 'El bin viejo no tiene fechas cerradas'; result.style.color='#fde68a'; return; }
+    const nuevas = fechasViejas.filter(f => !pozosHistorial[f]);
+    if(!nuevas.length){ result.textContent = 'Todas las fechas del bin viejo ya están en el actual'; result.style.color='#fde68a'; return; }
+    if(!confirm('¿Importar '+nuevas.length+' fecha(s) nueva(s) del bin viejo?\n\n'+nuevas.join('\n')+'\n\nEsto no borra ningún dato actual.')) return;
+    // Merge: solo agrega las que no existen en el actual
+    nuevas.forEach(function(f){ pozosHistorial[f] = histViejo[f]; });
+    persist();
+    result.textContent = '✓ '+nuevas.length+' fecha(s) importada(s) correctamente'; result.style.color='var(--accent)';
+    preview.innerHTML='';
+    renderPozo();
+    renderPozoPublico();
+    renderHistorialDesdeMemoria();
+    toast('✓ Historial importado: '+nuevas.join(', '));
+  }catch(e){
+    result.textContent = '✕ '+e.message; result.style.color='#fca5a5';
+  }
 }
 
 init();
