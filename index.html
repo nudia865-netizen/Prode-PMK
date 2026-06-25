@@ -1677,35 +1677,25 @@ var HIST_BIN_ID = localStorage.getItem('pmk_hist_bin') || '';
 async function loadHistorialBin(){
   const cont = document.getElementById('historial-pub-content');
   if(!cont) return;
-  // Intentar leer el ID del historial bin desde el estado principal
-  if(!HIST_BIN_ID){
-    // Buscar en el estado cargado
-    const raw = localStorage.getItem('pmk_state');
-    if(raw){ try{ const d=JSON.parse(raw); if(d._histBin){ HIST_BIN_ID=d._histBin; localStorage.setItem('pmk_hist_bin',HIST_BIN_ID); } }catch(e){} }
-  }
-  if(!HIST_BIN_ID){
-    // Intentar leerlo del bin principal si ya está en memoria
-    if(window._lastCloudState && window._lastCloudState._histBin){
-      HIST_BIN_ID = window._lastCloudState._histBin;
-      localStorage.setItem('pmk_hist_bin', HIST_BIN_ID);
-    }
-  }
-  if(!HIST_BIN_ID){
-    cont.innerHTML='<p class="empty">Historial no configurado (falta ID del bin).</p>';
+
+  // Si ya tenemos pozosHistorial en memoria, usarlo directamente
+  if(pozosHistorial && Object.keys(pozosHistorial).length){
+    renderHistorialDesdeMemoria();
     return;
   }
+
+  // Si no, cargar del bin principal y usar pozosHistorial de ahí
   cont.innerHTML='<p class="empty">Cargando historial…</p>';
   try{
-    const res = await fetch('https://api.jsonbin.io/v3/b/'+HIST_BIN_ID+'/latest',{
-      headers:{'X-Access-Key': ACCESS_KEY}
-    });
+    const headers = {'X-Access-Key': ACCESS_KEY};
+    const res = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
-    const historial = data.record || {};
-    const fechas = Object.keys(historial);
+    const hist = (data.record && data.record.pozosHistorial) || {};
+    const fechas = Object.keys(hist);
     if(!fechas.length){ cont.innerHTML='<p class="empty">Sin fechas cerradas todavía.</p>'; return; }
     cont.innerHTML = fechas.map(function(f){
-      const h = historial[f];
+      const h = hist[f];
       const distRows = (h.dist||[]).map(function(d){
         return '<div class="pozo-dist-row"><span>'+d.pos+' puesto ('+d.pct+')</span><span style="font-weight:600;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span><span>🏆 '+esc(d.ganador||'—')+'</span></div>';
       }).join('');
@@ -1720,6 +1710,26 @@ async function loadHistorialBin(){
   }catch(e){
     cont.innerHTML='<p class="empty">Error cargando historial: '+e.message+'</p>';
   }
+}
+
+function renderHistorialDesdeMemoria(){
+  const cont = document.getElementById('historial-pub-content');
+  if(!cont) return;
+  const fechas = Object.keys(pozosHistorial);
+  if(!fechas.length){ cont.innerHTML='<p class="empty">Sin fechas cerradas todavía.</p>'; return; }
+  cont.innerHTML = fechas.map(function(f){
+    const h = pozosHistorial[f];
+    const distRows = (h.dist||[]).map(function(d){
+      return '<div class="pozo-dist-row"><span>'+d.pos+' puesto ('+d.pct+')</span><span style="font-weight:600;color:var(--accent)">$'+(d.monto||0).toLocaleString('es-AR')+'</span><span>🏆 '+esc(d.ganador||'—')+'</span></div>';
+    }).join('');
+    return '<div class="card">'
+      +'<div class="card-title">'+esc(f)+'</div>'
+      +'<div class="metrics" style="margin-bottom:.5rem">'
+      +'<div class="metric"><div class="metric-label">Recaudado</div><div class="metric-val accent">$'+(h.recaudado||0).toLocaleString('es-AR')+'</div></div>'
+      +'<div class="metric"><div class="metric-label">Pozo principal</div><div class="metric-val accent">$'+(h.principal||0).toLocaleString('es-AR')+'</div></div>'
+      +'<div class="metric"><div class="metric-label">Aporte súper pozo</div><div class="metric-val accent">$'+(h.superPozoAporte||0).toLocaleString('es-AR')+'</div></div>'
+      +'</div>'+distRows+'</div>';
+  }).join('');
 }
 
 // Guardar _histBin en el bin principal cuando el admin lo configure
