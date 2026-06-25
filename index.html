@@ -6,7 +6,7 @@
 <title>Prode PMK — Mundial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f0c8;--bg2:#fffef0;--bg3:#e8e2a8;--border:rgba(30,70,10,0.14);--text:#162610;--text2:#1e6b12;--text3:#5daa3a;--accent:#16c025;--accent2:#0fa01e;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
+:root{--bg:#f7f4e3;--bg2:#fffdf2;--bg3:#eae6cc;--border:rgba(30,70,10,0.16);--text:#162610;--text2:#1e6b12;--text3:#4e9632;--accent:#16c025;--accent2:#0fa01e;--red:#c0392b;--blue:#2563eb;--radius:10px;--radius-sm:6px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:56px;position:sticky;top:0;z-index:100}
@@ -42,13 +42,13 @@ input:focus,select:focus{border-color:var(--accent)}
 input[type=number]{width:56px;text-align:center}
 select option{background:var(--bg2)}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
-.b-exact{background:rgba(96,165,250,.15);color:#93c5fd}
-.b-win{background:rgba(42,122,26,.12);color:#a3e87a}
-.b-zero{background:rgba(248,113,113,.12);color:#fca5a5}
+.b-exact{background:rgba(37,99,235,.18);color:#1e3a8a}
+.b-win{background:rgba(22,101,52,.18);color:#14532d}
+.b-zero{background:rgba(185,28,28,.15);color:#7f1d1d}
 .b-gray{background:var(--bg3);color:var(--text2)}
-.b-open{background:rgba(42,122,26,.12);color:#a3e87a}
-.b-closed{background:rgba(248,113,113,.12);color:#fca5a5}
-.b-group{background:rgba(251,191,36,.12);color:#fde68a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 10px}
+.b-open{background:rgba(22,101,52,.18);color:#14532d}
+.b-closed{background:rgba(185,28,28,.15);color:#7f1d1d}
+.b-group{background:rgba(146,64,14,.13);color:#92400e;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:2px 10px}
 .empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
 .info-box{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:12px;color:#93c5fd;margin-bottom:1rem;line-height:1.6}
 .warn-box{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:12px;color:#fde68a;margin-bottom:1rem;line-height:1.6}
@@ -57,9 +57,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:6px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px}
 td{padding:9px 10px;border-bottom:1px solid var(--border)}
 tr:last-child td{border-bottom:none}
-tr.rank-1 td{background:rgba(251,191,36,.05)}
-tr.rank-2 td{background:rgba(148,163,184,.04)}
-tr.rank-3 td{background:rgba(205,127,50,.04)}
+tr.rank-1 td{background:rgba(180,130,0,.1)}
+tr.rank-2 td{background:rgba(100,100,100,.06)}
+tr.rank-3 td{background:rgba(140,80,20,.07)}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.875rem 1rem}
 .metric-label{font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
@@ -684,7 +684,7 @@ let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 let pronFechasOpen={}; // estado colapso por fecha en pestaña pronósticos
 
-function getState(){ return {partidos, participantes, pronosticos, resultados, pozosHistorial}; }
+function getState(){ const s={partidos, participantes, pronosticos, resultados, pozosHistorial}; if(HIST_BIN_ID) s._histBin=HIST_BIN_ID; return s; }
 function setState(d){
   partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; pozosHistorial=d.pozosHistorial||{};
   participantes.forEach(p=>{
@@ -1227,8 +1227,8 @@ function renderResumen(){
     const pCells=ranked.map(s=>{
       const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre];
       const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r);
-      let bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(42,122,26,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':'';
-      const ptsBadge=pts===3?`<span style="font-size:10px;color:#1d4ed8;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#166534;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#991b1b;display:block">0</span>`:'';
+      let bg=pts===3?'background:rgba(37,99,235,.18);':pts===1?'background:rgba(22,101,52,.14);':pts===0&&hasR?'background:rgba(185,28,28,.13);':'';
+      const ptsBadge=pts===3?`<span style="font-size:10px;color:#1e3a8a;font-weight:700;display:block">+3</span>`:pts===1?`<span style="font-size:10px;color:#14532d;font-weight:700;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:10px;color:#7f1d1d;font-weight:700;display:block">0</span>`:'';
       return `<td style="${tdB}${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${ptsBadge}</td>`;
     }).join('');
     return `<tr>
@@ -1250,9 +1250,9 @@ function renderResumen(){
     </table>
   </div>
   <div style="display:flex;gap:12px;margin-top:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(96,165,250,.2);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(42,122,26,.15);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(248,113,113,.15);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(37,99,235,.25);border-radius:2px;margin-right:4px"></span>Exacto (+3)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(22,101,52,.2);border-radius:2px;margin-right:4px"></span>Acierto (+1)</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(185,28,28,.2);border-radius:2px;margin-right:4px"></span>Sin puntos (0)</span>
   </div>`;
 }
 
