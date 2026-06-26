@@ -2073,7 +2073,6 @@ async function renderPartidosHoy(){
   const cont = document.getElementById('partidos-hoy-content');
   if(!sec || !cont) return;
 
-  // Fecha de hoy en formato YYYYMMDD para ESPN
   var hoy = new Date();
   var pad = function(n){ return n<10?'0'+n:String(n); };
   var fechaEspn = String(hoy.getFullYear())+pad(hoy.getMonth()+1)+pad(hoy.getDate());
@@ -2092,14 +2091,13 @@ async function renderPartidosHoy(){
       if(!comp) return '';
 
       var comps = comp.competitors || [];
-      // ESPN: index 0 = home, index 1 = away (campo homeAway)
       var home = comps.find(function(c){ return c.homeAway==='home'; }) || comps[0] || {};
       var away = comps.find(function(c){ return c.homeAway==='away'; }) || comps[1] || {};
 
-      var t1 = home.team ? home.team.displayName||home.team.shortDisplayName||home.team.name : '?';
-      var t2 = away.team ? away.team.displayName||away.team.shortDisplayName||away.team.name : '?';
-      var flag1 = home.team && home.team.logo ? '<img src="'+home.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">' : '';
-      var flag2 = away.team && away.team.logo ? '<img src="'+away.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">' : '';
+      var t1 = home.team ? (home.team.shortDisplayName||home.team.displayName||home.team.name) : '?';
+      var t2 = away.team ? (away.team.shortDisplayName||away.team.displayName||away.team.name) : '?';
+      var logo1 = home.team && home.team.logo ? '<img src="'+home.team.logo+'" style="width:26px;height:26px;object-fit:contain;flex-shrink:0">' : '<span style="font-size:20px">🏳</span>';
+      var logo2 = away.team && away.team.logo ? '<img src="'+away.team.logo+'" style="width:26px;height:26px;object-fit:contain;flex-shrink:0">' : '<span style="font-size:20px">🏳</span>';
 
       var status = comp.status && comp.status.type ? comp.status.type : {};
       var completado = status.completed || false;
@@ -2109,29 +2107,40 @@ async function renderPartidosHoy(){
       var hasScore = score1!==null && score2!==null && (completado||enCurso);
 
       // Hora local argentina (UTC-3)
-      var horaHtml = '';
+      var horaStr = '';
       if(comp.date){
         var d = new Date(comp.date);
         var hh = d.getUTCHours()-3; if(hh<0)hh+=24;
         var mm = pad(d.getUTCMinutes());
-        horaHtml = '<div style="font-size:11px;color:var(--text3);margin-top:3px">🕐 '+hh+':'+mm+' (ARG)</div>';
+        horaStr = hh+':'+mm;
       }
 
-      // Badge de estado
-      var estadoBadge = '';
+      // Estado (centro del partido)
+      var estadoHtml;
       if(enCurso){
         var clock = comp.status && comp.status.displayClock ? comp.status.displayClock : '';
-        estadoBadge = '<span style="background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">EN VIVO '+clock+'</span>';
+        estadoHtml = '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px">'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:700;color:#fbbf24;line-height:1">'+score1+'<span style="color:rgba(255,255,255,.25);font-size:18px;margin:0 4px">-</span>'+score2+'</div>'
+          +'<div style="display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#dc2626;display:inline-block;animation:espnPulse 1s infinite"></span><span style="font-size:10px;font-weight:700;color:#dc2626">'+clock+'</span></div>'
+          +'</div>';
       } else if(completado){
-        estadoBadge = '<span style="background:#166534;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">FINAL</span>';
+        estadoHtml = '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px">'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:700;color:var(--accent);line-height:1">'+score1+'<span style="color:var(--text3);font-size:18px;margin:0 4px">-</span>'+score2+'</div>'
+          +'<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Final</div>'
+          +'</div>';
+      } else {
+        estadoHtml = '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px">'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:700;color:var(--text3);line-height:1">vs</div>'
+          +(horaStr?'<div style="font-size:11px;color:var(--text3)">'+horaStr+'</div>':'')
+          +'</div>';
       }
 
-      var scoreHtml = hasScore
-        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
-        : '<div class="match-score pending" style="font-size:13px">vs</div>';
+      // Grupo
+      var notas = comp.notes || [];
+      var grupoTexto = '';
+      notas.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
 
-      // Matching con partidos del prode por nombre
-      // Diccionario ESPN (inglés) → nombres en español usados en el prode
+      // Matching con partidos del prode
       var ESPN_NOMBRES = {
         'united states':'estados unidos','usa':'estados unidos',
         'south korea':'corea del sur','korea republic':'corea del sur','korea':'corea del sur',
@@ -2144,101 +2153,49 @@ async function renderPartidosHoy(){
         'democratic republic of congo':'rd congo','dr congo':'rd congo','congo dr':'rd congo',
         'republic of ireland':'irlanda','ireland':'irlanda',
         'new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega','denmark':'dinamarca',
-        'trinidad & tobago':'trinidad y tobago',
-        'trinidad and tobago':'trinidad y tobago',
-        'trinidad &amp; tobago':'trinidad y tobago',
-        'central african republic':'rep centroafricana',
-        'equatorial guinea':'guinea ecuatorial',
-        'guinea bissau':'guinea bisau',
-        'burkina faso':'burkina faso',
-        'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
-        'north macedonia':'macedonia del norte',
-        'czech republic':'republica checa','czechia':'republica checa',
-        'netherlands':'paises bajos','holland':'paises bajos',
-        'great britain':'gran bretana',
-        'kyrgyz republic':'kirguistan','kyrgyzstan':'kirguistan',
-        'chinese taipei':'taipei chino',
+        'trinidad & tobago':'trinidad y tobago','trinidad and tobago':'trinidad y tobago','trinidad &amp; tobago':'trinidad y tobago',
+        'central african republic':'rep centroafricana','equatorial guinea':'guinea ecuatorial','guinea bissau':'guinea bisau',
+        'burkina faso':'burkina faso','bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
+        'north macedonia':'macedonia del norte','czech republic':'republica checa','czechia':'republica checa',
+        'netherlands':'paises bajos','holland':'paises bajos','great britain':'gran bretana',
+        'kyrgyz republic':'kirguistan','kyrgyzstan':'kirguistan','chinese taipei':'taipei chino',
         'uae':'emiratos arabes unidos','united arab emirates':'emiratos arabes unidos',
-        'switzerland':'suiza',
-        'morocco':'marruecos',
-        'scotland':'escocia',
-        'curacao':'curazao',
-        'japan':'japon',
-        'tunisia':'tunez',
-        'turkey':'turquia','turkiye':'turquia',
-        'germany':'alemania',
-        'brazil':'brasil',
-        'canada':'canada',
-        'haiti':'haiti',
-        'ecuador':'ecuador',
-        'paraguay':'paraguay',
-        'cameroon':'camerun',
-        'senegal':'senegal',
-        'nigeria':'nigeria',
-        'colombia':'colombia',
-        'venezuela':'venezuela',
-        'peru':'peru',
-        'chile':'chile',
-        'bolivia':'bolivia',
-        'uruguay':'uruguay',
-        'costa rica':'costa rica',
-        'honduras':'honduras',
-        'mexico':'mexico',
-        'jamaica':'jamaica',
-        'panama':'panama',
-        'el salvador':'el salvador',
-        'portugal':'portugal',
-        'france':'francia',
-        'italy':'italia',
-        'belgium':'belgica',
-        'croatia':'croacia',
-        'serbia':'serbia',
-        'austria':'austria',
-        'hungary':'hungria',
-        'poland':'polonia',
-        'romania':'rumania',
-        'ukraine':'ucrania',
-        'greece':'grecia',
-        'albania':'albania',
-        'slovakia':'eslovaquia',
-        'slovenia':'eslovenia',
-        'finland':'finlandia',
-        'wales':'gales',
-        'russia':'rusia',
-        'egypt':'egipto',
-        'algeria':'argelia',
-        'south africa':'sudafrica',
-        'indonesia':'indonesia',
-        'thailand':'tailandia',
-        'vietnam':'vietnam',
-        'china':'china',
-        'india':'india',
-        'qatar':'catar',
+        'switzerland':'suiza','morocco':'marruecos','scotland':'escocia','curacao':'curazao',
+        'japan':'japon','tunisia':'tunez','turkey':'turquia','turkiye':'turquia',
+        'germany':'alemania','brazil':'brasil','canada':'canada','haiti':'haiti',
+        'ecuador':'ecuador','paraguay':'paraguay','cameroon':'camerun','senegal':'senegal',
+        'nigeria':'nigeria','colombia':'colombia','venezuela':'venezuela','peru':'peru',
+        'chile':'chile','bolivia':'bolivia','uruguay':'uruguay','costa rica':'costa rica',
+        'honduras':'honduras','mexico':'mexico','jamaica':'jamaica','panama':'panama',
+        'el salvador':'el salvador','portugal':'portugal','france':'francia','italy':'italia',
+        'belgium':'belgica','croatia':'croacia','serbia':'serbia','austria':'austria',
+        'hungary':'hungria','poland':'polonia','romania':'rumania','ukraine':'ucrania',
+        'greece':'grecia','albania':'albania','slovakia':'eslovaquia','slovenia':'eslovenia',
+        'finland':'finlandia','wales':'gales','russia':'rusia','egypt':'egipto',
+        'algeria':'argelia','south africa':'sudafrica','indonesia':'indonesia',
+        'thailand':'tailandia','vietnam':'vietnam','china':'china','india':'india','qatar':'catar',
       };
-      function normTeam(s){
+      function normTeamL(s){
         s = s.toLowerCase().trim();
-        // primer lookup con nombre original
         if(ESPN_NOMBRES[s]) s = ESPN_NOMBRES[s];
-        // stripear caracteres especiales (ç→c, acentos, etc)
         var stripped = s.replace(/\u00e7/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
                         .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u')
                         .replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim();
-        // segundo lookup post-stripeo (para Türkiye→turkiye→turquia, etc)
         if(ESPN_NOMBRES[stripped]) stripped = ESPN_NOMBRES[stripped];
         return stripped.replace(/ /g,'');
       }
-      var t1n = normTeam(t1), t2n = normTeam(t2);
-      function teamMatch(a, b){ return a===b || a.slice(0,5)===b.slice(0,5) || a.includes(b.slice(0,6)) || b.includes(a.slice(0,6)); }
+      var t1n = normTeamL(t1), t2n = normTeamL(t2);
+      function teamMatchL(a, b){ return a===b || a.slice(0,5)===b.slice(0,5) || a.includes(b.slice(0,6)) || b.includes(a.slice(0,6)); }
       var matchProde = partidos.find(function(p){
-        var l=normTeam(p.local), v=normTeam(p.visitante);
-        return teamMatch(l,t1n) && teamMatch(v,t2n);
+        var l=normTeamL(p.local), v=normTeamL(p.visitante);
+        return teamMatchL(l,t1n) && teamMatchL(v,t2n);
       }) || partidos.find(function(p){
-        var l=normTeam(p.local), v=normTeam(p.visitante);
+        var l=normTeamL(p.local), v=normTeamL(p.visitante);
         return l.slice(0,3)===t1n.slice(0,3) && v.slice(0,3)===t2n.slice(0,3);
       });
 
-      // Goleadores (si ESPN trae el detalle de los goles del partido)
-      var goleadoresHtml = '';
+      // Goles inline — local izquierda, visitante derecha, una sola fila
+      var golesHtml = '';
       if(hasScore){
         var detalles = comp.details || [];
         var golEvents = detalles.filter(function(det){
@@ -2247,89 +2204,90 @@ async function renderPartidosHoy(){
         });
         if(golEvents.length){
           var homeId = home.team && home.team.id;
-          var golesOrdenados = golEvents.map(function(det){
+          var golesLocal = [], golesVisitante = [];
+          golEvents.forEach(function(det){
             var teamId = det.team && det.team.id;
-            var esLocal = teamId===homeId;
-            var jugador = (det.athletesInvolved && det.athletesInvolved[0] && (det.athletesInvolved[0].displayName||det.athletesInvolved[0].fullName||det.athletesInvolved[0].shortName)) || '';
+            var esLocal = teamId === homeId;
+            var jugador = (det.athletesInvolved && det.athletesInvolved[0] && (det.athletesInvolved[0].shortName||det.athletesInvolved[0].displayName||det.athletesInvolved[0].fullName)) || '';
             var minRaw = (det.clock && (det.clock.displayValue||det.clock.value)) || '';
             var minNum = parseInt(minRaw,10); if(isNaN(minNum)) minNum = 999;
             var tipo = (det.type && det.type.text) || '';
-            var icono = /own goal/i.test(tipo) ? '⚽(EP)' : /penalty/i.test(tipo) ? '⚽(P)' : '⚽';
-            return {esLocal:esLocal, jugador:jugador, minRaw:minRaw, minNum:minNum, icono:icono};
-          }).sort(function(a,b){ return a.minNum-b.minNum; });
-          goleadoresHtml = '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:3px">'
-            + '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">⚽ Goles</div>'
-            + golesOrdenados.map(function(g){
-                return '<div style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:5px">'
-                  + '<span style="min-width:14px;text-align:center">'+g.icono+'</span>'
-                  + '<span style="flex:1">'+(g.jugador||'Gol')+'</span>'
-                  + (g.minRaw?'<span style="color:var(--text3);font-size:11px">'+g.minRaw+"'</span>":'')
-                  + '<span style="font-size:10px;color:var(--text3)">('+(g.esLocal?t1:t2)+')</span>'
-                  + '</div>';
-              }).join('')
+            var icono = /own goal/i.test(tipo) ? '⚽EP' : /penalty/i.test(tipo) ? '⚽P' : '⚽';
+            var entry = {jugador:jugador, minRaw:minRaw, minNum:minNum, icono:icono};
+            if(esLocal) golesLocal.push(entry); else golesVisitante.push(entry);
+          });
+          golesLocal.sort(function(a,b){ return a.minNum-b.minNum; });
+          golesVisitante.sort(function(a,b){ return a.minNum-b.minNum; });
+
+          var fmtGol = function(g){
+            return '<span style="font-size:11px;color:var(--text2);white-space:nowrap">'
+              + g.icono+' '+(g.jugador||'Gol')+(g.minRaw?" <span style='color:var(--text3)'>"+g.minRaw+"'</span>":'')
+              + '</span>';
+          };
+          var localGolesStr = golesLocal.map(fmtGol).join(' ');
+          var visitGolesStr = golesVisitante.map(fmtGol).join(' ');
+
+          golesHtml = '<div style="display:flex;align-items:flex-start;gap:6px;margin-top:5px;padding-top:5px;border-top:1px dashed rgba(0,0,0,.08)">'
+            + '<div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start">'+localGolesStr+'</div>'
+            + '<div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end">'+visitGolesStr+'</div>'
             + '</div>';
         }
       }
 
+      // Pronósticos (solo si la fecha está cerrada)
       var pronsHtml = '';
-      if(matchProde){
-        if(matchProde.estado === 'cerrada'){
-          var rProde = resultados[matchProde.id];
-          var hasRProde = rProde && !isNaN(rProde.gl);
-          var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
-          var rParaPuntos = hasRProde ? rProde : liveR;
-          var esProvisorio = !hasRProde && !!liveR;
-          var chips = participantes.map(function(part){
-            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
-            if(!pr || isNaN(pr.gl)) return '';
-            var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
-            var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
-            if(pts===3){
-              chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
-              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
-            } else if(pts===1){
-              chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
-              label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
-            } else if(pts===0){
-              chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
-              label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
-            }
-            var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
-            return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
-              +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
-                +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
-                +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
-              +'</span>'
-              +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
-              +'</span>';
-          }).filter(Boolean).join('');
-          if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
-        }
-        // fecha abierta: no mostrar pronósticos
-      } else {
-        console.log('[Hoy] Sin match para "'+t1+'" vs "'+t2+'" — partidos prode:', partidos.map(function(p){return p.local+' vs '+p.visitante;}).join(' | '));
+      if(matchProde && matchProde.estado === 'cerrada'){
+        var rProde = resultados[matchProde.id];
+        var hasRProde = rProde && !isNaN(rProde.gl);
+        var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
+        var rParaPuntos = hasRProde ? rProde : liveR;
+        var esProvisorio = !hasRProde && !!liveR;
+        var chips = participantes.map(function(part){
+          var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+          if(!pr || isNaN(pr.gl)) return '';
+          var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos) : -1;
+          var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
+          if(pts===3){ chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8'; label='<span style="font-size:9px;font-weight:700;color:#1d4ed8">🎯 EXACTO</span>'; }
+          else if(pts===1){ chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534'; label='<span style="font-size:9px;font-weight:700;color:#166534">✓ GANADOR</span>'; }
+          else if(pts===0){ chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b'; label='<span style="font-size:9px;font-weight:700;color:#991b1b">✗ FALLÓ</span>'; }
+          var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px">⏱</span>' : '';
+          return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
+            +'<span style="display:flex;align-items:center;gap:6px;width:100%"><span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span></span>'
+            +((label||liveTag)?'<span style="display:flex;align-items:center;gap:4px">'+label+liveTag+'</span>':'')
+            +'</span>';
+        }).filter(Boolean).join('');
+        if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
       }
-
-      // Grupo
-      var notas = comp.notes || [];
-      var grupoTexto = '';
-      notas.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
-      var grupoHtml = grupoTexto ? '<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>' : '';
 
       var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns = pronsHtml.length > 0;
       var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')">👁 Ver pronósticos</button>' : '';
       var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
-      return '<div class="match-card">'
-        +'<div class="match-teams">'+grupoHtml
-        +'<div style="flex:1">'
-        +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-        +'<span>'+flag1+t1+'</span>'+scoreHtml+'<span>'+flag2+t2+'</span>'+estadoBadge
+
+      // Fila de grupo / hora para partidos no iniciados
+      var metaLeft = grupoTexto ? '<span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase">'+grupoTexto+'</span>' : '';
+      var metaRight = (!enCurso && !completado && horaStr) ? '<span style="font-size:11px;color:var(--text3)">'+horaStr+'</span>' : '';
+
+      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem .9rem;margin-bottom:4px">'
+        // meta row
+        +((metaLeft||metaRight)?'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+metaLeft+'<span></span>'+metaRight+'</div>':'')
+        // main row: logo | nombre | [score] | nombre | logo
+        +'<div style="display:flex;align-items:center;gap:0">'
+          // local
+          +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;overflow:hidden">'
+            +'<span style="font-size:13px;font-weight:600;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t1+'</span>'
+            +logo1
+          +'</div>'
+          // marcador / vs
+          +'<div style="padding:0 10px;flex-shrink:0">'+estadoHtml+'</div>'
+          // visitante
+          +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-start;overflow:hidden">'
+            +logo2
+            +'<span style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t2+'</span>'
+          +'</div>'
         +'</div>'
-        +horaHtml
-        +goleadoresHtml
+        +golesHtml
         +pronBtn
-        +'</div></div>'
         +pronWrap
         +'</div>';
     }).join('');
