@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -520,6 +520,17 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
   <!-- SÚPER POZO + POZOS debajo de tabla -->
   <div id="pozos-top-row" class="pozos-top-row" style="margin-bottom:.5rem"></div>
 
+  <!-- PARTIDOS DE LA FECHA EN CURSO -->
+  <div id="sec-fecha-en-curso" style="margin-bottom:.5rem;display:none">
+    <div class="fecha-header" onclick="toggleSecPub('sec-fecha-en-curso-body','schev-fecha-encurso')">
+      <div class="fh-left" style="font-size:14px;font-weight:700">⚽ <span id="fecha-en-curso-label">Fecha en curso</span></div>
+      <span class="fh-chev open" id="schev-fecha-encurso">&#9658;</span>
+    </div>
+    <div class="fecha-body open" id="sec-fecha-en-curso-body">
+      <div id="fecha-en-curso-content"></div>
+    </div>
+  </div>
+
   <!-- PARTIDOS -->
   <div style="margin-bottom:.5rem">
     <div class="fecha-header" onclick="toggleSecPub('sec-pub-partidos','schev-partidos')">
@@ -871,7 +882,7 @@ function showPage(p,el){
   const pg=document.getElementById('page-'+p);
   if(pg){ pg.classList.add('active'); pg.style.display='block'; }
   if(el) el.classList.add('active');
-  if(p==='partidos-pub'){ renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3(); renderPartidosHoy(); renderPartidosManana(); loadHistorialBin(); }
+  if(p==='partidos-pub'){ renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3(); renderFechaEnCurso(); renderPartidosHoy(); renderPartidosManana(); loadHistorialBin(); }
   if(p==='grupos'){ renderGrupos(); }
   if(p==='fixture'){ renderFixture(); }
 }
@@ -907,7 +918,7 @@ function refreshAll(){
   if(at==='resumen')     renderResumen();
   if(at==='tabla')       renderTabla();
   if(document.getElementById('page-partidos-pub').classList.contains('active')){
-    renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3();
+    renderPartidosPublicos(); renderPersonas(); renderTablaConEspn(); renderPozoPublico(); renderHighlights(); renderMiniTop3(); renderFechaEnCurso();
   }
 }
 
@@ -1176,11 +1187,24 @@ function setResClasificado(id){
   toast(val?`✓ Clasifica: ${val}`:'Clasificado borrado');
 }
 
+var resBodyOpen = {}; // estado colapso por fecha en resultados admin
+
 function renderResultados(){
   const cont=document.getElementById('resultados-content');
   if(!partidos.length){ cont.innerHTML='<p class="empty">No hay partidos.</p>'; return; }
-  cont.innerHTML=getFechas().map(f=>`<div class="fhdr">${f}</div>`+
-    partidos.filter(p=>p.fecha===f).map(p=>{
+  cont.innerHTML=getFechas().map(function(f, fi){
+    const ps = partidos.filter(p=>p.fecha===f);
+    // ¿Todos tienen resultado cargado?
+    const todosConResultado = ps.every(function(p){ const r=resultados[p.id]; return r&&!isNaN(r.gl); });
+    const cantConRes = ps.filter(function(p){ const r=resultados[p.id]; return r&&!isNaN(r.gl); }).length;
+    const cerrada = ps[0]?.estado==='cerrada';
+    const fKey = f.replace(/[^a-zA-Z0-9]/g,'_')+'_res';
+    // Fechas cerradas con todos los resultados cargados colapsan por defecto
+    if(!(f in resBodyOpen)) resBodyOpen[f] = !(cerrada && todosConResultado);
+    const isOpen = resBodyOpen[f];
+    const bodyId = 'res-body-'+fKey;
+    const chevId = 'res-chev-'+fKey;
+    const cards = ps.map(p=>{
       const r=resultados[p.id]; const has=r&&!isNaN(r.gl);
       return `<div class="card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="flex:1">
@@ -1206,8 +1230,26 @@ function renderResultados(){
           ${r&&r.clasificado?`<span class="badge" style="background:rgba(251,191,36,.15);color:#fde68a">✓ ${r.clasificado}</span>`:''}
         </div>`:''}
       </div>`;
-    }).join('')
-  ).join('');
+    }).join('');
+    return `<div class="fecha-header" onclick="toggleResBody('${f.replace(/'/g,"\\'")}')" style="margin-bottom:${isOpen?'.25rem':'.5rem'}">
+      <div class="fh-left">
+        <span class="fh-chev ${isOpen?'open':''}" id="${chevId}">&#9658;</span>
+        <span>${f}</span>
+        <span class="badge ${cerrada?'b-closed':'b-open'}">${cerrada?'Cerrada':'Abierta'}</span>
+        <span style="font-size:11px;color:${cantConRes===ps.length?'var(--accent)':'var(--text3)'}">· ${cantConRes}/${ps.length} resultados</span>
+      </div>
+    </div>
+    <div id="${bodyId}" class="fecha-body ${isOpen?'open':''}" style="margin-bottom:.75rem">${cards}</div>`;
+  }).join('');
+}
+
+function toggleResBody(f){
+  resBodyOpen[f] = !resBodyOpen[f];
+  const fKey = f.replace(/[^a-zA-Z0-9]/g,'_')+'_res';
+  const body = document.getElementById('res-body-'+fKey);
+  const chev = document.getElementById('res-chev-'+fKey);
+  if(body) body.classList.toggle('open', resBodyOpen[f]);
+  if(chev) chev.classList.toggle('open', resBodyOpen[f]);
 }
 
 function calcPuntos(pr,r,partido){
@@ -1222,7 +1264,7 @@ function calcPuntos(pr,r,partido){
 }
 
 function getScores(ps,nombre,useEspn){
-  let pts=0,exactos=0,aciertan=0,jugados=0;
+  let pts=0,exactos=0,aciertan=0,bonusPlayoff=0,jugados=0;
   ps.forEach(p=>{
     var r;
     if(useEspn){
@@ -1235,9 +1277,14 @@ function getScores(ps,nombre,useEspn){
     }
     const pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
     const pts2=calcPuntos(pr,r,p); if(pts2===null) return;
-    jugados++; pts+=pts2; if(pts2===3) exactos++; if(pts2===1) aciertan++;
+    jugados++; pts+=pts2;
+    // base sin bonus para contadores
+    const base=(()=>{ if(!r||!pr||isNaN(pr.gl)) return 0; if(pr.gl===r.gl&&pr.gv===r.gv) return 3; const rG=r.gl>r.gv?'L':r.gl<r.gv?'V':'E'; const pG=pr.gl>pr.gv?'L':pr.gl<pr.gv?'V':'E'; return rG===pG?1:0; })();
+    if(base===3) exactos++;
+    if(base===1) aciertan++;
+    if(pts2>base) bonusPlayoff++;
   });
-  return {pts,exactos,aciertan,jugados};
+  return {pts,exactos,aciertan,bonusPlayoff,jugados};
 }
 
 function addRanks(scores, noPrizeSet){
@@ -1252,16 +1299,19 @@ function addRanks(scores, noPrizeSet){
 
 function tableHTML(ranked, noPrizeSet){
   const np = noPrizeSet || new Set();
-  return `<table><thead><tr><th>#</th><th>Nombre</th><th>Pronóst.</th><th>Exactos</th><th>Aciertos</th><th>Pts</th></tr></thead><tbody>
+  const hayBonus = ranked.some(s=>(s.bonusPlayoff||0)>0);
+  return `<table><thead><tr><th>#</th><th>Nombre</th><th>Pronóst.</th><th>Exactos</th><th>Aciertos</th>${hayBonus?'<th title="Puntos bonus por clasificado en playoff">⚡</th>':''}<th>Pts</th></tr></thead><tbody>
   ${ranked.map(s=>{
     const sinC = np.has(s.nombre);
     const m = !sinC && (s.rank===1?'🥇':s.rank===2?'🥈':s.rank===3?'🥉':'');
+    const bp = s.bonusPlayoff||0;
     return `<tr class="${!sinC&&s.rank<=3?'rank-'+s.rank:''}">
       <td style="color:var(--text3)">${sinC?'—':s.rank}</td>
       <td style="font-weight:500">${m||''} ${s.nombre}${sinC?'<span style="color:var(--text3);margin-left:3px" title="Juega sin cuota">*</span>':''}</td>
       <td style="color:var(--text2)">${s.jugados}</td>
       <td><span class="badge b-exact">${s.exactos}</span></td>
       <td><span class="badge b-win">${s.aciertan}</span></td>
+      ${hayBonus?`<td><span class="badge" style="background:rgba(251,191,36,.15);color:#d97706">${bp>0?'+'+bp:'—'}</span></td>`:''}
       <td style="font-weight:600;font-size:16px;color:var(--accent)">${s.pts}</td>
     </tr>`;
   }).join('')}</tbody></table>
@@ -2018,6 +2068,28 @@ function renderHistorialPub(){
 }
 function toggleSecPub(bodyId, chevId){ document.getElementById(bodyId)?.classList.toggle('open'); document.getElementById(chevId)?.classList.toggle('open'); }
 
+function renderFechaEnCurso(){
+  var sec = document.getElementById("sec-fecha-en-curso");
+  var cont = document.getElementById("fecha-en-curso-content");
+  var lbl = document.getElementById("fecha-en-curso-label");
+  if(!sec||!cont) return;
+  // Encontrar la primera fecha abierta
+  var fechasAbiertas = getFechas().filter(function(f){ return partidos.some(function(p){ return p.fecha===f && p.estado!=="cerrada"; }); });
+  if(!fechasAbiertas.length){ sec.style.display="none"; return; }
+  var fechaActual = fechasAbiertas[0];
+  var ps = partidos.filter(function(p){ return p.fecha===fechaActual; });
+  if(!ps.length){ sec.style.display="none"; return; }
+  sec.style.display = "";
+  if(lbl) lbl.textContent = fechaActual;
+  var partsVisibles = participantes.filter(function(part){
+    return ps.some(function(p){
+      var pr = pronosticos[p.id] && pronosticos[p.id][part.nombre];
+      return pr && !isNaN(pr.gl);
+    });
+  });
+  cont.innerHTML = ps.map(function(p){ return buildMatchCard(p, partsVisibles); }).join("");
+}
+
 function renderResumenPub(){
   const cont = document.getElementById('resumen-pub-content');
   const sel  = document.getElementById('pub-res-sel');
@@ -2041,7 +2113,7 @@ function renderResumenPub(){
   const rows=ps.map(p=>{
     const r=resultados[p.id]; const hasR=r&&!isNaN(r.gl);
     const rCell=hasR?`<span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent)">${r.gl}-${r.gv}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
-    const pCells=ranked.map(s=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre]; const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r); const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(42,122,26,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':''; const badge=pts===3?`<span style="font-size:9px;color:#1d4ed8;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#166534;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#991b1b;display:block">0</span>`:''; return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`; }).join('');
+    const pCells=ranked.map(s=>{ const pr=pronosticos[p.id]&&pronosticos[p.id][s.nombre]; const has=pr&&!isNaN(pr.gl); const pts=calcPuntos(pr,r,p); const bg=pts===3?'background:rgba(96,165,250,.12);':pts===1?'background:rgba(42,122,26,.08);':pts===0&&hasR?'background:rgba(248,113,113,.07);':''; const badge=pts===3?`<span style="font-size:9px;color:#1d4ed8;display:block">+3</span>`:pts===1?`<span style="font-size:9px;color:#166534;display:block">+1</span>`:pts===0&&hasR?`<span style="font-size:9px;color:#991b1b;display:block">0</span>`:''; return `<td style="${tdB};${bg}color:${has?'var(--text)':'var(--text3)'}">${has?`${pr.gl}-${pr.gv}`:'—'}${badge}</td>`; }).join('');
     return `<tr><td style="padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;min-width:140px">${p.local} <span style="color:var(--text3);font-size:11px">vs</span> ${p.visitante}</td><td style="padding:7px 10px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);text-align:center">${rCell}</td>${pCells}</tr>`;
   }).join('');
   cont.innerHTML=`<div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--bg2)"><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;text-transform:uppercase;letter-spacing:.4px">Partido</th><th style="${th}">Real</th>${hCells}</tr></thead><tbody style="background:var(--bg)">${rows}</tbody></table></div>
@@ -2105,8 +2177,8 @@ function initChat(){ document.getElementById('chat-name-display').textContent=ch
 
 // ── Partidos de hoy — ESPN API interna (sin API key, casi tiempo real) ────────
 const ESPN_WC_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
-
-async function renderPartidosHoy(){
+        ? '<div class="match-score" style="font-size:24px;font-weight:800;color:var(--text)">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 5px">–</span>'+score2+'</div>'
+        : '<div class="match-score pending" style="font-size:14px">'+hh+':'+mm+'</div>';
   const sec = document.getElementById('sec-partidos-hoy');
   const cont = document.getElementById('partidos-hoy-content');
   if(!sec || !cont) return;
@@ -2165,8 +2237,8 @@ async function renderPartidosHoy(){
       }
 
       var scoreHtml = hasScore
-        ? '<div class="match-score" style="font-size:24px;font-weight:800;color:var(--text)">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 5px">–</span>'+score2+'</div>'
-        : '<div class="match-score pending" style="font-size:14px">'+hh+':'+mm+'</div>';
+        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
+        : '<div class="match-score pending" style="font-size:13px">vs</div>';
 
       // Matching con partidos del prode por nombre
       // Diccionario ESPN (inglés) → nombres en español usados en el prode
@@ -2309,22 +2381,30 @@ async function renderPartidosHoy(){
             +'</div>';
         }
       }
+      var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
+      var hasProns = pronsHtml.length > 0;
+      var nProns = matchProde ? participantes.filter(function(p){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length : 0;
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:8px;font-size:11px;padding:3px 10px">👁 Pronósticos ('+nProns+')</button>' : '';
+      var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
 
-      var pronsHtml = '';
-      if(matchProde){
-        if(matchProde.estado === 'cerrada'){
-          var rProde = resultados[matchProde.id];
-          var hasRProde = rProde && !isNaN(rProde.gl);
-          var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
-          var rParaPuntos = hasRProde ? rProde : liveR;
-          var esProvisorio = !hasRProde && !!liveR;
-          var esPlayoff = matchProde.tipo === 'playoff';
-          var clasificadoReal = rProde && rProde.clasificado ? rProde.clasificado : '';
-          var chips = participantes.map(function(part){
-            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
-            if(!pr || isNaN(pr.gl)) return '';
-            var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos, matchProde) : -1;
-            var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
+      // Meta: grupo + estado + hora en una línea
+      var metaHtml = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+(grupoHtml||'')+estadoBadge+horaHtml+'</div>';
+
+      // Fila central: local — marcador — visitante
+      var rowHtml = '<div style="display:flex;align-items:center">'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;overflow:hidden">'
+          +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'
+          +flag1
+        +'</div>'
+        +'<div style="flex-shrink:0;width:74px;text-align:center">'+scoreHtml+'</div>'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">'
+          +flag2
+          +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
+        +'</div>'
+        +'</div>';
+
+      return '<div class="match-card" style="padding:.65rem .95rem">'
+        +metaHtml+rowHtml+goleadoresHtml+pronBtn+pronWrap+'</div>';
             if(pts===3||pts===4){
               chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
               label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO'+(pts===4?' +1':'')+'</span>';
@@ -2371,28 +2451,20 @@ async function renderPartidosHoy(){
 
       var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns = pronsHtml.length > 0;
-      var nProns = matchProde ? participantes.filter(function(p){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length : 0;
-      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:8px;font-size:11px;padding:3px 10px">👁 Pronósticos ('+nProns+')</button>' : '';
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')">👁 Ver pronósticos</button>' : '';
       var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
-
-      // Meta: grupo + estado + hora en una línea
-      var metaHtml = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+(grupoHtml||'')+estadoBadge+horaHtml+'</div>';
-
-      // Fila central: local — marcador — visitante
-      var rowHtml = '<div style="display:flex;align-items:center">'
-        +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;overflow:hidden">'
-          +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'
-          +flag1
+      return '<div class="match-card">'
+        +'<div class="match-teams">'+grupoHtml
+        +'<div style="flex:1">'
+        +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<span>'+flag1+t1+'</span>'+scoreHtml+'<span>'+flag2+t2+'</span>'+estadoBadge
         +'</div>'
-        +'<div style="flex-shrink:0;width:74px;text-align:center">'+scoreHtml+'</div>'
-        +'<div style="flex:1;display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">'
-          +flag2
-          +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
-        +'</div>'
+        +horaHtml
+        +goleadoresHtml
+        +pronBtn
+        +'</div></div>'
+        +pronWrap
         +'</div>';
-
-      return '<div class="match-card" style="padding:.65rem .95rem">'
-        +metaHtml+rowHtml+goleadoresHtml+pronBtn+pronWrap+'</div>';
     }).join('');
 
   } catch(e){
@@ -2755,11 +2827,60 @@ async function renderPartidosManana(){
         var d=new Date(comp.date);
         var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
         var mm=pad(d.getUTCMinutes());
-        horaHtml='<span style="font-size:11px;color:var(--text3);margin-left:8px">🕐 '+hh+':'+mm+' (ARG)</span>';
+        horaHtml='<span style="font-size:11px;color:var(--text3)">🕐 '+hh+':'+mm+' (ARG)</span>';
       }
-      return '<div class="match-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:.75rem 1rem">'
-        +'<div style="flex:1;font-size:14px;font-weight:500">'+flag1+t1+' <span style="color:var(--text3)">vs</span> '+flag2+t2+'</div>'
-        +horaHtml+'</div>';
+      // Nota de grupo desde ESPN
+      var notas=comp.notes||[];
+      var grupoTexto='';
+      notas.forEach(function(n){ if(n.text&&n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
+      var grupoHtml=grupoTexto?'<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>':'';
+      // Matching con partidos del prode (reusar normTeam del scope externo)
+      function normTM(s){
+        s=(s||'').toLowerCase().trim();
+        if(ESPN_NOMBRES[s]) s=ESPN_NOMBRES[s];
+        var stripped=s.replace(/\u00e7/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
+                      .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u')
+                      .replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim();
+        if(ESPN_NOMBRES[stripped]) stripped=ESPN_NOMBRES[stripped];
+        return stripped.replace(/ /g,'');
+      }
+      var t1n=normTM(t1), t2n=normTM(t2);
+      function tmatch(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||a.includes(b.slice(0,6))||b.includes(a.slice(0,6)); }
+      var matchProde=partidos.find(function(p){ var l=normTM(p.local),v=normTM(p.visitante); return tmatch(l,t1n)&&tmatch(v,t2n); })
+        || partidos.find(function(p){ var l=normTM(p.local),v=normTM(p.visitante); return l.slice(0,3)===t1n.slice(0,3)&&v.slice(0,3)===t2n.slice(0,3); });
+      // Pronósticos: si la fecha ya está cerrada los mostramos, si está abierta ponemos candado
+      var pronsHtml='';
+      if(matchProde){
+        var cerrada=matchProde.estado==='cerrada';
+        if(cerrada){
+          var chips=participantes.map(function(part){
+            var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre];
+            if(!pr||isNaN(pr.gl)) return '';
+            return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--text)">'+pr.gl+'-'+pr.gv+'</span></span>';
+          }).filter(Boolean).join('');
+          if(chips) pronsHtml='<div class="match-prons">'+chips+'</div>';
+        } else {
+          pronsHtml='<div style="margin-top:6px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre</span></div>';
+        }
+      }
+      var evId='man-'+(ev.id||Math.random().toString(36).slice(2));
+      var hasProns=pronsHtml.length>0;
+      var pronBtn=hasProns?'<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Pronósticos</button>':'';
+      var pronWrap=hasProns?'<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>':'';
+      // Layout estilo promiedos: equipo — vs — equipo con hora arriba
+      var metaHtml='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'+(grupoHtml||'')+horaHtml+'</div>';
+      var rowHtml='<div style="display:flex;align-items:center">'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;overflow:hidden">'
+          +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'
+          +flag1
+        +'</div>'
+        +'<div style="flex-shrink:0;width:52px;text-align:center;font-family:Barlow Condensed,sans-serif;font-size:18px;font-weight:700;color:var(--text3)">vs</div>'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">'
+          +flag2
+          +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
+        +'</div>'
+        +'</div>';
+      return '<div class="match-card" style="padding:.65rem .95rem">'+metaHtml+rowHtml+pronBtn+pronWrap+'</div>';
     }).join('');
   }catch(e){ sec.style.display='none'; }
 }
@@ -3032,6 +3153,7 @@ async function init(){
   setInterval(async()=>{ if(document.hidden) return; if(syncTimer) return; const ok2=await loadFromCloud(); if(ok2) refreshAll(); },60000);
   document.addEventListener('visibilitychange',async()=>{ if(!document.hidden&&!syncTimer){ const ok3=await loadFromCloud(); if(ok3) refreshAll(); } });
   startAutoRefresh();
+  renderFechaEnCurso();
   renderPartidosHoy();
   renderPartidosManana();
   renderHighlights();
