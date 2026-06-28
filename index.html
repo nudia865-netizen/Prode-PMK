@@ -2347,6 +2347,56 @@ async function renderPartidosHoy(){
         return l.slice(0,3)===t1n.slice(0,3) && v.slice(0,3)===t2n.slice(0,3);
       });
 
+      // Pronósticos del prode para este partido
+      var pronsHtml = '';
+      if(matchProde){
+        var cerrada = matchProde.estado === 'cerrada';
+        if(cerrada){
+          var r_hoy = resultados[matchProde.id];
+          var hasR_hoy = r_hoy && !isNaN(r_hoy.gl);
+          var espnR_hoy = {gl: Number(score1), gv: Number(score2)};
+          var rEfectivo = hasR_hoy ? r_hoy : (hasScore ? espnR_hoy : null);
+          var esProvisorio = !hasR_hoy && hasScore;
+          var esPlayoff = matchProde.tipo === 'playoff';
+          var clasificadoReal = r_hoy && r_hoy.clasificado ? r_hoy.clasificado : null;
+          var chips = participantes.map(function(part){
+            var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
+            var has = pr && !isNaN(pr.gl);
+            if(!has) return '';
+            var pts = rEfectivo ? calcPuntos(pr, rEfectivo, matchProde) : -1;
+            var chipBg='background:var(--bg3)', chipBorder='1px solid var(--border)', color='var(--text2)', label='';
+            if(pts===3||pts===4){
+              chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
+              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO'+(pts===4?' +1':'')+'</span>';
+            } else if(pts===1){
+              chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
+              label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
+            } else if(pts===0&&rEfectivo){
+              chipBg='background:rgba(153,27,27,.10)'; chipBorder='1px solid rgba(153,27,27,.3)'; color='#991b1b';
+              label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
+            }
+            var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
+            var clasTag = '';
+            if(esPlayoff && pr.clasificado){
+              var acertoClas = clasificadoReal && pr.clasificado===clasificadoReal;
+              var clasColor = acertoClas ? '#fde68a' : (clasificadoReal ? '#fca5a5' : 'var(--text3)');
+              clasTag = '<span style="font-size:9px;color:'+clasColor+';white-space:nowrap">⚡ '+pr.clasificado+(acertoClas?' ✓':clasificadoReal?' ✗':'')+'</span>';
+            }
+            return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
+              +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
+                +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
+                +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
+              +'</span>'
+              +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
+              +(clasTag ? '<span>'+clasTag+'</span>' : '')
+              +'</span>';
+          }).filter(Boolean).join('');
+          if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
+        } else {
+          pronsHtml = '<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>';
+        }
+      }
+
       // Goleadores agrupados: local izquierda, visitante derecha
       var goleadoresHtml = '';
       if(hasScore){
@@ -2381,10 +2431,16 @@ async function renderPartidosHoy(){
             +'</div>';
         }
       }
+      // Grupo desde ESPN notes
+      var notas_hoy = comp.notes || [];
+      var grupoTexto_hoy = '';
+      notas_hoy.forEach(function(n){ if(n.text && n.text.match(/Group|Grupo/i)) grupoTexto_hoy=n.text; });
+      var grupoHtml = grupoTexto_hoy ? '<span class="badge b-group" style="font-size:11px">'+grupoTexto_hoy+'</span>' : '';
+
       var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns = pronsHtml.length > 0;
       var nProns = matchProde ? participantes.filter(function(p){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length : 0;
-      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:8px;font-size:11px;padding:3px 10px">👁 Pronósticos ('+nProns+')</button>' : '';
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(&quot;'+evId+'&quot;)" style="margin-top:8px;font-size:11px;padding:3px 10px">👁 Pronósticos ('+nProns+')</button>' : '';
       var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
 
       // Meta: grupo + estado + hora en una línea
