@@ -316,7 +316,7 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
             <li><strong>3 puntos</strong> resultado exacto</li>
             <li><strong>1 punto</strong> acierto de ganador/empate</li>
             <li><strong>0 puntos</strong> incorrecto</li>
-            <li style="margin-top:.5rem"><strong style="color:var(--accent)">⚡ Playoffs (eliminación directa):</strong> se toma el resultado a 90' (sin alargues ni penales). <strong>+1 punto adicional</strong> si acertás qué equipo avanza de ronda, independientemente del resultado pronosticado.</li>
+            <li style="margin-top:.5rem"><strong style="color:var(--accent)">⚡ Playoffs:</strong> resultado a 90’ (sin alargues ni penales). <strong>+1 punto adicional</strong> si acertás qué equipo avanza, independientemente del resultado.</li>
           </ul>
         </li>
         <li>Esta excepci&oacute;n aplica <strong>solo al momento de ingreso y por &uacute;nica vez</strong>.</li>
@@ -392,8 +392,8 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
           ⚡ Partido de Playoff (eliminación directa)
         </label>
       </div>
-      <div class="frow" id="p-playoff-wrap" style="display:none;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:var(--radius-sm);padding:.6rem .9rem;margin-bottom:2px">
-        <span style="font-size:11px;color:#fde68a;flex:1">⚽ resultado a 90' · +1 pt quien acierte el clasificado</span>
+      <div class="frow" id="p-playoff-wrap" style="display:none;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:var(--radius-sm);padding:.5rem .75rem">
+        <span style="font-size:11px;color:#fde68a">⚽ resultado a 90’ · +1 pt quien acierte el clasificado</span>
       </div>
       <button class="btn btn-primary" onclick="addPartido()">+ Agregar partido</button>
       <button class="btn btn-ghost" onclick="importarPartidosHoy()" style="margin-left:8px">⬇ Importar hoy (Mundial 2026)</button>
@@ -919,11 +919,10 @@ function addPartido(){
   const dt=document.getElementById('p-dt').value;
   const e=document.getElementById('p-estado').value;
   if(!f||!l||!v){ toast('Completá fecha, local y visitante','error'); return; }
-  var isPlayoff = document.getElementById('p-playoff').checked;
-  var partido = {id:Date.now(),fecha:f,local:l,visitante:v,grupo:g,dt,estado:e};
+  var isPlayoff=document.getElementById('p-playoff').checked;
+  var partido={id:Date.now(),fecha:f,local:l,visitante:v,grupo:g,dt,estado:e};
   if(isPlayoff) partido.tipo='playoff';
-  partidos.push(partido);
-  persist(); renderPartidos();
+  partidos.push(partido); persist(); renderPartidos();
   document.getElementById('p-local').value=''; document.getElementById('p-visit').value='';
   document.getElementById('p-grupo').value=''; document.getElementById('p-dt').value='';
   document.getElementById('p-playoff').checked=false;
@@ -1061,17 +1060,14 @@ function setPron(pid,nombre,glId,gvId){
   if(!pronosticos[pid]) pronosticos[pid]={};
   if(!isNaN(gl)&&!isNaN(gv)){
     const prev=pronosticos[pid][nombre]||{};
-    pronosticos[pid][nombre]={...prev,gl,gv};
-    persist();
+    pronosticos[pid][nombre]={...prev,gl,gv}; persist();
   }
 }
 function setPronClasificado(pid,nombre,clasId){
   const val=document.getElementById(clasId)?.value||'';
   if(!pronosticos[pid]) pronosticos[pid]={};
   if(!pronosticos[pid][nombre]) pronosticos[pid][nombre]={};
-  pronosticos[pid][nombre].clasificado=val;
-  persist();
-  renderPronosticos();
+  pronosticos[pid][nombre].clasificado=val; persist(); renderPronosticos();
   toast(val?`✓ Clasifica: ${val}`:'Clasificado borrado');
 }
 
@@ -1122,11 +1118,11 @@ function renderPronosticos(){
         <div style="flex:1;min-width:160px">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             ${p.grupo?`<span class="badge b-group">G-${p.grupo}</span>`:''}
-            ${p.tipo==='playoff'?'<span class="badge" style="background:rgba(251,191,36,.15);color:#fde68a;border:1px solid rgba(251,191,36,.3)">⚡ Playoff</span>':''}
+            ${p.tipo==='playoff'?'<span class="badge" style="background:rgba(251,191,36,.15);color:#fde68a">⚡ Playoff</span>':''}
             <span style="font-size:15px;font-weight:600">${p.local} <span style="color:var(--text3);font-weight:400;font-size:13px">vs</span> ${p.visitante}</span>
           </div>
           ${p.dt?`<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 ${fmtDt(p.dt)}</div>`:''}
-          ${p.tipo==='playoff'?`<div style="font-size:11px;color:#fde68a;margin-top:3px">Resultado a 90' · acierto del clasificado +1 pt extra</div>`:''}
+          ${p.tipo==='playoff'?`<div style="font-size:11px;color:#fde68a;margin-top:3px">Resultado a 90’ · +1 pt si acertás el clasificado</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
           <div style="display:flex;align-items:center;gap:8px">
@@ -1170,16 +1166,13 @@ function setRes(id){
   const gv=parseInt(document.getElementById(`rgv_${id}`)?.value);
   if(!isNaN(gl)&&!isNaN(gv)){
     if(!resultados[id]) resultados[id]={};
-    resultados[id].gl=gl; resultados[id].gv=gv;
-    persist();
+    resultados[id].gl=gl; resultados[id].gv=gv; persist();
   }
 }
 function setResClasificado(id){
   const val=document.getElementById(`rclas_${id}`)?.value||'';
   if(!resultados[id]) resultados[id]={};
-  resultados[id].clasificado=val;
-  persist();
-  renderResultados();
+  resultados[id].clasificado=val; persist(); renderResultados();
   toast(val?`✓ Clasifica: ${val}`:'Clasificado borrado');
 }
 
@@ -1218,21 +1211,13 @@ function renderResultados(){
 }
 
 function calcPuntos(pr,r,partido){
-  // partido opcional — se usa para el bonus de playoff
   if(!r||r.gl===undefined||isNaN(r.gl)) return null;
   if(!pr||pr.gl===undefined||isNaN(pr.gl)) return 0;
-  var base = 0;
+  var base=0;
   if(pr.gl===r.gl&&pr.gv===r.gv) base=3;
-  else {
-    const rG=r.gl>r.gv?'L':r.gl<r.gv?'V':'E';
-    const pG=pr.gl>pr.gv?'L':pr.gl<pr.gv?'V':'E';
-    base = rG===pG?1:0;
-  }
-  // Bonus playoff: +1 si acertó quién clasifica (independiente del score)
-  var bonus = 0;
-  if(partido && partido.tipo==='playoff' && r.clasificado && pr.clasificado){
-    if(pr.clasificado===r.clasificado) bonus=1;
-  }
+  else { const rG=r.gl>r.gv?'L':r.gl<r.gv?'V':'E'; const pG=pr.gl>pr.gv?'L':pr.gl<pr.gv?'V':'E'; base=rG===pG?1:0; }
+  var bonus=0;
+  if(partido&&partido.tipo==='playoff'&&r.clasificado&&pr.clasificado&&pr.clasificado===r.clasificado) bonus=1;
   return base+bonus;
 }
 
@@ -1614,7 +1599,7 @@ function buildMatchCard(p, participantesVisibles){
       const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
       const has = pr && !isNaN(pr.gl);
       if(!has) return ''; // ocultar quien no pronosticó
-      const pts = calcPuntos(pr, r);
+      const pts = calcPuntos(pr, r, p);
       const color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0&&hasR?'#991b1b':'var(--text2)';
       const medal = pts===3?'🎯':pts===1?'✓':'';
       return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'+(medal?'<span style="font-size:11px">'+medal+'</span>':'')+'</span>';
@@ -1709,7 +1694,7 @@ function renderPersonas(){
       const r=resultados[p.id]; const pr=pronosticos[p.id]&&pronosticos[p.id][part.nombre];
       const has=pr&&!isNaN(pr.gl); const hasR=r&&!isNaN(r.gl);
       const cerrada=p.estado==='cerrada';
-      const pts=cerrada?calcPuntos(pr,r):null;
+      const pts=cerrada?calcPuntos(pr,r,p):null;
       const ptsEl=pts===3?`<span class="badge b-exact">+3</span>`:pts===1?`<span class="badge b-win">+1</span>`:pts===0&&hasR?`<span class="badge b-zero">0</span>`:`<span class="badge b-gray">—</span>`;
       return `<div class="mrow">
         <div style="flex:1;font-size:13px">
@@ -2167,7 +2152,7 @@ async function renderPartidosHoy(){
         var d = new Date(comp.date);
         var hh = d.getUTCHours()-3; if(hh<0)hh+=24;
         var mm = pad(d.getUTCMinutes());
-        horaHtml = '<div style="font-size:11px;color:var(--text3);margin-top:3px">🕐 '+hh+':'+mm+' (ARG)</div>';
+        horaHtml = '<span style="font-size:11px;color:var(--text3)">🕐 '+hh+':'+mm+'</span>';
       }
 
       // Badge de estado
@@ -2180,8 +2165,8 @@ async function renderPartidosHoy(){
       }
 
       var scoreHtml = hasScore
-        ? '<div class="match-score" style="font-size:22px;font-weight:800">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 6px">-</span>'+score2+'</div>'
-        : '<div class="match-score pending" style="font-size:13px">vs</div>';
+        ? '<div class="match-score" style="font-size:24px;font-weight:800;color:var(--text)">'+score1+'<span style="color:var(--text3);font-size:16px;margin:0 5px">–</span>'+score2+'</div>'
+        : '<div class="match-score pending" style="font-size:14px">'+hh+':'+mm+'</div>';
 
       // Matching con partidos del prode por nombre
       // Diccionario ESPN (inglés) → nombres en español usados en el prode
@@ -2290,7 +2275,7 @@ async function renderPartidosHoy(){
         return l.slice(0,3)===t1n.slice(0,3) && v.slice(0,3)===t2n.slice(0,3);
       });
 
-      // Goleadores (si ESPN trae el detalle de los goles del partido)
+      // Goleadores agrupados: local izquierda, visitante derecha
       var goleadoresHtml = '';
       if(hasScore){
         var detalles = comp.details || [];
@@ -2300,27 +2285,28 @@ async function renderPartidosHoy(){
         });
         if(golEvents.length){
           var homeId = home.team && home.team.id;
-          var golesOrdenados = golEvents.map(function(det){
-            var teamId = det.team && det.team.id;
-            var esLocal = teamId===homeId;
-            var jugador = (det.athletesInvolved && det.athletesInvolved[0] && (det.athletesInvolved[0].displayName||det.athletesInvolved[0].fullName||det.athletesInvolved[0].shortName)) || '';
+          var golesLocal = [], golesVisit = [];
+          golEvents.forEach(function(det){
+            var esLocal = (det.team && det.team.id) === homeId;
+            var jugador = (det.athletesInvolved && det.athletesInvolved[0] &&
+              (det.athletesInvolved[0].shortName||det.athletesInvolved[0].displayName||det.athletesInvolved[0].fullName)) || '';
             var minRaw = (det.clock && (det.clock.displayValue||det.clock.value)) || '';
-            var minNum = parseInt(minRaw,10); if(isNaN(minNum)) minNum = 999;
+            var minNum = parseInt(minRaw,10); if(isNaN(minNum)) minNum=999;
             var tipo = (det.type && det.type.text) || '';
-            var icono = /own goal/i.test(tipo) ? '⚽(EP)' : /penalty/i.test(tipo) ? '⚽(P)' : '⚽';
-            return {esLocal:esLocal, jugador:jugador, minRaw:minRaw, minNum:minNum, icono:icono};
-          }).sort(function(a,b){ return a.minNum-b.minNum; });
-          goleadoresHtml = '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:3px">'
-            + '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">⚽ Goles</div>'
-            + golesOrdenados.map(function(g){
-                return '<div style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:5px">'
-                  + '<span style="min-width:14px;text-align:center">'+g.icono+'</span>'
-                  + '<span style="flex:1">'+(g.jugador||'Gol')+'</span>'
-                  + (g.minRaw?'<span style="color:var(--text3);font-size:11px">'+g.minRaw+"'</span>":'')
-                  + '<span style="font-size:10px;color:var(--text3)">('+(g.esLocal?t1:t2)+')</span>'
-                  + '</div>';
-              }).join('')
-            + '</div>';
+            var suf = /own goal/i.test(tipo)?' (EP)':/penalty/i.test(tipo)?' (P)':'';
+            var txt2 = '⚽ '+(jugador||'Gol')+suf+(minRaw?" "+minRaw+"'":'');
+            if(esLocal) golesLocal.push({txt:txt2,minNum});
+            else golesVisit.push({txt:txt2,minNum});
+          });
+          golesLocal.sort(function(a,b){return a.minNum-b.minNum;});
+          golesVisit.sort(function(a,b){return a.minNum-b.minNum;});
+          var glHtml = golesLocal.map(function(g){return '<div>'+g.txt+'</div>';}).join('');
+          var gvHtml = golesVisit.map(function(g){return '<div>'+g.txt+'</div>';}).join('');
+          goleadoresHtml = '<div style="display:flex;gap:0;margin-top:6px;font-size:11px;color:var(--text2);line-height:1.65">'
+            +'<div style="flex:1;text-align:left">'+glHtml+'</div>'
+            +'<div style="width:60px;flex-shrink:0"></div>'
+            +'<div style="flex:1;text-align:right">'+gvHtml+'</div>'
+            +'</div>';
         }
       }
 
@@ -2332,14 +2318,19 @@ async function renderPartidosHoy(){
           var liveR = (!hasRProde && hasScore) ? {gl:Number(score1), gv:Number(score2)} : null;
           var rParaPuntos = hasRProde ? rProde : liveR;
           var esProvisorio = !hasRProde && !!liveR;
+          var esPlayoff = matchProde.tipo === 'playoff';
+          var clasificadoReal = rProde && rProde.clasificado ? rProde.clasificado : '';
           var chips = participantes.map(function(part){
             var pr = pronosticos[matchProde.id] && pronosticos[matchProde.id][part.nombre];
             if(!pr || isNaN(pr.gl)) return '';
             var pts = rParaPuntos ? calcPuntos(pr, rParaPuntos, matchProde) : -1;
             var chipBg='background:var(--bg3)', chipBorder='1px solid transparent', color='var(--text3)', label='';
-            if(pts===3){
+            if(pts===3||pts===4){
               chipBg='background:rgba(37,99,235,.16)'; chipBorder='1px solid rgba(37,99,235,.45)'; color='#1d4ed8';
-              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO</span>';
+              label='<span style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.3px">🎯 EXACTO'+(pts===4?' +1':'')+'</span>';
+            } else if(pts===2){
+              chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
+              label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR +1</span>';
             } else if(pts===1){
               chipBg='background:rgba(22,101,52,.10)'; chipBorder='1px solid rgba(22,101,52,.3)'; color='#166534';
               label='<span style="font-size:9px;font-weight:700;color:#166534;letter-spacing:.3px">✓ GANADOR</span>';
@@ -2348,12 +2339,21 @@ async function renderPartidosHoy(){
               label='<span style="font-size:9px;font-weight:700;color:#991b1b;letter-spacing:.3px">✗ FALLÓ</span>';
             }
             var liveTag = (esProvisorio && pts!==-1) ? '<span style="font-size:9px;color:#fbbf24;font-weight:700;margin-left:2px;white-space:nowrap">⏱ en vivo</span>' : '';
+            // Playoff: mostrar quién pusieron que clasifica
+            var clasTag = '';
+            if(esPlayoff && pr.clasificado){
+              var acertoClas = clasificadoReal && pr.clasificado===clasificadoReal;
+              var clasColor = acertoClas ? '#fde68a' : (clasificadoReal ? '#fca5a5' : 'var(--text3)');
+              var clasSuf = acertoClas ? ' ✓' : (clasificadoReal ? ' ✗' : '');
+              clasTag = '<span style="font-size:9px;color:'+clasColor+';white-space:nowrap">⚡ '+pr.clasificado+clasSuf+'</span>';
+            }
             return '<span class="pron-chip" style="'+chipBg+';border:'+chipBorder+';flex-direction:column;align-items:flex-start;gap:2px;padding:5px 9px">'
               +'<span style="display:flex;align-items:center;gap:6px;width:100%">'
                 +'<span style="color:var(--text2);font-size:11px;flex:1">'+part.nombre+'</span>'
                 +'<span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'
               +'</span>'
               +((label||liveTag) ? '<span style="display:flex;align-items:center;gap:5px">'+label+liveTag+'</span>' : '')
+              +(clasTag ? '<span>'+clasTag+'</span>' : '')
               +'</span>';
           }).filter(Boolean).join('');
           if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
@@ -2371,20 +2371,28 @@ async function renderPartidosHoy(){
 
       var evId = 'hoy-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns = pronsHtml.length > 0;
-      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')">👁 Ver pronósticos</button>' : '';
+      var nProns = matchProde ? participantes.filter(function(p){ var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][p.nombre]; return pr&&!isNaN(pr.gl); }).length : 0;
+      var pronBtn = hasProns ? '<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:8px;font-size:11px;padding:3px 10px">👁 Pronósticos ('+nProns+')</button>' : '';
       var pronWrap = hasProns ? '<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>' : '';
-      return '<div class="match-card">'
-        +'<div class="match-teams">'+grupoHtml
-        +'<div style="flex:1">'
-        +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-        +'<span>'+flag1+t1+'</span>'+scoreHtml+'<span>'+flag2+t2+'</span>'+estadoBadge
+
+      // Meta: grupo + estado + hora en una línea
+      var metaHtml = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'+(grupoHtml||'')+estadoBadge+horaHtml+'</div>';
+
+      // Fila central: local — marcador — visitante
+      var rowHtml = '<div style="display:flex;align-items:center">'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;overflow:hidden">'
+          +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'
+          +flag1
         +'</div>'
-        +horaHtml
-        +goleadoresHtml
-        +pronBtn
-        +'</div></div>'
-        +pronWrap
+        +'<div style="flex-shrink:0;width:74px;text-align:center">'+scoreHtml+'</div>'
+        +'<div style="flex:1;display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">'
+          +flag2
+          +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
+        +'</div>'
         +'</div>';
+
+      return '<div class="match-card" style="padding:.65rem .95rem">'
+        +metaHtml+rowHtml+goleadoresHtml+pronBtn+pronWrap+'</div>';
     }).join('');
 
   } catch(e){
@@ -2966,12 +2974,9 @@ function renderBulkPron(){
     +ps.map(function(p){
       var pr=pronosticos[p.id]&&pronosticos[p.id][nombre];
       var has=pr&&!isNaN(pr.gl);
-      var hasClas=pr&&pr.clasificado;
-      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;flex-direction:column;gap:6px">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">'
+      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:10px">'
         +'<div style="font-size:13px;font-weight:600;flex:1">'
         +(p.grupo?'<span class="badge b-group" style="margin-right:4px;font-size:11px">G-'+p.grupo+'</span>':'')
-        +(p.tipo==='playoff'?'<span class="badge" style="margin-right:4px;font-size:10px;background:rgba(251,191,36,.15);color:#fde68a">⚡</span>':'')
         +p.local+' <span style="color:var(--text3);font-weight:400">vs</span> '+p.visitante
         +(has?'<span class="badge b-exact" style="margin-left:6px;font-size:10px">✓ '+pr.gl+'-'+pr.gv+'</span>':'')
         +'</div>'
@@ -2979,17 +2984,7 @@ function renderBulkPron(){
         +'<input type="number" id="bpgl_'+p.id+'" min="0" max="20" value="'+(has?pr.gl:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
         +'<span style="font-size:18px;color:var(--text3)">-</span>'
         +'<input type="number" id="bpgv_'+p.id+'" min="0" max="20" value="'+(has?pr.gv:'')+'" placeholder="—" style="width:52px;font-size:20px;font-family:Barlow Condensed,sans-serif;font-weight:700;text-align:center">'
-        +'</div></div>'
-        +(p.tipo==='playoff'?
-          '<div style="display:flex;align-items:center;gap:8px;padding-top:5px;border-top:1px dashed rgba(251,191,36,.25)">'
-          +'<span style="font-size:11px;color:#fde68a;white-space:nowrap">⚡ ¿Quién avanza?</span>'
-          +'<select id="bpclas_'+p.id+'" style="font-size:13px">'
-          +'<option value="">— elegir —</option>'
-          +'<option value="'+p.local+'"'+(hasClas&&pr.clasificado===p.local?' selected':'')+'>'+p.local+'</option>'
-          +'<option value="'+p.visitante+'"'+(hasClas&&pr.clasificado===p.visitante?' selected':'')+'>'+p.visitante+'</option>'
-          +'</select>'
-          +(hasClas?'<span class="badge" style="background:rgba(251,191,36,.15);color:#fde68a;font-size:10px">✓ '+pr.clasificado+'</span>':'')+'</div>'
-          :'')+'</div>';
+        +'</div></div>';
     }).join('')+'</div>';
 }
 function guardarBulkPron(){
@@ -3001,17 +2996,7 @@ function guardarBulkPron(){
   ps.forEach(function(p){
     var gl=parseInt(document.getElementById('bpgl_'+p.id)?.value);
     var gv=parseInt(document.getElementById('bpgv_'+p.id)?.value);
-    if(!isNaN(gl)&&!isNaN(gv)){
-      if(!pronosticos[p.id]) pronosticos[p.id]={};
-      var prev=pronosticos[p.id][nombre]||{};
-      pronosticos[p.id][nombre]={...prev,gl,gv};
-      // playoff: guardar clasificado si se eligió
-      if(p.tipo==='playoff'){
-        var clasEl=document.getElementById('bpclas_'+p.id);
-        if(clasEl&&clasEl.value) pronosticos[p.id][nombre].clasificado=clasEl.value;
-      }
-      n++;
-    }
+    if(!isNaN(gl)&&!isNaN(gv)){ if(!pronosticos[p.id]) pronosticos[p.id]={}; pronosticos[p.id][nombre]={gl,gv}; n++; }
   });
   if(n){ persist(); renderBulkPron(); refreshAll(); toast('✓ '+n+' pronóstico'+(n!==1?'s':'')+' guardados para '+nombre); }
   else toast('No hay pronósticos para guardar','error');
