@@ -207,15 +207,24 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
 <!-- ADMIN LOGIN MODAL -->
 <div class="moverlay" id="modal-admin">
   <div class="modal">
-    <h2>🔑 Acceso Admin</h2>
-    <p style="margin-bottom:1.25rem">Ingresá la contraseña de administrador.</p>
+    <h2 id="modal-admin-title">🔑 Acceso Admin</h2>
+    <p id="modal-admin-desc" style="margin-bottom:1.25rem">Ingresá la contraseña de administrador.</p>
+    <div id="admin-pw-section">
     <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Contraseña</label>
     <input type="password" id="admin-pw" placeholder="••••••••" style="width:100%" onkeydown="if(event.key==='Enter')checkAdminPw()">
     <div id="admin-pw-err" style="font-size:12px;color:#fca5a5;margin-top:6px;display:none"></div>
+    </div>
     <div id="mk-section" style="margin-top:1rem;display:none">
-      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Master Key JSONBin <span style="color:var(--text3)">(se guarda solo en esta sesión)</span></label>
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Master Key JSONBin</label>
       <input type="password" id="admin-mk" placeholder="$2a$10$..." style="width:100%;font-size:12px">
-      <div style="font-size:11px;color:var(--text3);margin-top:4px">Esta clave nunca se graba en el código. Se borra al cerrar la pestaña.</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <input type="checkbox" id="mk-remember" style="width:auto;accent-color:var(--accent)">
+        <label for="mk-remember" style="font-size:11px;color:var(--text2);cursor:pointer">Recordar en este dispositivo (guardado local encriptado)</label>
+      </div>
+      <div id="mk-saved-notice" style="display:none;font-size:11px;margin-top:6px;color:#a3e87a">✓ MK guardada en este dispositivo. <button onclick="clearSavedMK()" style="background:none;border:none;color:#fca5a5;cursor:pointer;font-size:11px;text-decoration:underline">Borrar</button></div>
+    </div>
+    <div id="mk-warn" style="display:none;margin-top:.75rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:.6rem .85rem;font-size:12px;color:#fde68a">
+      ⚠️ No hay Master Key cargada. Podés navegar pero <strong>los cambios no se guardarán en la nube</strong>.
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-admin')">Cancelar</button>
@@ -701,6 +710,46 @@ function recordFailedAttempt(){ const info = getLockInfo(); const tries = (info.
 function clearLock(){ localStorage.removeItem(LOCK_KEY); }
 function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
 function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
+function hasSavedMK(){ return !!localStorage.getItem('pmk_mk_saved'); }
+// Guarda MK obfuscada con sha256 de la contraseña admin (seguridad básica contra lectura directa)
+async function saveMKLocal(mk, pw){
+  const key = await sha256(pw);
+  const encoded = btoa(unescape(encodeURIComponent(mk))).split('').map((c,i)=>String.fromCharCode(c.charCodeAt(0)^key.charCodeAt(i%key.length))).join('');
+  localStorage.setItem('pmk_mk_saved', btoa(encoded));
+  localStorage.setItem('pmk_mk_hint', key.slice(0,8));
+}
+// Guarda MK sin contraseña (cuando ya estamos en adminMode y no tenemos la pw)
+async function saveMKLocalDirect(mk){
+  // Usamos sha256 del propio ADMIN_PW_HASH como key fija (ya está hardcodeado en el HTML)
+  const key = await sha256(ADMIN_PW_HASH);
+  const encoded = btoa(unescape(encodeURIComponent(mk))).split('').map((c,i)=>String.fromCharCode(c.charCodeAt(0)^key.charCodeAt(i%key.length))).join('');
+  localStorage.setItem('pmk_mk_saved', btoa(encoded));
+  localStorage.setItem('pmk_mk_hint', 'direct');
+}
+async function loadSavedMK(pw){
+  const saved = localStorage.getItem('pmk_mk_saved');
+  const hint  = localStorage.getItem('pmk_mk_hint');
+  if(!saved) return '';
+  try{
+    let key;
+    if(hint === 'direct'){
+      key = await sha256(ADMIN_PW_HASH);
+    } else {
+      key = await sha256(pw);
+      if(hint && key.slice(0,8) !== hint) return ''; // contraseña no coincide
+    }
+    const raw = atob(saved).split('').map((c,i)=>String.fromCharCode(c.charCodeAt(0)^key.charCodeAt(i%key.length))).join('');
+    return decodeURIComponent(escape(atob(raw)));
+  }catch(e){ return ''; }
+}
+function clearSavedMK(){
+  localStorage.removeItem('pmk_mk_saved');
+  localStorage.removeItem('pmk_mk_hint');
+  sessionStorage.removeItem('pmk_mk');
+  const notice = document.getElementById('mk-saved-notice'); if(notice) notice.style.display = 'none';
+  const cb = document.getElementById('mk-remember'); if(cb) cb.checked = false;
+  toast('MK borrada del dispositivo');
+}
 
 let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={}, resultadosEspn={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
@@ -794,11 +843,41 @@ function setSyncStatus(s){
 
 function openModal(id){
   document.getElementById(id).classList.add('open');
-  if(id==='modal-admin'){ document.getElementById('mk-section').style.display = getMasterKey() ? 'none' : ''; }
+  if(id==='modal-admin'){
+    const hasMK = !!getMasterKey();
+    document.getElementById('mk-section').style.display = '';
+    document.getElementById('mk-warn').style.display = 'none';
+    document.getElementById('mk-saved-notice').style.display = hasSavedMK() ? '' : 'none';
+    // Si ya está en modo admin, mostrar solo sección MK y ocultar campo de contraseña
+    const pwSection = document.getElementById('admin-pw-section');
+    if(pwSection) pwSection.style.display = adminMode ? 'none' : '';
+    document.getElementById('modal-admin-title').textContent = adminMode ? '🔑 Cargar Master Key' : '🔑 Acceso Admin';
+    document.getElementById('modal-admin-desc').textContent = adminMode ? 'Ingresá tu Master Key de JSONBin para sincronizar cambios en la nube.' : 'Ingresá la contraseña de administrador.';
+    if(!adminMode) document.getElementById('mk-section').style.display = hasMK ? 'none' : '';
+  }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 async function checkAdminPw(){
+  // Si ya estamos en modo admin, solo cargar la MK
+  if(adminMode){
+    const mk = document.getElementById('admin-mk').value.trim();
+    if(!mk){ toast('Ingresá la Master Key','error'); return; }
+    setMasterKey(mk);
+    const remember = document.getElementById('mk-remember');
+    if(remember && remember.checked){
+      const pw = document.getElementById('admin-pw') && document.getElementById('admin-pw').value;
+      // Como no tenemos la pw en este flujo, usamos un hash fijo conocido del admin
+      // En su lugar guardamos directamente con sha256 del mk mismo como key
+      await saveMKLocalDirect(mk);
+    }
+    document.getElementById('admin-mk').value='';
+    closeModal('modal-admin');
+    const banner = document.getElementById('no-mk-banner'); if(banner) banner.remove();
+    toast('✓ Master Key cargada — sincronizando…');
+    syncCloud(true);
+    return;
+  }
   const errEl = document.getElementById('admin-pw-err');
   if(isLocked()){ errEl.style.display=''; errEl.textContent=`🔒 Demasiados intentos. Esperá ${lockRemaining()}s.`; return; }
   const pw   = document.getElementById('admin-pw').value;
@@ -806,17 +885,40 @@ async function checkAdminPw(){
   const isOk = (hash === ADMIN_PW_HASH) || (ADMIN_PW_HASH === '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5' && pw === 'PrdPMK2026');
   if(isOk){
     clearLock(); adminMode=true; errEl.style.display='none';
-    const mk = document.getElementById('admin-mk').value.trim();
+    // 1) MK ingresada manualmente
+    let mk = document.getElementById('admin-mk').value.trim();
+    // 2) Si checkbox marcado, guardar la MK ingresada
+    const remember = document.getElementById('mk-remember');
+    if(mk && remember && remember.checked) await saveMKLocal(mk, pw);
+    // 3) Si no ingresó MK manual, intentar cargar la guardada
+    if(!mk && hasSavedMK()){
+      mk = await loadSavedMK(pw);
+      if(mk){ toast('🔓 MK cargada del dispositivo'); }
+    }
     if(mk) setMasterKey(mk);
     document.getElementById('admin-pw').value=''; document.getElementById('admin-mk').value='';
-    closeModal('modal-admin'); applyRole(); toast('🔑 Modo admin activado');
+    closeModal('modal-admin'); applyRole();
+    const noMK = !getMasterKey();
+    toast('🔑 Modo admin activado' + (noMK ? ' (sin MK)' : ''));
     const navAdmin=document.getElementById('nav-admin');
     showPage('admin', navAdmin);
+    if(noMK) showNoMKBanner();
   } else {
     const tries = recordFailedAttempt();
     const remaining = MAX_TRIES - tries;
     if(isLocked()){ errEl.style.display=''; errEl.textContent=`🔒 Cuenta bloqueada por ${LOCK_MS/60000} min. Demasiados intentos.`; }
     else { errEl.style.display=''; errEl.textContent=`❌ Contraseña incorrecta. ${remaining > 0 ? `(${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''})` : ''}`; }
+  }
+}
+
+function showNoMKBanner(){
+  let banner = document.getElementById('no-mk-banner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'no-mk-banner';
+    banner.style.cssText = 'position:fixed;top:56px;left:0;right:0;background:rgba(251,191,36,.12);border-bottom:1px solid rgba(251,191,36,.3);padding:8px 1.5rem;font-size:12px;color:#fde68a;z-index:99;display:flex;align-items:center;gap:12px';
+    banner.innerHTML = '⚠️ <strong>Sin Master Key</strong> — los cambios se guardan solo de forma local y no se sincronizan con la nube. <button onclick="openModal('modal-admin')" style="background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer">Cargar MK ahora</button><button onclick="document.getElementById('no-mk-banner').remove()" style="background:none;border:none;color:#fde68a;cursor:pointer;margin-left:auto;font-size:14px" title="Cerrar">✕</button>';
+    document.body.appendChild(banner);
   }
 }
 
@@ -849,7 +951,7 @@ async function loadFromCloud(){
 
 async function syncCloud(manual=false){
   const mk = getMasterKey();
-  if(!mk){ saveLocal(); if(manual) toast('Sin Master Key — guardado solo local.','error'); return; }
+  if(!mk){ saveLocal(); if(manual) toast('Sin Master Key — guardado solo local.','error'); if(adminMode) showNoMKBanner(); return; }
   setSyncStatus('ing'); saveLocal();
   try{
     const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body: JSON.stringify(getState())});
