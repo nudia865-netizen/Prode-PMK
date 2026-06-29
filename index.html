@@ -1662,13 +1662,20 @@ function buildMatchCard(p, participantesVisibles){
     pronsHtml = '<div style="margin-top:8px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre de la fecha</span></div>';
   }
   const grupoHtml = p.grupo ? '<span class="badge b-group">G-'+p.grupo+'</span>' : '';
+  const tipoHtml = p.tipo==='playoff' ? '<span class="badge" style="background:rgba(251,191,36,.12);color:#fde68a;font-size:10px">⚡ Playoff +1</span>' : '';
   const dtHtml = p.dt ? '<div style="font-size:11px;color:var(--text3);margin-top:3px">📅 '+fmtDt(p.dt)+'</div>' : '';
+  // clasificado real para badge
+  const clReal = r && r.clasificado ? r.clasificado : null;
+  const clHtml = clReal ? '<span style="font-size:11px;color:#fde68a;margin-left:4px">⚡ '+clReal+' clasifica</span>' : '';
+  const cardId = 'bmc-'+p.id;
+  const toggleBtn = pronsHtml ? '<button class="btn-prons-toggle" onclick="togglePronView(this.dataset.id)" data-id="'+cardId+'" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Ver pronósticos</button>' : '';
+  const pronWrap = pronsHtml ? '<div id="'+cardId+'" style="display:none">'+pronsHtml+'</div>' : '';
   return '<div class="match-card">'
-    +'<div class="match-teams">'+grupoHtml
+    +'<div class="match-teams">'+grupoHtml+tipoHtml
     +'<div style="flex:1">'
     +'<div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
     +'<span>'+p.local+'</span>'+scoreHtml+'<span>'+p.visitante+'</span>'
-    +'</div>'+dtHtml+'</div></div>'+pronsHtml+'</div>';
+    +'</div>'+dtHtml+clHtml+'</div></div>'+toggleBtn+pronWrap+'</div>';
 }
 
 function renderPartidosPublicos(){
@@ -2839,8 +2846,11 @@ async function renderPartidosManana(){
     console.warn('[Mañana] ESPN fetch error:', e);
     sec.style.display='none'; return;
   }
-  if(!events.length){ sec.style.display='none'; return; }
   sec.style.display='';
+  if(!events.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--text3);padding:.5rem 0">Sin partidos encontrados para '+fechaEspn+' (ni +1 día).</p>';
+    return;
+  }
   var html='';
   for(var ei=0;ei<events.length;ei++){
     var ev=events[ei];
