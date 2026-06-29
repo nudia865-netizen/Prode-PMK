@@ -1649,10 +1649,13 @@ function buildMatchCard(p, participantesVisibles){
       const pr  = pronosticos[p.id] && pronosticos[p.id][part.nombre];
       const has = pr && !isNaN(pr.gl);
       if(!has) return ''; // ocultar quien no pronosticó
-      const pts = calcPuntos(pr, r, p);
-      const color = pts===3?'#1d4ed8':pts===1?'#166534':pts===0&&hasR?'#991b1b':'var(--text2)';
-      const medal = pts===3?'🎯':pts===1?'✓':'';
-      return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span>'+(medal?'<span style="font-size:11px">'+medal+'</span>':'')+'</span>';
+      const pts = hasR ? calcPuntos(pr, r, p) : -1;
+      const color = pts===3||pts===4?'#1d4ed8':pts===1?'#166534':pts===0?'#991b1b':'var(--text2)';
+      const badge = pts===4?'<span style="font-size:9px;font-weight:700;color:#1d4ed8;background:rgba(37,99,235,.12);border-radius:4px;padding:1px 4px">🎯+4</span>'
+                  : pts===3?'<span style="font-size:9px;font-weight:700;color:#1d4ed8;background:rgba(37,99,235,.12);border-radius:4px;padding:1px 4px">🎯 EXACTO</span>'
+                  : pts===1?'<span style="font-size:9px;font-weight:700;color:#166534;background:rgba(22,101,52,.10);border-radius:4px;padding:1px 4px">✓ GANADOR</span>'
+                  : pts===0?'<span style="font-size:9px;font-weight:700;color:#991b1b;background:rgba(153,27,27,.08);border-radius:4px;padding:1px 4px">✗</span>':''
+      return '<span class="pron-chip" style="flex-direction:column;align-items:flex-start;gap:1px;padding:5px 9px"><span style="display:flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:'+color+'">'+pr.gl+'-'+pr.gv+'</span></span>'+(badge?'<span>'+badge+'</span>':'')+'</span>';
     }).filter(Boolean).join('');
     if(chips) pronsHtml = '<div class="match-prons">'+chips+'</div>';
   } else if(!cerrada && participantesVisibles.length){
@@ -2078,16 +2081,18 @@ function renderFechaEnCurso(){
   // Mostrar la última fecha (la más reciente con partidos)
   var fechaActual = todasFechas[todasFechas.length-1];
   var ps = partidos.filter(function(p){ return p.fecha===fechaActual; });
-  if(!ps.length){ sec.style.display="none"; return; }
+  // solo los que ya tienen resultado
+  var psConRes = ps.filter(function(p){ var r=resultados[p.id]; return r&&!isNaN(r.gl); });
+  if(!psConRes.length){ sec.style.display="none"; return; }
   sec.style.display = "";
   if(lbl) lbl.textContent = fechaActual;
   var partsVisibles = participantes.filter(function(part){
-    return ps.some(function(p){
+    return psConRes.some(function(p){
       var pr = pronosticos[p.id] && pronosticos[p.id][part.nombre];
       return pr && !isNaN(pr.gl);
     });
   });
-  cont.innerHTML = ps.map(function(p){ return buildMatchCard(p, partsVisibles); }).join("");
+  cont.innerHTML = psConRes.map(function(p){ return buildMatchCard(p, partsVisibles); }).join("");
 }
 
 function renderResumenPub(){
@@ -2810,18 +2815,30 @@ async function renderPartidosManana(){
   var cont=document.getElementById('partidos-manana-content');
   if(!sec||!cont) return;
   var pad=function(n){ return n<10?'0'+n:String(n); };
-  var man=new Date(); man.setDate(man.getDate()+1);
+  // Calcular "mañana" en ARG (UTC-3): si son las 22hs ARG, UTC ya es el día siguiente
+  var ahora=new Date();
+  var argOffset=-3*60; // minutos
+  var argMs=ahora.getTime()+(ahora.getTimezoneOffset()+argOffset)*60000;
+  var argDate=new Date(argMs);
+  var man=new Date(argDate); man.setDate(man.getDate()+1);
   var fechaEspn=String(man.getFullYear())+pad(man.getMonth()+1)+pad(man.getDate());
-  var res, data;
+  var res, data, events=[];
   try{
     res=await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50',{cache:'no-cache'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     data=await res.json();
+    events=data.events||[];
+    // fallback: si ESPN devuelve vacío probar +2 días (por bug de zona horaria)
+    if(!events.length){
+      var man2=new Date(argDate); man2.setDate(man2.getDate()+2);
+      var fecha2=String(man2.getFullYear())+pad(man2.getMonth()+1)+pad(man2.getDate());
+      var res2=await fetch(ESPN_WC_URL+'?dates='+fecha2+'&limit=50',{cache:'no-cache'});
+      if(res2.ok){ var d2=await res2.json(); events=d2.events||[]; }
+    }
   }catch(e){
     console.warn('[Mañana] ESPN fetch error:', e);
     sec.style.display='none'; return;
   }
-  var events=data.events||[];
   if(!events.length){ sec.style.display='none'; return; }
   sec.style.display='';
   var html='';
