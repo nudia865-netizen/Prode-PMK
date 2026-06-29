@@ -917,7 +917,14 @@ function showNoMKBanner(){
     banner = document.createElement('div');
     banner.id = 'no-mk-banner';
     banner.style.cssText = 'position:fixed;top:56px;left:0;right:0;background:rgba(251,191,36,.12);border-bottom:1px solid rgba(251,191,36,.3);padding:8px 1.5rem;font-size:12px;color:#fde68a;z-index:99;display:flex;align-items:center;gap:12px';
-    banner.innerHTML = '⚠️ <strong>Sin Master Key</strong> — los cambios se guardan solo de forma local y no se sincronizan con la nube. <button onclick="openModal('modal-admin')" style="background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer">Cargar MK ahora</button><button onclick="document.getElementById('no-mk-banner').remove()" style="background:none;border:none;color:#fde68a;cursor:pointer;margin-left:auto;font-size:14px" title="Cerrar">✕</button>';
+    banner.innerHTML = `
+⚠️ <strong>Sin Master Key</strong> — los cambios se guardan solo de forma local y no se sincronizan con la nube.
+<button onclick="openModal('modal-admin')" style="background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fde68a;border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer">
+  Cargar MK ahora
+</button>
+<button onclick="document.getElementById('no-mk-banner').remove()" style="background:none;border:none;color:#fde68a;cursor:pointer;margin-left:auto;font-size:14px" title="Cerrar">
+  ✕
+</button>`;
     document.body.appendChild(banner);
   }
 }
