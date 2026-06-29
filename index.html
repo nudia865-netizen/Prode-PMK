@@ -869,8 +869,14 @@ async function syncCloud(manual=false){
   try{
     const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body: JSON.stringify(getState())});
     if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
-    else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
-  }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
+    else {
+      let errMsg = 'Error al guardar';
+      try{ const j=await res.json(); errMsg = j.message || j.error || ('HTTP '+res.status); }catch(e2){}
+      setSyncStatus('err');
+      if(manual) toast('✕ '+errMsg, 'error');
+      console.error('syncCloud error', res.status, errMsg, 'MK len:', mk.length, 'MK preview:', mk.substring(0,12)+'...');
+    }
+  }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); console.error('syncCloud fetch error', e); }
 }
 
 function persist(){ saveLocal(); clearTimeout(syncTimer); syncTimer=setTimeout(()=>{ syncTimer=null; syncCloud(); },3000); }
