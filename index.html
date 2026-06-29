@@ -2073,10 +2073,10 @@ function renderFechaEnCurso(){
   var cont = document.getElementById("fecha-en-curso-content");
   var lbl = document.getElementById("fecha-en-curso-label");
   if(!sec||!cont) return;
-  // Encontrar la primera fecha abierta
-  var fechasAbiertas = getFechas().filter(function(f){ return partidos.some(function(p){ return p.fecha===f && p.estado!=="cerrada"; }); });
-  if(!fechasAbiertas.length){ sec.style.display="none"; return; }
-  var fechaActual = fechasAbiertas[0];
+  var todasFechas = getFechas();
+  if(!todasFechas.length){ sec.style.display="none"; return; }
+  // Mostrar la última fecha (la más reciente con partidos)
+  var fechaActual = todasFechas[todasFechas.length-1];
   var ps = partidos.filter(function(p){ return p.fecha===fechaActual; });
   if(!ps.length){ sec.style.display="none"; return; }
   sec.style.display = "";
@@ -2794,91 +2794,104 @@ function renderHighlights(){
 // ══════════════════════════════════════════════════════════════════════
 // ── PARTIDOS DE MAÑANA ────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════
+function normManana(s){
+  s=(s||'').toLowerCase().trim();
+  if(ESPN_NOMBRES&&ESPN_NOMBRES[s]) s=ESPN_NOMBRES[s];
+  s=s.replace(/ç/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
+      .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u')
+      .replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim();
+  if(ESPN_NOMBRES&&ESPN_NOMBRES[s]) s=ESPN_NOMBRES[s];
+  return s.replace(/ /g,'');
+}
+function tmatchM(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||(a.length>5&&b.length>5&&(a.includes(b.slice(0,6))||b.includes(a.slice(0,6)))); }
+
 async function renderPartidosManana(){
-  const sec=document.getElementById('sec-partidos-manana');
-  const cont=document.getElementById('partidos-manana-content');
+  var sec=document.getElementById('sec-partidos-manana');
+  var cont=document.getElementById('partidos-manana-content');
   if(!sec||!cont) return;
   var pad=function(n){ return n<10?'0'+n:String(n); };
   var man=new Date(); man.setDate(man.getDate()+1);
   var fechaEspn=String(man.getFullYear())+pad(man.getMonth()+1)+pad(man.getDate());
+  var res, data;
   try{
-    var res=await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50',{cache:'no-cache'});
+    res=await fetch(ESPN_WC_URL+'?dates='+fechaEspn+'&limit=50',{cache:'no-cache'});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    var data=await res.json();
-    var events=data.events||[];
-    if(!events.length){ sec.style.display='none'; return; }
-    sec.style.display='';
-    cont.innerHTML=events.map(function(ev){
-      var comp=ev.competitions&&ev.competitions[0];
-      if(!comp) return '';
-      var comps=comp.competitors||[];
-      var home=comps.find(function(c){ return c.homeAway==='home'; })||comps[0]||{};
-      var away=comps.find(function(c){ return c.homeAway==='away'; })||comps[1]||{};
-      var t1=home.team?(home.team.displayName||home.team.shortDisplayName||home.team.name):'?';
-      var t2=away.team?(away.team.displayName||away.team.shortDisplayName||away.team.name):'?';
-      var flag1=home.team&&home.team.logo?'<img src="'+home.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
-      var flag2=away.team&&away.team.logo?'<img src="'+away.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
-      var horaHtml='';
-      if(comp.date){
-        var d=new Date(comp.date);
-        var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
-        var mm=pad(d.getUTCMinutes());
-        horaHtml='<span style="font-size:11px;color:var(--text3)">🕐 '+hh+':'+mm+' (ARG)</span>';
+    data=await res.json();
+  }catch(e){
+    console.warn('[Mañana] ESPN fetch error:', e);
+    sec.style.display='none'; return;
+  }
+  var events=data.events||[];
+  if(!events.length){ sec.style.display='none'; return; }
+  sec.style.display='';
+  var html='';
+  for(var ei=0;ei<events.length;ei++){
+    var ev=events[ei];
+    var comp=ev.competitions&&ev.competitions[0];
+    if(!comp) continue;
+    var comps=comp.competitors||[];
+    var home=comps.find(function(c){ return c.homeAway==='home'; })||comps[0]||{};
+    var away=comps.find(function(c){ return c.homeAway==='away'; })||comps[1]||{};
+    var t1=home.team?(home.team.displayName||home.team.shortDisplayName||home.team.name):'?';
+    var t2=away.team?(away.team.displayName||away.team.shortDisplayName||away.team.name):'?';
+    var flag1=home.team&&home.team.logo?'<img src="'+home.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
+    var flag2=away.team&&away.team.logo?'<img src="'+away.team.logo+'" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px">':'';
+    var horaHtml='';
+    if(comp.date){
+      var d=new Date(comp.date);
+      var hh=d.getUTCHours()-3; if(hh<0)hh+=24;
+      var mm=pad(d.getUTCMinutes());
+      horaHtml='<span style="font-size:11px;color:var(--text3)">🕐 '+hh+':'+mm+' hs</span>';
+    }
+    var notas=comp.notes||[], grupoTexto='';
+    for(var ni=0;ni<notas.length;ni++){ if(notas[ni].text&&notas[ni].text.match(/Group|Grupo/i)) grupoTexto=notas[ni].text; }
+    var grupoHtml=grupoTexto?'<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>':'';
+    // match con prode
+    var t1n=normManana(t1), t2n=normManana(t2);
+    var matchProde=null;
+    for(var pi=0;pi<partidos.length;pi++){
+      var lp=normManana(partidos[pi].local), vp=normManana(partidos[pi].visitante);
+      if(tmatchM(lp,t1n)&&tmatchM(vp,t2n)){ matchProde=partidos[pi]; break; }
+    }
+    if(!matchProde){
+      for(var pi=0;pi<partidos.length;pi++){
+        var lp=normManana(partidos[pi].local), vp=normManana(partidos[pi].visitante);
+        if(lp.slice(0,3)===t1n.slice(0,3)&&vp.slice(0,3)===t2n.slice(0,3)){ matchProde=partidos[pi]; break; }
       }
-      // Nota de grupo desde ESPN
-      var notas=comp.notes||[];
-      var grupoTexto='';
-      notas.forEach(function(n){ if(n.text&&n.text.match(/Group|Grupo/i)) grupoTexto=n.text; });
-      var grupoHtml=grupoTexto?'<span class="badge b-group" style="font-size:11px">'+grupoTexto+'</span>':'';
-      // Matching con partidos del prode (reusar normTeam del scope externo)
-      function normTM(s){
-        s=(s||'').toLowerCase().trim();
-        if(ESPN_NOMBRES[s]) s=ESPN_NOMBRES[s];
-        var stripped=s.replace(/\u00e7/g,'c').replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e')
-                      .replace(/[íìïî]/g,'i').replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u')
-                      .replace(/[ñ]/g,'n').replace(/[^a-z ]/g,'').trim();
-        if(ESPN_NOMBRES[stripped]) stripped=ESPN_NOMBRES[stripped];
-        return stripped.replace(/ /g,'');
-      }
-      var t1n=normTM(t1), t2n=normTM(t2);
-      function tmatch(a,b){ return a===b||a.slice(0,5)===b.slice(0,5)||a.includes(b.slice(0,6))||b.includes(a.slice(0,6)); }
-      var matchProde=partidos.find(function(p){ var l=normTM(p.local),v=normTM(p.visitante); return tmatch(l,t1n)&&tmatch(v,t2n); })
-        || partidos.find(function(p){ var l=normTM(p.local),v=normTM(p.visitante); return l.slice(0,3)===t1n.slice(0,3)&&v.slice(0,3)===t2n.slice(0,3); });
-      // Pronósticos: si la fecha ya está cerrada los mostramos, si está abierta ponemos candado
-      var pronsHtml='';
-      if(matchProde){
-        var cerrada=matchProde.estado==='cerrada';
-        if(cerrada){
-          var chips=participantes.map(function(part){
-            var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre];
-            if(!pr||isNaN(pr.gl)) return '';
-            return '<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--text)">'+pr.gl+'-'+pr.gv+'</span></span>';
-          }).filter(Boolean).join('');
-          if(chips) pronsHtml='<div class="match-prons">'+chips+'</div>';
-        } else {
-          pronsHtml='<div style="margin-top:6px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre</span></div>';
+    }
+    var pronsHtml='';
+    if(matchProde){
+      if(matchProde.estado==='cerrada'){
+        var chips='';
+        for(var parti=0;parti<participantes.length;parti++){
+          var part=participantes[parti];
+          var pr=pronosticos[matchProde.id]&&pronosticos[matchProde.id][part.nombre];
+          if(pr&&!isNaN(pr.gl)){
+            chips+='<span class="pron-chip"><span style="color:var(--text2);font-size:11px">'+part.nombre+'</span><span class="score" style="color:var(--text)">'+pr.gl+'-'+pr.gv+'</span></span>';
+          }
         }
+        if(chips) pronsHtml='<div class="match-prons">'+chips+'</div>';
+      } else {
+        pronsHtml='<div style="margin-top:6px"><span class="lock-badge">🔒 Pronósticos ocultos hasta el cierre</span></div>';
       }
-      var evId='man-'+(ev.id||Math.random().toString(36).slice(2));
-      var hasProns=pronsHtml.length>0;
-      var pronBtn=hasProns?'<button class="btn-prons-toggle" onclick="togglePronView(&quot;'+evId+'&quot;)" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Pronósticos</button>':'';
-      var pronWrap=hasProns?'<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>':'';
-      // Layout estilo promiedos: equipo — vs — equipo con hora arriba
-      var metaHtml='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'+(grupoHtml||'')+horaHtml+'</div>';
-      var rowHtml='<div style="display:flex;align-items:center">'
-        +'<div style="flex:1;display:flex;align-items:center;gap:7px;justify-content:flex-end;min-width:0;overflow:hidden">'
-          +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'
-          +flag1
-        +'</div>'
-        +'<div style="flex-shrink:0;width:52px;text-align:center;font-family:Barlow Condensed,sans-serif;font-size:18px;font-weight:700;color:var(--text3)">vs</div>'
-        +'<div style="flex:1;display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden">'
-          +flag2
-          +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
-        +'</div>'
-        +'</div>';
-      return '<div class="match-card" style="padding:.65rem .95rem">'+metaHtml+rowHtml+pronBtn+pronWrap+'</div>';
-    }).join('');
-  }catch(e){ sec.style.display='none'; }
+    }
+    var evId='man-'+(ev.id||(''+ei));
+    var hasProns=pronsHtml.length>0;
+    var pronBtn=hasProns?'<button class="btn-prons-toggle" onclick="togglePronView(this.dataset.id)" data-id="'+evId+'" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Pronósticos</button>':'';
+    var pronWrap=hasProns?'<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>':'';
+    var metaHtml='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'+grupoHtml+horaHtml+'</div>';
+    var rowHtml='<div style="display:flex;align-items:center">'
+      +'<div style="flex:1;display:flex;align-items:center;gap:6px;justify-content:flex-end;min-width:0">'
+        +'<span style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t1+'</span>'+flag1
+      +'</div>'
+      +'<div style="flex-shrink:0;width:48px;text-align:center;font-size:16px;font-weight:700;color:var(--text3)">vs</div>'
+      +'<div style="flex:1;display:flex;align-items:center;gap:6px;min-width:0">'+flag2
+        +'<span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t2+'</span>'
+      +'</div>'
+      +'</div>';
+    html+='<div class="match-card" style="padding:.65rem .95rem">'+metaHtml+rowHtml+pronBtn+pronWrap+'</div>';
+  }
+  cont.innerHTML=html||'<p class="empty">Sin partidos mañana.</p>';
 }
 
 // ══════════════════════════════════════════════════════════════════════
