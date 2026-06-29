@@ -702,8 +702,9 @@ function isLocked(){ const {until} = getLockInfo(); return until && Date.now() <
 function lockRemaining(){ const {until} = getLockInfo(); if(!until) return 0; return Math.max(0, Math.ceil((until - Date.now()) / 1000)); }
 function recordFailedAttempt(){ const info = getLockInfo(); const tries = (info.tries || 0) + 1; if(tries >= MAX_TRIES){ localStorage.setItem(LOCK_KEY, JSON.stringify({tries, until: Date.now() + LOCK_MS})); } else { localStorage.setItem(LOCK_KEY, JSON.stringify({tries})); } return tries; }
 function clearLock(){ localStorage.removeItem(LOCK_KEY); }
-function getMasterKey(){ return sessionStorage.getItem('pmk_mk') || ''; }
-function setMasterKey(k){ if(k) sessionStorage.setItem('pmk_mk', k); }
+function sanitizeMK(k){ return (k||'').replace(/[^\x20-\x7E]/g,'').trim(); }
+function getMasterKey(){ return sanitizeMK(sessionStorage.getItem('pmk_mk')); }
+function setMasterKey(k){ const clean=sanitizeMK(k); if(clean) sessionStorage.setItem('pmk_mk', clean); }
 
 let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial={}, resultadosEspn={};
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
