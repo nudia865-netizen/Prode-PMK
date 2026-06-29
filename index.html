@@ -2861,7 +2861,7 @@ async function renderPartidosManana(){
       }
       var evId='man-'+(ev.id||Math.random().toString(36).slice(2));
       var hasProns=pronsHtml.length>0;
-      var pronBtn=hasProns?'<button class="btn-prons-toggle" onclick="togglePronView(\''+evId+'\')" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Pronósticos</button>':'';
+      var pronBtn=hasProns?'<button class="btn-prons-toggle" onclick="togglePronView(&quot;'+evId+'&quot;)" style="margin-top:6px;font-size:11px;padding:3px 10px">👁 Pronósticos</button>':'';
       var pronWrap=hasProns?'<div id="'+evId+'" style="display:none">'+pronsHtml+'</div>':'';
       // Layout estilo promiedos: equipo — vs — equipo con hora arriba
       var metaHtml='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'+(grupoHtml||'')+horaHtml+'</div>';
