@@ -838,10 +838,8 @@ function applyRole(){
 
 async function loadFromCloud(){
   try{
-    const mk = getMasterKey();
-    // Si hay master key la usamos; si no, intentamos sin header (bin público)
-    // Evitamos enviar ACCESS_KEY inválida que causa 403
-    const headers = mk ? {'X-Master-Key': mk} : {};
+    // ACCESS_KEY es de solo-lectura: siempre se usa para GET aunque el bin sea privado
+    const headers = {'X-Access-Key': ACCESS_KEY};
     const res  = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
     const data = await res.json();
     if(data.record){ setState(data.record); saveLocal(); return true; }
@@ -856,7 +854,8 @@ async function syncCloud(manual=false){
   try{
     const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body: JSON.stringify(getState())});
     if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
-    else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
+    else if(res.status===403){ setSyncStatus('err'); if(manual) toast('Master Key incorrecta o inválida (403)','error'); else console.warn('[sync] 403 — Master Key rechazada'); }
+    else { setSyncStatus('err'); if(manual) toast('Error al guardar ('+res.status+')','error'); }
   }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
 }
 
@@ -1809,8 +1808,8 @@ async function loadHistorialBin(){
   // Si no, cargar del bin principal y usar pozosHistorial de ahí
   cont.innerHTML='<p class="empty">Cargando historial…</p>';
   try{
-    const mk = getMasterKey();
-    const headers = mk ? {'X-Master-Key': mk} : {};
+    // ACCESS_KEY es de solo-lectura: siempre se usa para GET aunque el bin sea privado
+    const headers = {'X-Access-Key': ACCESS_KEY};
     const res = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
