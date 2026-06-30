@@ -690,7 +690,8 @@ tr.rank-3 td{background:rgba(140,80,20,.07)}
 
 <script>
 const JSONBIN    = 'https://api.jsonbin.io/v3';
-const BIN_ID     = '6a3c97eada38895dfefad913';
+const BIN_ID     = '6a3c97eada38895dfefad913';  // bin ACTUAL (16avos en adelante) — lectura/escritura
+const HIST_BIN_ID_FIJO = '6a3d0cfdda38895dfefcce43'; // bin HISTÓRICO (Fechas 1-3) — solo lectura
 const ACCESS_KEY = '$2a$10$wHS79O41He/cDjUyzXlIeOkjdrB4Vxku17F4j0ZqOahl2OVsyr4yy';
 const ADMIN_PW_HASH = '7c4e5b8f2a1d9c3e6f0b7a2d5e8c1f4a9b3d6e0c2f5a8b1d4e7c0f3a6b9d2e5';
 
@@ -755,15 +756,41 @@ let partidos=[], participantes=[], pronosticos={}, resultados={}, pozosHistorial
 let tablaView='fecha', pronPersonaSel=null, adminMode=false, syncTimer=null, partFechaSel=null, pozoFechaSel=null;
 let pronFechasOpen={}; // estado colapso por fecha en pestaña pronósticos
 
-function getState(){ const s={partidos, participantes, pronosticos, resultados, pozosHistorial}; if(HIST_BIN_ID) s._histBin=HIST_BIN_ID; return s; }
-function setState(d){
-  partidos=d.partidos||[]; participantes=d.participantes||[]; pronosticos=d.pronosticos||{}; resultados=d.resultados||{}; pozosHistorial=d.pozosHistorial||{};
+// Fechas que van al bin histórico (solo lectura)
+const FECHAS_HIST = ['Fecha 1', 'Fecha 2', 'Fecha 3'];
+
+function getState(){
+  // Solo guarda partidos/pronósticos/resultados de fechas NO históricas
+  const idsHist = new Set(partidos.filter(p=>FECHAS_HIST.includes(p.fecha)).map(p=>String(p.id)));
+  const partAct = partidos.filter(p=>!FECHAS_HIST.includes(p.fecha));
+  const pronAct = {}, resAct = {};
+  Object.keys(pronosticos).forEach(k=>{ if(!idsHist.has(String(k))) pronAct[k]=pronosticos[k]; });
+  Object.keys(resultados).forEach(k=>{ if(!idsHist.has(String(k))) resAct[k]=resultados[k]; });
+  return {partidos: partAct, participantes, pronosticos: pronAct, resultados: resAct, pozosHistorial};
+}
+function mergeEstado(hist, act){
+  // Fusiona los datos históricos + actuales en las variables globales
+  const partHist = (hist && hist.partidos) || [];
+  const partAct  = (act  && act.partidos)  || [];
+  // Participantes del bin actual (más actualizado)
+  participantes = (act && act.participantes) || (hist && hist.participantes) || [];
   participantes.forEach(p=>{
     if(!p.pagos){ p.pagos = {}; if(p.cuota==='si'){ const f0=getFechas()[0]; if(f0) p.pagos[f0]='si'; } delete p.cuota; }
   });
-  if(d._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=d._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
-  if(d._histBin){ HIST_BIN_ID=d._histBin; localStorage.setItem('pmk_hist_bin',HIST_BIN_ID); }
-  window._lastCloudState = d;
+  // Partidos: histórico primero, luego actual (sin duplicados por id)
+  const idsAct = new Set(partAct.map(p=>p.id));
+  partidos = [...partHist.filter(p=>!idsAct.has(p.id)), ...partAct];
+  // Pronósticos y resultados: merge (actual pisa histórico si hay conflicto)
+  pronosticos = Object.assign({}, (hist&&hist.pronosticos)||{}, (act&&act.pronosticos)||{});
+  resultados  = Object.assign({}, (hist&&hist.resultados)||{},  (act&&act.resultados)||{});
+  pozosHistorial = Object.assign({}, (hist&&hist.pozosHistorial)||{}, (act&&act.pozosHistorial)||{});
+  if(act && act._chatBin && !CHAT_BIN_ID){ CHAT_BIN_ID=act._chatBin; localStorage.setItem('pmk_chat_bin',CHAT_BIN_ID); }
+  window._lastCloudState = act;
+}
+
+function setState(d){
+  // Llamado al cargar solo el bin actual (el histórico se carga por separado)
+  mergeEstado(window._histData||null, d);
 }
 
 function pagoFecha(p, fecha){ return (p.pagos && p.pagos[fecha]) || 'no'; }
@@ -948,12 +975,22 @@ function applyRole(){
 async function loadFromCloud(){
   try{
     const mk = getMasterKey();
-    const headers = mk ? {'X-Master-Key': mk} : {'X-Access-Key': ACCESS_KEY};
-    const res  = await fetch(`${JSONBIN}/b/${BIN_ID}/latest`, {headers});
-    const data = await res.json();
-    if(data.record){ setState(data.record); saveLocal(); return true; }
-    return false;
-  }catch(e){ return false; }
+    const headers    = mk ? {'X-Master-Key': mk} : {'X-Access-Key': ACCESS_KEY};
+    const headersRO  = {'X-Access-Key': ACCESS_KEY}; // histórico siempre con access key
+    // Cargar ambos bins en paralelo
+    const [resHist, resAct] = await Promise.all([
+      fetch(`${JSONBIN}/b/${HIST_BIN_ID_FIJO}/latest`, {headers: headersRO}),
+      fetch(`${JSONBIN}/b/${BIN_ID}/latest`,            {headers})
+    ]);
+    const [dataHist, dataAct] = await Promise.all([resHist.json(), resAct.json()]);
+    const hist = dataHist.record || null;
+    const act  = dataAct.record  || null;
+    if(!hist && !act) return false;
+    window._histData = hist;
+    mergeEstado(hist, act);
+    saveLocal();
+    return true;
+  }catch(e){ console.warn('loadFromCloud error:', e); return false; }
 }
 
 async function syncCloud(manual=false){
@@ -961,9 +998,12 @@ async function syncCloud(manual=false){
   if(!mk){ saveLocal(); if(manual) toast('Sin Master Key — guardado solo local.','error'); if(adminMode) showNoMKBanner(); return; }
   setSyncStatus('ing'); saveLocal();
   try{
-    const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body: JSON.stringify(getState())});
+    // Solo escribe al bin actual (histórico nunca se toca)
+    const body = JSON.stringify(getState());
+    if(body.length > 95000){ toast('⚠ Datos muy grandes para guardar ('+Math.round(body.length/1024)+'kb)','error'); setSyncStatus('err'); return; }
+    const res = await fetch(`${JSONBIN}/b/${BIN_ID}`, {method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key': mk}, body});
     if(res.ok){ setSyncStatus('ok'); if(manual) toast('☁ Guardado en la nube'); }
-    else       { setSyncStatus('err'); if(manual) toast('Error al guardar','error'); }
+    else       { setSyncStatus('err'); if(manual) toast('Error al guardar (HTTP '+res.status+')','error'); }
   }catch(e){ setSyncStatus('err'); if(manual) toast('Error de red: '+e.message,'error'); }
 }
 
@@ -1901,7 +1941,7 @@ function togglePerson(idx){ document.getElementById('pbody_'+idx)?.classList.tog
 // ── HISTORIAL BIN SEPARADO ────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════
 // El historial vive en un bin aparte (guardado en el bin principal como _histBin)
-var HIST_BIN_ID = localStorage.getItem('pmk_hist_bin') || '';
+// HIST_BIN_ID ahora es HIST_BIN_ID_FIJO (constante arriba)
 
 async function loadHistorialBin(){
   const cont = document.getElementById('historial-pub-content');
@@ -1961,11 +2001,7 @@ function renderHistorialDesdeMemoria(){
   }).join('');
 }
 
-// Guardar _histBin en el bin principal cuando el admin lo configure
-function setHistBinId(id){
-  HIST_BIN_ID = id;
-  localStorage.setItem('pmk_hist_bin', id);
-}
+// Bin histórico hardcodeado como HIST_BIN_ID_FIJO — no requiere configuración
 
 // ══════════════════════════════════════════════════════════════════════
 // ── TABLA CON ESPN (tiempo real, sin confirmación admin) ──────────────
@@ -2299,6 +2335,91 @@ function initChat(){ document.getElementById('chat-name-display').textContent=ch
 // ── Partidos de hoy — ESPN API interna (sin API key, casi tiempo real) ────────
 const ESPN_WC_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
 
+// Diccionario ESPN (inglés) → nombres del prode
+const ESPN_NOMBRES = {
+  'united states':'estados unidos','usa':'estados unidos',
+  'south korea':'corea del sur','korea republic':'corea del sur','korea':'corea del sur',
+  'north korea':'corea del norte','dpr korea':'corea del norte',
+  'ivory coast':'costa de marfil',"cote d'ivoire":'costa de marfil',
+  'saudi arabia':'arabia saudita','spain':'espana',
+  'england':'inglaterra','ghana':'ghana',
+  'iran':'iran','ir iran':'iran',
+  'cape verde':'cabo verde',
+  'democratic republic of congo':'rd congo','dr congo':'rd congo','congo dr':'rd congo',
+  'republic of ireland':'irlanda','ireland':'irlanda',
+  'new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega','denmark':'dinamarca',
+  'trinidad & tobago':'trinidad y tobago',
+  'trinidad and tobago':'trinidad y tobago',
+  'trinidad &amp; tobago':'trinidad y tobago',
+  'central african republic':'rep centroafricana',
+  'equatorial guinea':'guinea ecuatorial',
+  'guinea bissau':'guinea bisau',
+  'burkina faso':'burkina faso',
+  'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
+  'north macedonia':'macedonia del norte',
+  'czech republic':'republica checa','czechia':'republica checa',
+  'netherlands':'paises bajos','holland':'paises bajos',
+  'great britain':'gran bretana',
+  'kyrgyz republic':'kirguistan','kyrgyzstan':'kirguistan',
+  'chinese taipei':'taipei chino',
+  'uae':'emiratos arabes unidos','united arab emirates':'emiratos arabes unidos',
+  'switzerland':'suiza',
+  'morocco':'marruecos',
+  'scotland':'escocia',
+  'curacao':'curazao',
+  'japan':'japon',
+  'tunisia':'tunez',
+  'turkey':'turquia','turkiye':'turquia',
+  'germany':'alemania',
+  'brazil':'brasil',
+  'canada':'canada',
+  'haiti':'haiti',
+  'ecuador':'ecuador',
+  'paraguay':'paraguay',
+  'cameroon':'camerun',
+  'senegal':'senegal',
+  'nigeria':'nigeria',
+  'colombia':'colombia',
+  'venezuela':'venezuela',
+  'peru':'peru',
+  'chile':'chile',
+  'bolivia':'bolivia',
+  'uruguay':'uruguay',
+  'costa rica':'costa rica',
+  'honduras':'honduras',
+  'mexico':'mexico',
+  'jamaica':'jamaica',
+  'panama':'panama',
+  'el salvador':'el salvador',
+  'portugal':'portugal',
+  'france':'francia',
+  'italy':'italia',
+  'belgium':'belgica',
+  'croatia':'croacia',
+  'serbia':'serbia',
+  'austria':'austria',
+  'hungary':'hungria',
+  'poland':'polonia',
+  'romania':'rumania',
+  'ukraine':'ucrania',
+  'greece':'grecia',
+  'albania':'albania',
+  'slovakia':'eslovaquia',
+  'slovenia':'eslovenia',
+  'finland':'finlandia',
+  'wales':'gales',
+  'russia':'rusia',
+  'egypt':'egipto',
+  'algeria':'argelia',
+  'south africa':'sudafrica',
+  'indonesia':'indonesia',
+  'thailand':'tailandia',
+  'vietnam':'vietnam',
+  'china':'china',
+  'india':'india',
+  'qatar':'catar',
+};
+
 async function renderPartidosHoy(){
   const sec = document.getElementById('sec-partidos-hoy');
   const cont = document.getElementById('partidos-hoy-content');
@@ -2362,90 +2483,6 @@ async function renderPartidosHoy(){
         : '<div class="match-score pending" style="font-size:13px">vs</div>';
 
       // Matching con partidos del prode por nombre
-      // Diccionario ESPN (inglés) → nombres en español usados en el prode
-      var ESPN_NOMBRES = {
-        'united states':'estados unidos','usa':'estados unidos',
-        'south korea':'corea del sur','korea republic':'corea del sur','korea':'corea del sur',
-        'north korea':'corea del norte','dpr korea':'corea del norte',
-        'ivory coast':'costa de marfil',"cote d'ivoire":'costa de marfil',
-        'saudi arabia':'arabia saudita','spain':'espana',
-        'england':'inglaterra','ghana':'ghana',
-        'iran':'iran','ir iran':'iran',
-        'cape verde':'cabo verde',
-        'democratic republic of congo':'rd congo','dr congo':'rd congo','congo dr':'rd congo',
-        'republic of ireland':'irlanda','ireland':'irlanda',
-        'new zealand':'nueva zelanda','sweden':'suecia','norway':'noruega','denmark':'dinamarca',
-        'trinidad & tobago':'trinidad y tobago',
-        'trinidad and tobago':'trinidad y tobago',
-        'trinidad &amp; tobago':'trinidad y tobago',
-        'central african republic':'rep centroafricana',
-        'equatorial guinea':'guinea ecuatorial',
-        'guinea bissau':'guinea bisau',
-        'burkina faso':'burkina faso',
-        'bosnia & herzegovina':'bosnia','bosnia and herzegovina':'bosnia',
-        'north macedonia':'macedonia del norte',
-        'czech republic':'republica checa','czechia':'republica checa',
-        'netherlands':'paises bajos','holland':'paises bajos',
-        'great britain':'gran bretana',
-        'kyrgyz republic':'kirguistan','kyrgyzstan':'kirguistan',
-        'chinese taipei':'taipei chino',
-        'uae':'emiratos arabes unidos','united arab emirates':'emiratos arabes unidos',
-        'switzerland':'suiza',
-        'morocco':'marruecos',
-        'scotland':'escocia',
-        'curacao':'curazao',
-        'japan':'japon',
-        'tunisia':'tunez',
-        'turkey':'turquia','turkiye':'turquia',
-        'germany':'alemania',
-        'brazil':'brasil',
-        'canada':'canada',
-        'haiti':'haiti',
-        'ecuador':'ecuador',
-        'paraguay':'paraguay',
-        'cameroon':'camerun',
-        'senegal':'senegal',
-        'nigeria':'nigeria',
-        'colombia':'colombia',
-        'venezuela':'venezuela',
-        'peru':'peru',
-        'chile':'chile',
-        'bolivia':'bolivia',
-        'uruguay':'uruguay',
-        'costa rica':'costa rica',
-        'honduras':'honduras',
-        'mexico':'mexico',
-        'jamaica':'jamaica',
-        'panama':'panama',
-        'el salvador':'el salvador',
-        'portugal':'portugal',
-        'france':'francia',
-        'italy':'italia',
-        'belgium':'belgica',
-        'croatia':'croacia',
-        'serbia':'serbia',
-        'austria':'austria',
-        'hungary':'hungria',
-        'poland':'polonia',
-        'romania':'rumania',
-        'ukraine':'ucrania',
-        'greece':'grecia',
-        'albania':'albania',
-        'slovakia':'eslovaquia',
-        'slovenia':'eslovenia',
-        'finland':'finlandia',
-        'wales':'gales',
-        'russia':'rusia',
-        'egypt':'egipto',
-        'algeria':'argelia',
-        'south africa':'sudafrica',
-        'indonesia':'indonesia',
-        'thailand':'tailandia',
-        'vietnam':'vietnam',
-        'china':'china',
-        'india':'india',
-        'qatar':'catar',
-      };
       function normTeam(s){
         s = s.toLowerCase().trim();
         // primer lookup con nombre original
